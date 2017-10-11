@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>#!PAGE_TITLE!#</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+            a:link,a:visited,a:hover,a:focus,a:active{color:blue;}
+        </style>
+    </head>
+    <body style='font-family: Arial'>
+
+    <center>
+        #!ERROR!#<br>
+        <br><big>#!LOGIN!#</big><br><br>
+        <form method='POST' action='/login'>
+            <table>
+                <tr><td>#!NAME!#:</td><td><input id='userNameInput' size=20 type='text' name='username'/></td></tr>
+                <tr><td>#!PASSWORD!#:</td><td><input id='userPasswordInput' size=20 type='password' name='password'/><td></tr>
+                <tr><td align=center colSpan=2><br><input type='submit' value='#!LOGIN!#'/><td></tr>
+                <tr><td align=center colSpan=2><hr><a href='#!REGISTER_LINK!#'>#!REGISTER!#</a><td></tr>
+            </table>
+            <script>document.getElementById('userNameInput').focus();</script>
+        </form>
+    </center>
+
+</body>
+</html>
