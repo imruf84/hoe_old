@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>#!PAGE_TITLE!#</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+        <style>html, body {width:100%;height:100%;margin:0;padding:0;border:0;overflow:hidden;font-size:100%;font-family:monospace;color:black;}</style>
+
+        <style>
+            html,body {
+                height: 100%;
+                min-height: 100% !important;
+            }
+            .solid {
+                background-color: lightgray;
+            }
+            .fitwidth {
+                width:1%;
+                white-space:nowrap;
+            }
+            .expandwidth {
+                width:100%;
+            }
+            .header {
+                border-bottom: 1px solid black;
+            }
+            .footer {
+                border-top:1px solid black;
+            }
+            .sider {
+                border-top:1px solid black;
+                border-right:1px solid black;
+            }
+            .panzoom{}
+            .parent{}
+        </style>
+
+        <script>
+            function scrollTopLeft(){
+            //var d = (document.documentElement || document.body.parentNode || document.body);
+            var d = document.body;
+            d.scrollLeft = 0;
+            d.scrollTop = 0;
+            };
+            document.addEventListener('gesturestart', function (e) {
+            scrollTopLeft();
+            e.preventDefault();
+            });
+            document.addEventListener('touchmove', 
+            function(event) {
+            scrollTopLeft();
+            event.preventDefault();
+            }, false);
+        </script>
+
+        <!--<script src="jquery.js"></script>    
+        <script src="jquery.panzoom.js"></script>-->
+
+
+        <script>var sample=1;var smPos=153;var spPos=153;var sW;var sH;</script>
+        <script src="jquery-1.7.1.js"></script>
+        <script src="preview.unpacked.js"></script>
+        <script>jQuery(function(c){var a,b;if(c("body").innerWidth()<480){a=Math.max(240,c("body").innerWidth());b=parseInt(a/1.333)}else{a=480;b=360}c("#yourImageID").z({width:'100%',height:'100%',responsive:true,responsive_maintain_ratio:true,max_WIDTH:'',max_HEIGHT:''})});</script> 
+
+    </head>
+
+    <body bgcolor="black">
+        <!--
+        <div id="focal" style="width:100%;height:100%;">
+            <div class="parent"  style="width:100%;height:100%;">
+                <div class="panzoom"  style="width:100%;height:100%;">
+                    <img alt="Loading..." src="http://www.duber.cz/dump/uv_map_reference.jpg" style="max-width:100%;max-height:100%;">
+                </div>
+            </div>
+            <script>
+                (function() {
+                var $section = $('#focal');
+                var $panzoom = $section.find('.panzoom').panzoom();
+                $panzoom.parent().on('mousewheel.focal', function( e ) {
+                e.preventDefault();
+                var delta = e.delta || e.originalEvent.wheelDelta;
+                var zoomOut = delta ? delta < 0 : e.originalEvent.deltaY > 0;
+                $panzoom.panzoom('zoom', zoomOut, {
+                increment: 0.2,
+                animate: true,
+                focal: e,
+                contain: true
+                });
+                
+                
+                });
+                })();
+            </script>
+        </div>-->
+
+        <img alt="Loading..." src="http://www.duber.cz/dump/uv_map_reference.jpg" border="0" id="yourImageID" />
+        <script>
+            $().ready( function(){
+            //console.log(document.getElementById('divtoextend').style.width);
+            document.getElementById('divtoextend').style.width='100%';
+            document.getElementById('container2').style.left='100%';
+            document.getElementById('hitarea').style.backgroundColor='black';
+            //var d = document.getElementById('divtoextend').getElementsByTagName()
+            } );
+        </script>
+<!--
+        <table class="solid header" style="width:100%;position:absolute;top:0;">
+            <tr>
+                <td>
+                    username
+                </td>
+                <td align="center" class="expandwidth">
+                    LOADING...
+                </td>
+                <td class="fitwidth">
+                    logout
+                </td>
+            </tr>
+        </table>
+        <table class="solid footer" style="width:100%;position:absolute;bottom:0;">
+            <tr>
+                <td>
+                    message:
+                </td>
+                <td class="expandwidth" style="">
+                    <input style="width:100%;" type="text">
+                </td>
+                <td class="fitwidth">
+                    &nbsp;<input type="button" value="seddddnd">
+                </td>
+            </tr>
+        </table>
+
+-->
+
+    </body>
+
+</html>

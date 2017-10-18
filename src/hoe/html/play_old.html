@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset='UTF-8'>
+        <!-- Képernyő nagyításának tiltása érintőképernyős eszközökön. -->
+        <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0'>
+        <title>#!PAGE_TITLE!#</title>
+        <style>html, body {margin:0;padding:0;border:0;overflow:hidden;font-size:100%;font-family:monospace;color:white;}</style>
+        <style>
+            /* Link formázása gombbá. */
+            .link-button {
+                pointer-events: auto;
+                background-color: black;
+                border: 1px solid white;
+                border-radius: 2px;
+                color: black;
+                padding: 10px 10px;
+                text-align: center;
+                text-decoration: none;
+                display: inline-block;
+                font-size: 15px;
+                margin: 2px 2px;
+                -webkit-transition-duration: 0.15s;
+                transition-duration: 0.15s;
+                cursor: default;
+                color: white;
+                font-family: monospace;
+                -webkit-touch-callout: none;-webkit-user-select: none;-khtml-user-select: none;-moz-user-select: none;-ms-user-select: none;user-select: none;
+            }
+            .link-button:hover {
+                background-color: white;
+                color: black;
+            }
+            .link-button:active {
+                text-decoration: underline;
+            }
+            /* Beviteli mező és gomb formázása. */
+            input[type='text'],input[type=button] {
+                pointer-events: auto;
+                -webkit-transition-duration: 0.3s;
+                transition-duration: 0.3s;
+                background-color: black;
+                color: white;
+                border-radius: 2px;
+                border: 1px solid white;
+                padding: 2px 2px;
+                margin: 2px 2px;
+                font-family: monospace;
+                outline: none;
+            }
+            input[type='text']:focus, input[type=button]:hover {
+                background-color: white;
+                color: black;
+            }
+            input[type='text'] {
+                cursor: text;
+            }
+            input[type=button]:active {
+                text-decoration: underline;
+            }
+            /* Chat üzenetek tárolója. */
+            .chat-messages {
+                color: white;
+                font-family: monospace;
+                cursor: default;
+                pointer-events: none;
+                -webkit-touch-callout: none;-webkit-user-select: none;-khtml-user-select: none;-moz-user-select: none;-ms-user-select: none;user-select: none;
+                border-radius: 2px;
+                background: rgba(0, 0, 0, .9);
+            }
+        </style>
+
+        <!-- Könyvtárak betöltése. -->
+
+        <script>
+            // Debug.
+            //var debug = true;
+            var debug = '#!DEBUG_ENABLED!#'=='true' ? true : false;
+            function toDebug(msg) {if (debug) console.log('DEBUG: ' + msg); };
+            
+            function init(){toDebug('init();');};
+            
+        </script>
+    </head>
+    <body bgcolor='#000000' onload='init();'>
+        <div id=bgDiv style='cursor:default;position:absolute;background-color:green;left:0px;top:0px;width:100%;height:100%;'></div>
+        
+        <div id=canvasDiv style='cursor:default;position:absolute;left:20px;top:50px;width:300px;height:300px;'>
+            <img src='tile/1/1' alt='Downloading...' style='width:100%;height:100%;'>
+        </div>
+        <div style='width:100%;height:100%;pointer-events:none;position:absolute;z-index:1'>
+            <!-- Fő táblázat a GUI elemek igazításához. -->
+            <table border=0 cellSpacing=0 cellPadding=0 style='width:100%;height:100%;'>
+                <tr style='width:100%;'>
+                    <td style='padding:5px;'><b><big><div id=userNameDiv style='cursor:default;pointer-events:auto;background-color:black;white-space:nowrap;width:auto;-webkit-touch-callout: none;-webkit-user-select: none;-khtml-user-select: none;-moz-user-select: none;-ms-user-select: none;user-select: none;'></div></big></b></td>
+                    <td style='width:100%;'></td>
+                    <td align=right><a href='/logout' class='link-button'>#!LOGOUT!#</a></td></tr>
+                <tr style='height:100%;'>
+                    <td colSpan=3 vAlign=bottom> <div id='chatMsgBox' class='chat-messages' style='margin-left:5px;overflow:hidden;max-width:20%;max-height:70%;'></div></td>
+                </tr>
+                <tr>
+                    <td colSpan=3>
+                        <table border=0 cellSpacing=0 cellPadding=0 style='width:100%;height:100%;'>
+                            <tr style='pointer-events:auto;cursor:default;background-color:black;width:100%;'>
+                                <td style='padding:5px;border-top:1px solid white;-webkit-touch-callout: none;-webkit-user-select: none;-khtml-user-select: none;-moz-user-select: none;-ms-user-select: none;user-select: none;'>
+                                    #!MESSAGE!#:
+                                </td>
+                                <td style='width:100%;padding:5px;border-top:1px solid white;'>
+                                    <input type='text' id='chatInput' maxlength='100' style='width:calc(100% - 10px);'>
+                                </td>
+                                <td style='padding:5px;border-top:1px solid white;'>
+                                    <input id='sendChatMsgButton' type='button' value='#!SEND_MESSAGE!#'>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+            <script>
+                // Üzenet érkezett.
+                function isJSON(text){try{JSON.parse(text); return true; } catch (error){return false; }};
+                var handleResponse = function(responseText) {
+                    if ('' != responseText) toDebug(responseText);
+                    if ('' == responseText || !isJSON(responseText)) return;
+                    // Üzenet átalakítása.
+                    var response = JSON.parse(responseText);
+                    for (var i in response) {
+                        var o = response[i];
+                        switch (o['a']) {
+                            // Játékállapotváltozás érkezett (GameStateChanged).
+                            case 'gsc':
+                                toDebug('game state changed to: ' + o['d']['state']);
+                                var state = o['d']['state'];
+                                // Objektumok letöltése (GetSceneData).
+                                sendToServer(JSON.stringify({a:'gsd',d:{}}));
+                            break;
+                            // Átirányítás érkezett (ReDirect).
+                            case 'rd':
+                                toDebug('redirected to: ' + o['d']['url']);
+                                window.location.href = o['d']['url'];
+                            break;
+                            // Chat üzenet érkezett (ChatMessage).
+                            case 'cm':
+                                var cmb = document.getElementById('chatMsgBox');
+                                var count = (cmb.innerHTML.match(/<br>/g) || []).length;
+                                if (count == messagesCount) cmb.innerHTML = cmb.innerHTML.substring(cmb.innerHTML.indexOf('<br>') + 4);
+                                if (downloadinMessages) {
+                                    cmb.innerHTML = "";
+                                    downloadinMessages = false;
+                                }
+                                cmb.innerHTML = cmb.innerHTML + '<b><u>' + o['d']['user'] + '</u></b>: ' + unescape(o['d']['msg']) + '<br>';
+                                cmb.scrollTop = cmb.scrollHeight;
+                            break;
+                        }
+                    }
+                };
+                // Long-polling.
+                var syncNeeded = true;
+                var lp = function() {
+                    toDebug('openResponseChannel()');
+                    var xhrlp = new XMLHttpRequest();
+                    xhrlp.open('POST', '/play', true);
+                    xhrlp.responseType = 'text';
+                    xhrlp.onreadystatechange = function (oEvent) {
+                        if (xhrlp.readyState === 4) {
+                            if (xhrlp.status === 200) {
+                                handleResponse(xhrlp.responseText);
+                            } else {
+                                toDebug('Error:', xhrlp.statusText);
+                                syncNeeded = true;
+                                xhrlp.abort();
+                            }
+                            lp();
+                        }
+                    };
+                    xhrlp.timeout = 0;
+                    
+                    // Ha megszakadt a kapcsolat, vagy elsőként küldünk üzenetet akkor szinkronizáljuk az adatokat.
+                    if (syncNeeded) {
+                        syncNeeded = false;
+                        syncData();
+                    }
+                    
+                    // Üres üzenet küldése a válaszcsatornához.
+                    xhrlp.send('');
+                };
+
+                // Üzenet küldése a szervernek.
+                var sendToServer = function(text) {
+                    toDebug('sendToServer(' + text + ');');
+                    var xhr = new XMLHttpRequest();
+                    xhr.open('POST', '/play', true);
+                    xhr.responseType = 'text';
+                    xhr.onload = function(){handleResponse(xhr.responseText); };
+                    xhr.send(text);
+                };
+            </script>
+            // Chat.
+        </div>
+        <script>
+            var chatMsgBox = document.getElementById('chatMsgBox');
+            var chatInput = document.getElementById('chatInput');
+            chatInput.focused = false;
+            chatInput.hasFocus = function(){return this.focused; };
+            chatInput.onfocus = function(){this.focused = true; };
+            chatInput.onblur = function(){this.focused = false; };
+            var sendChatMsgButton = document.getElementById('sendChatMsgButton');
+            var userNameDiv = document.getElementById('userNameDiv');
+            userNameDiv.innerHTML = unescape('#!PLAYER_NAME!#');
+            var sendMsgFunc = function(){if ('' != chatInput.value) {sendToServer(JSON.stringify({a:'cm', d:{msg:escape(chatInput.value)}})); chatInput.value = ''; }};
+            sendChatMsgButton.onclick = function(){sendMsgFunc(); };
+            // Enter lenyomása az üzenet beírásához/elküldéséhez.
+            document.body.addEventListener('keydown', function(e){if (13 == e.keyCode){if (!chatInput.hasFocus()){chatInput.focus(); return; }sendMsgFunc(); chatInput.blur(); }});
+        </script>
+        
+        <script>
+            chatMsgBox.innerHTML = unescape('#!DOWNLOADING_CHAT_MESSAGES!#');
+            var downloadinMessages = true;
+            // Egyszerre megjelenő üzenetek száma.
+            var messagesCount = 15;
+            
+            // Játékadatok szinkronizálása.
+            function syncData() {
+                // Chat üzenetek letöltése (GetChatMessages).
+                sendToServer(JSON.stringify({a:'gcm',d:{mc:messagesCount}}));
+                // Játékállapot letöltése (GetGameState).
+                sendToServer(JSON.stringify({a:'ggs',d:{}}));
+            }
+            
+            // Long-pollin megkezdése.
+            lp();
+            
+        </script>
+    </body></html>

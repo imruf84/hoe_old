@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>#!PAGE_TITLE!#</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+        <style>html, body {width:100%;height:100%;margin:0;padding:0;border:0;overflow:hidden;font-size:100%;font-family:monospace;color:black;}</style>
+        <style>
+            .table {
+                display: table;
+                table-layout: auto;
+            }
+            html,body {
+                height: 100%;
+                min-height: 100% !important;
+            }
+            .solid {
+                background-color: lightgray;
+            }
+            .row {
+                display: table-row;
+                border: 1px solid black;
+            }
+            .fitwidth {
+                width:1%;
+                white-space:nowrap;
+            }
+            .expandwidth {
+                width:100%;
+            }
+            .header {
+                border-bottom: 1px solid black;
+            }
+            .footer {
+                border-top:1px solid black;
+            }
+        </style>
+        
+        <script>
+            function scrollTopLeft(){
+              //var d = (document.documentElement || document.body.parentNode || document.body);
+              var d = document.body;
+              d.scrollLeft = 0;
+              d.scrollTop = 0;
+            };
+        </script>
+        
+        <script src="jquery.js"></script>    
+        <script src="jquery.panzoom.js"></script>
+
+
+    </head>
+
+    <body class="table" style="z-index: -10;">
+
+        <script>
+            document.addEventListener('gesturestart', function (e) {
+              scrollTopLeft();
+              e.preventDefault();
+            });
+            document.addEventListener('touchmove', 
+              function(event) {
+                scrollTopLeft();
+                event.preventDefault();
+              }, false);
+        </script>
+        
+        <div class="row" style="">
+            <div class="solid header">
+                <table style="width:100%;border-top:1px solid black;">
+                    <tr>
+                        <td>
+                            username
+                        </td>
+                        <td align="center" class="expandwidth">
+                            LOADING...
+                        </td>
+                        <td class="fitwidth">
+                            logout
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            
+            
+        </div>
+        
+        <div id="focal" class="row parent" style="top:0;width:100%;height:100%;position: absolute;z-index: -1;">
+                <div id="parentdiv" class="panzoom" style="">
+                    <img id="kep" style="" src="http://www.duber.cz/dump/uv_map_reference.jpg">
+            </div>
+            </div>
+        
+        <!--<div id="focal" class="row parent" style="width:100%;height:100%;position: absolute;background-color:green;">
+        <div class="panzoom" style="width:100%;height:100%;position: absolute;top:0;left:0;">
+          <img style="" src="http://www.duber.cz/dump/uv_map_reference.jpg">
+        </div>
+      </div>-->
+
+      
+      
+        <div class="row solid" style="height:1%;">
+            <table class="footer" style="width:100%;">
+                <tr>
+                    <td>
+                        messages:
+                    </td>
+                    <td class="expandwidth" style="">
+                        <input style="width:100%;" type="text">
+                    </td>
+                    <td class="fitwidth">
+                        &nbsp;<input type="button" value="seddddnd">
+                    </td>
+                </tr>
+            </table>
+        </div>
+      
+        <script>
+        (function() {
+          var $section = $('#focal');
+          var $panzoom = $section.find('.panzoom').panzoom();
+          $panzoom.parent().on('mousewheel.focal', function( e ) {
+            e.preventDefault();
+            var delta = e.delta || e.originalEvent.wheelDelta;
+            var zoomOut = delta ? delta < 0 : e.originalEvent.deltaY > 0;
+            $panzoom.panzoom('zoom', zoomOut, {
+              increment: 0.1,
+              focal: e
+            });
+          });
+        })();
+        
+        $(document).click( function (event) {
+        console.log(event.target);
+        });
+        
+      </script>
+      
+    </body>
+
+</html>
