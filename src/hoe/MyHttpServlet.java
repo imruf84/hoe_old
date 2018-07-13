@@ -69,7 +69,9 @@ public abstract class MyHttpServlet extends HttpServlet {
         try (BufferedReader input = new BufferedReader(new InputStreamReader(in))) {
             String s;
             while (null != (s = input.readLine())) {
-
+                
+                StringBuilder result = new StringBuilder();
+                
                 // JavaScript linkek keresése.
                 Matcher matcherScripts = Pattern.compile("<script\\ssrc=\"(.*\\.js)\"><\\/script>", Pattern.CASE_INSENSITIVE).matcher(s);
                 if (matcherScripts.find()) {
@@ -81,16 +83,42 @@ public abstract class MyHttpServlet extends HttpServlet {
                     InputStream jsin = getClass().getResourceAsStream("/hoe/html/" + jsFile);
                     try (BufferedReader jsinput = new BufferedReader(new InputStreamReader(jsin))) {
                         String jss;
-                        response.getWriter().append("<script>\n");
+                        result.append("<script>\n");
                         while (null != (jss = jsinput.readLine())) {
-                            response.getWriter().append(jss + '\n');
+                            result.append(jss);
+                            result.append('\n');
                         }
-                        response.getWriter().append("</script>\n");
+                        result.append("</script>\n");
                     }
 
-                    continue;
+                }
+                
+                // Stílusfáj linkek keresése.
+                Matcher matcherStyles = Pattern.compile("<link\\srel=\"stylesheet\"\\shref=\"(.*\\.css)\">", Pattern.CASE_INSENSITIVE).matcher(s);
+                if (matcherStyles.find()) {
+                    
+                    // Fájlnév kinyerése.
+                    String jsFile = matcherStyles.group(1);
+
+                    // Fájl tartalmának a beolvasása.
+                    InputStream cssin = getClass().getResourceAsStream("/hoe/html/" + jsFile);
+                    try (BufferedReader jsinput = new BufferedReader(new InputStreamReader(cssin))) {
+                        String csss;
+                        result.append("<style>\n");
+                        while (null != (csss = jsinput.readLine())) {
+                            result.append(csss);
+                            result.append('\n');
+                        }
+                        result.append("</style>\n");
+                    }
+
                 }
 
+                // Ha találtunk behelyettesítendő fájlokat, akkor azok tartalmával dolgozunk tovább.
+                if (!result.toString().isEmpty()) {
+                    s = result.toString();
+                }
+                
                 // Változónevek keresése.
                 while (s.contains(MyHttpServlet.HTML_TAG_FROM) && s.contains(MyHttpServlet.HTML_TAG_TO)) {
                     String extracted = "";

@@ -1,0 +1,8 @@
+.chat-messages {
+    cursor: default;
+    width: 40%;
+    height: 70%;
+    pointer-events: none;
+    -webkit-touch-callout: none;-webkit-user-select: none;-khtml-user-select: none;-moz-user-select: none;-ms-user-select: none;
+    background: rgba(255, 255, 255, .7);
+}

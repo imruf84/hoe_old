@@ -1,0 +1,26 @@
+.link-button {
+    pointer-events: auto;
+    background-color: gray;
+    border: 1px solid black;
+    border-radius: 2px;
+    color: black;
+    padding: 10px 10px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 15px;
+    margin: 2px 2px;
+    -webkit-transition-duration: 0.15s;
+    transition-duration: 0.15s;
+    cursor: default;
+    color: white;
+    font-family: monospace;
+    -webkit-touch-callout: none;-webkit-user-select: none;-khtml-user-select: none;-moz-user-select: none;-ms-user-select: none;
+}
+.link-button:hover {
+    background-color: white;
+    color: black;
+}
+.link-button:active {
+    text-decoration: underline;
+}

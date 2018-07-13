@@ -1,0 +1,20 @@
+.solid {
+    background-color: lightgray;
+}
+.fitwidth {
+    width:1%;
+    white-space:nowrap;
+}
+.expandwidth {
+    width:100%;
+}
+.header {
+    border-bottom: 1px solid black;
+}
+.footer {
+    border-top:1px solid black;
+}
+.sider {
+    border-top:1px solid black;
+    border-right:1px solid black;
+}

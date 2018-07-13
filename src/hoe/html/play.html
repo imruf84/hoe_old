@@ -1,120 +1,28 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Static Image</title>
+        <title>#!PAGE_TITLE!#</title>
         <meta charset="UTF-8">
-        <!--<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">-->
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-        <link rel="stylesheet" href="ol.css" type="text/css">
-        <style>html, body {width:100%;height:100%;margin:0;padding:0;border:0;overflow:hidden;font-size:100%;font-family:monospace;color:black;}</style>
-        <script src="ol.js"></script>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-        <script src="canvas-video-player.js"></script>
-        <script>
-            function scrollTopLeft() {
-                var d = document.body;
-                d.scrollLeft = 0;
-                d.scrollTop = 0;
-            }
-            ;
-            document.addEventListener('gesturestart', function (e) {
-                scrollTopLeft();
-                e.preventDefault();
-            });
-            document.addEventListener('touchmove',
-                    function (event) {
-                        scrollTopLeft();
-                        event.preventDefault();
-                    }, false);
-        </script>
-
-        <script>
-            // Debug.
-            //var debug = true;
-            var debug = '#!DEBUG_ENABLED!#' === 'true' ? true : false;
-            function toDebug(msg) {
-                if (debug)
-                    console.log('DEBUG: ' + msg);
-            }
-            ;
-
-            function init() {
-                toDebug('init();');
-            }
-            ;
-
-        </script>
-
-        <style>
-            /* Link formázása gombbá. */
-            .link-button {
-                pointer-events: auto;
-                background-color: black;
-                border: 1px solid white;
-                border-radius: 2px;
-                color: black;
-                padding: 10px 10px;
-                text-align: center;
-                text-decoration: none;
-                display: inline-block;
-                font-size: 15px;
-                margin: 2px 2px;
-                -webkit-transition-duration: 0.15s;
-                transition-duration: 0.15s;
-                cursor: default;
-                color: white;
-                font-family: monospace;
-                -webkit-touch-callout: none;-webkit-user-select: none;-khtml-user-select: none;-moz-user-select: none;-ms-user-select: none;
-            }
-            .link-button:hover {
-                background-color: white;
-                color: black;
-            }
-            .link-button:active {
-                text-decoration: underline;
-            }
-            .solid {
-                background-color: lightgray;
-            }
-            .fitwidth {
-                width:1%;
-                white-space:nowrap;
-            }
-            .expandwidth {
-                width:100%;
-            }
-            .header {
-                border-bottom: 1px solid black;
-            }
-            .footer {
-                border-top:1px solid black;
-            }
-            .sider {
-                border-top:1px solid black;
-                border-right:1px solid black;
-            }
-            .chat-messages {
-                cursor: default;
-                width: 40%;
-                height: 70%;
-                pointer-events: none;
-                -webkit-touch-callout: none;-webkit-user-select: none;-khtml-user-select: none;-moz-user-select: none;-ms-user-select: none;
-                background: rgba(255, 255, 255, .7);
-            }
-        </style>
+        <link rel="stylesheet" href="css/main.css">
+        <link rel="stylesheet" href="css/logout-link.css">
+        <link rel="stylesheet" href="css/chat.css">
+        <link rel="stylesheet" href="css/ui.css">
         
+        <script src="js/debug.js"></script>
+        <script src="js/canvas-video-player.js"></script>
+        <script src="js/scroll-to-left.js"></script>
+        <script src="js/long-polling.js"></script>
+
         
-        
-        <script src="iscroll-zoom.js"></script>
+        <script src="js/iscroll-zoom.js"></script>
         <script>
 
             var myScroll;
 
             function loaded() {
                 myScroll = new IScroll('#wrapper', {
-                    //startX: -359,
-                    //startY: -85,
-                    //ignoreBoundaries: true,
                     startX: 0,
                     startY: 0,
                     scrollY: true,
@@ -127,37 +35,19 @@
                     zoomMin: .5,
                     zoomMax: 4,
                     tap: true,
-                    bounce: true,
+                    bounce: true
                 });
 
                 function onClick(evt) {
                     var x = evt.pageX;
                     var y = evt.pageY;
-                    console.log('click', 'x:', evt.x, 'y:', evt.y);
-                    myScroll.zoom(4, x, y, 1000);
+                    console.log('click', 'x:', x, 'y:', y);
                 }
                 
-                // smooth zoom-hoz az iscroll-zoom.js fájlban kell a _wheelZoom metódus utolsó sorában átírni this.zoom(deltaScale, e.pageX, e.pageY, 0);->this.zoom(deltaScale, e.pageX, e.pageY, 500);
-                
-                function onWheel(evt) {
-                    var delta = evt.wheelDelta;
-                    var d = delta > 0 ? 1 : -1;
-                    //console.log('wheel','delta:',delta,myScroll.scale);
-                    //myScroll.zoom(myScroll.scale+d*1.2, evt.x, evt.y, 1000);
-                }
-
-                //myScroll.on('tap', onClick);
-
                 document.getElementById('scroller').addEventListener('tap', onClick, false);
-                document.getElementById('scroller').addEventListener('wheel', onWheel, false);
                 
                 canvasVideo.play();
             }
-
-        // document.addEventListener('touchmove', function (e) { e.preventDefault(); }, isPassive() ? {
-        // 	capture: false,
-        // 	passive: false
-        // } : false);
 
         </script>
 
@@ -170,18 +60,6 @@
 
             html {
                 -ms-touch-action: none;
-            }
-
-            body,ul,li {
-                padding: 0;
-                margin: 0;
-                border: 0;
-            }
-
-            body {
-                font-size: 12px;
-                font-family: ubuntu, helvetica, arial;
-                overflow: hidden; /* this is important to prevent the whole page to bounce */
             }
 
             #wrapper {
@@ -223,33 +101,20 @@
         
         
     </head>
-    <!--
-    <body style="zoom: 1">
-    <body>
-    <body onload="canvasVideo.play()">
-    -->
     <body onload="loaded()">
         
-        <!--        <div class="video-wrapper js-video-wrapper">
-            <div class="video-responsive">-->
                 <video class="video js-video" muted="" style="display: none;">
                     <source src="http://www.quirksmode.org/html5/videos/big_buck_bunny.webm" type="video/webm">
                     <source src="http://www.quirksmode.org/html5/videos/big_buck_bunny.mp4" type="video/mp4">
                     <source src="http://www.quirksmode.org/html5/videos/big_buck_bunny.ogv" type="video/ogg">
                     Your browser does not support HTML5 video.
                 </video>
-<!--
-                <canvas class="canvas js-canvas" width="800" height="450"></canvas>
--->
-<!--            </div>
-        </div>
--->
 
         
         <div id="wrapper">
             <div id="scroller">
-                <div style="background-color: green;width: 20px;height: 20px;"></div>
-                <canvas class="canvas js-canvas" width="800" height="450"></canvas>
+                <div style="background-color: green;width: 200px;height: 200px;"></div>
+                <canvas class="canvas js-canvas" width="1600" height="900"></canvas>
             </div>
         </div>
         
@@ -257,11 +122,7 @@
         var canvasVideo = new CanvasVideoPlayer({
                                 videoSelector: '.js-video',
                                 canvasSelector: '.js-canvas',
-                                //canvasSelector: canvas,
-                                //canvasSelector: '.ol-unselectable',
-                                //canvasSelector: '.map',
-                                //timelineSelector: '.js-timeline',
-                                audio: true,
+                                audio: !true,
                             });
         </script>
 
@@ -279,13 +140,13 @@
                     <td colSpan=3>
                         <table border=0 cellSpacing=0 cellPadding=0 style='width:100%;height:100%;'>
                             <tr style='pointer-events:auto;cursor:default;background-color:gray;width:100%;'>
-                                <td style='padding:5px;border-top:1px solid white;-webkit-touch-callout: none;-webkit-user-select: none;-khtml-user-select: none;-moz-user-select: none;-ms-user-select: none;'>
+                                <td style='padding:5px;border-top:1px solid black;-webkit-touch-callout: none;-webkit-user-select: none;-khtml-user-select: none;-moz-user-select: none;-ms-user-select: none;'>
                                     #!MESSAGE!#:
                                 </td>
-                                <td style='width:100%;padding:5px;border-top:1px solid white;'>
+                                <td style='width:100%;padding:5px;border-top:1px solid black;'>
                                     <input type='text' id='chatInput' maxlength='100' style='width:calc(100% - 10px);'>
                                 </td>
-                                <td style='padding:5px;border-top:1px solid white;'>
+                                <td style='padding:5px;border-top:1px solid black;'>
                                     <input id='sendChatMsgButton' type='button' value='#!SEND_MESSAGE!#'>
                                 </td>
                             </tr>
@@ -345,48 +206,7 @@
                     }
                 }
             };
-            // Long-polling.
-            var syncNeeded = true;
-            var lp = function () {
-                toDebug('openResponseChannel()');
-                var xhrlp = new XMLHttpRequest();
-                xhrlp.open('POST', '/play', true);
-                xhrlp.responseType = 'text';
-                xhrlp.onreadystatechange = function (oEvent) {
-                    if (xhrlp.readyState === 4) {
-                        if (xhrlp.status === 200) {
-                            handleResponse(xhrlp.responseText);
-                        } else {
-                            toDebug('Error:', xhrlp.statusText);
-                            syncNeeded = true;
-                            xhrlp.abort();
-                        }
-                        lp();
-                    }
-                };
-                xhrlp.timeout = 0;
-
-                // Ha megszakadt a kapcsolat, vagy elsőként küldünk üzenetet akkor szinkronizáljuk az adatokat.
-                if (syncNeeded) {
-                    syncNeeded = false;
-                    syncData();
-                }
-
-                // Üres üzenet küldése a válaszcsatornához.
-                xhrlp.send('');
-            };
-
-            // Üzenet küldése a szervernek.
-            var sendToServer = function (text) {
-                toDebug('sendToServer(' + text + ');');
-                var xhr = new XMLHttpRequest();
-                xhr.open('POST', '/play', true);
-                xhr.responseType = 'text';
-                xhr.onload = function () {
-                    handleResponse(xhr.responseText);
-                };
-                xhr.send(text);
-            };
+            
         </script>
 
 
