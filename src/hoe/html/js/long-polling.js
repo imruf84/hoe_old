@@ -1,5 +1,6 @@
 var syncNeeded = true;
-var lp = function () {
+
+var longPolling = function () {
     toDebug('openResponseChannel()');
     var xhrlp = new XMLHttpRequest();
     xhrlp.open('POST', '/play', true);
@@ -13,7 +14,7 @@ var lp = function () {
                 syncNeeded = true;
                 xhrlp.abort();
             }
-            lp();
+            longPolling();
         }
     };
     xhrlp.timeout = 0;

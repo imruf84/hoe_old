@@ -8,100 +8,21 @@
         <link rel="stylesheet" href="css/main.css">
         <link rel="stylesheet" href="css/logout-link.css">
         <link rel="stylesheet" href="css/chat.css">
+        <link rel="stylesheet" href="css/scroll.css">
         <link rel="stylesheet" href="css/ui.css">
         
         <script src="js/debug.js"></script>
-        <script src="js/canvas-video-player.js"></script>
         <script src="js/scroll-to-left.js"></script>
-        <script src="js/long-polling.js"></script>
-
-        
+        <script src="js/canvas-video-player.js"></script>
         <script src="js/iscroll-zoom.js"></script>
-        <script>
-
-            var myScroll;
-
-            function loaded() {
-                myScroll = new IScroll('#wrapper', {
-                    startX: 0,
-                    startY: 0,
-                    scrollY: true,
-                    scrollX: true,
-                    freeScroll: true,
-                    zoom: true,
-                    mouseWheel: true,
-                    wheelAction: 'zoom',
-                    startZoom: 1,
-                    zoomMin: .5,
-                    zoomMax: 4,
-                    tap: true,
-                    bounce: true
-                });
-
-                function onClick(evt) {
-                    var x = evt.pageX;
-                    var y = evt.pageY;
-                    console.log('click', 'x:', x, 'y:', y);
-                }
-                
-                document.getElementById('scroller').addEventListener('tap', onClick, false);
-                
-                canvasVideo.play();
-            }
-
-        </script>
-
-        <style type="text/css">
-            * {
-                -webkit-box-sizing: border-box;
-                -moz-box-sizing: border-box;
-                box-sizing: border-box;
-            }
-
-            html {
-                -ms-touch-action: none;
-            }
-
-            #wrapper {
-                position: absolute;
-                z-index: 1;
-                width: 100%;
-                height: 100%;
-                top: 0;
-                left: 0;
-                background: #555;
-                overflow: hidden;
-            }
-
-            #scroller {
-                position: absolute;
-                z-index: 1;
-                width: 2048px;
-                height: 2048px;
-                background: url(tile/test2.jpg);
-                -webkit-tap-highlight-color: rgba(0,0,0,0);
-                -webkit-transform: translateZ(0);
-                -moz-transform: translateZ(0);
-                -ms-transform: translateZ(0);
-                -o-transform: translateZ(0);
-                transform: translateZ(0);
-                -webkit-touch-callout: none;
-                -webkit-user-select: none;
-                -moz-user-select: none;
-                -ms-user-select: none;
-                user-select: none;
-                -webkit-text-size-adjust: none;
-                -moz-text-size-adjust: none;
-                -ms-text-size-adjust: none;
-                -o-text-size-adjust: none;
-                text-size-adjust: none;
-            }
-        </style>
+        <script src="js/communication-handler.js"></script>
+        <script src="js/long-polling.js"></script>
         
-        
+        <script src="js/init.js"></script>
+
         
     </head>
-    <body onload="loaded()">
+    <body onload="init()">
         
                 <video class="video js-video" muted="" style="display: none;">
                     <source src="http://www.quirksmode.org/html5/videos/big_buck_bunny.webm" type="video/webm">
@@ -118,14 +39,7 @@
             </div>
         </div>
         
-        <script>
-        var canvasVideo = new CanvasVideoPlayer({
-                                videoSelector: '.js-video',
-                                canvasSelector: '.js-canvas',
-                                audio: !true,
-                            });
-        </script>
-
+        
         <div style='width:100%;height:100%;pointer-events:none;position:absolute;z-index:1'>
             <!-- Fő táblázat a GUI elemek igazításához. -->
             <table border=0 cellSpacing=0 cellPadding=0 style='width:100%;height:100%;'>
@@ -155,117 +69,6 @@
                 </tr>
             </table>
         </div>
-
-
-        <script>
-            // Üzenet érkezett.
-            function isJSON(text) {
-                try {
-                    JSON.parse(text);
-                    return true;
-                } catch (error) {
-                    return false;
-                }
-            }
-            ;
-            var handleResponse = function (responseText) {
-                if ('' !== responseText)
-                    toDebug(responseText);
-                if ('' === responseText || !isJSON(responseText))
-                    return;
-                // Üzenet átalakítása.
-                var response = JSON.parse(responseText);
-                for (var i in response) {
-                    var o = response[i];
-                    switch (o['a']) {
-                        // Játékállapotváltozás érkezett (GameStateChanged).
-                        case 'gsc':
-                            toDebug('game state changed to: ' + o['d']['state']);
-                            var state = o['d']['state'];
-                            // Objektumok letöltése (GetSceneData).
-                            sendToServer(JSON.stringify({a: 'gsd', d: {}}));
-                            break;
-                            // Átirányítás érkezett (ReDirect).
-                        case 'rd':
-                            toDebug('redirected to: ' + o['d']['url']);
-                            window.location.href = o['d']['url'];
-                            break;
-                            // Chat üzenet érkezett (ChatMessage).
-                        case 'cm':
-                            var cmb = document.getElementById('chatMsgBox');
-                            var count = (cmb.innerHTML.match(/<br>/g) || []).length;
-                            if (count === messagesCount)
-                                cmb.innerHTML = cmb.innerHTML.substring(cmb.innerHTML.indexOf('<br>') + 4);
-                            if (downloadinMessages) {
-                                cmb.innerHTML = "";
-                                downloadinMessages = false;
-                            }
-                            cmb.innerHTML = cmb.innerHTML + '<b><u>' + o['d']['user'] + '</u></b>: ' + unescape(o['d']['msg']) + '<br>';
-                            cmb.scrollTop = cmb.scrollHeight;
-                            break;
-                    }
-                }
-            };
-            
-        </script>
-
-
-        <script>
-            var chatMsgBox = document.getElementById('chatMsgBox');
-            var chatInput = document.getElementById('chatInput');
-            chatInput.focused = false;
-            chatInput.hasFocus = function () {
-                return this.focused;
-            };
-            chatInput.onfocus = function () {
-                this.focused = true;
-            };
-            chatInput.onblur = function () {
-                this.focused = false;
-            };
-            var sendChatMsgButton = document.getElementById('sendChatMsgButton');
-            var userNameDiv = document.getElementById('userNameDiv');
-            userNameDiv.innerHTML = unescape('#!PLAYER_NAME!#');
-            var sendMsgFunc = function () {
-                if ('' !== chatInput.value) {
-                    sendToServer(JSON.stringify({a: 'cm', d: {msg: escape(chatInput.value)}}));
-                    chatInput.value = '';
-                }
-            };
-            sendChatMsgButton.onclick = function () {
-                sendMsgFunc();
-            };
-            // Enter lenyomása az üzenet beírásához/elküldéséhez.
-            document.body.addEventListener('keydown', function (e) {
-                if (13 === e.keyCode) {
-                    if (!chatInput.hasFocus()) {
-                        chatInput.focus();
-                        return;
-                    }
-                    sendMsgFunc();
-                    chatInput.blur();
-                }
-            });
-        </script>
-
-        <script>
-            chatMsgBox.innerHTML = unescape('#!DOWNLOADING_CHAT_MESSAGES!#');
-            var downloadinMessages = true;
-            // Egyszerre megjelenő üzenetek száma.
-            var messagesCount = 20;
-
-            // Játékadatok szinkronizálása.
-            function syncData() {
-                // Chat üzenetek letöltése (GetChatMessages).
-                sendToServer(JSON.stringify({a: 'gcm', d: {mc: messagesCount}}));
-                // Játékállapot letöltése (GetGameState).
-                sendToServer(JSON.stringify({a: 'ggs', d: {}}));
-            }
-
-            // Long-pollin megkezdése.
-            lp();
-
-        </script>
 
     </body>
 </html>
