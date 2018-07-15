@@ -1,0 +1,37 @@
+renderer:
+---------
+	- háttérben futó daemon, ami OSMesa-t használ
+	- a játék szerver küldené neki az utasításokat (begin render, use material, draw rect stb.)
+		+ aktív kommunikáció
+		+ nem kell folyton újra indítani a renderert
+		+ nem szükséges extra tárhely
+		- daemon-nal való kommunikáció lehet, hogy csak linuxon futna (mkfifo)
+		példaprogram: http://www.jonathanbeard.io/tutorials/CtoJava
+	- vagy
+	- a játékszerver futtatná a renderert egy scene állományt ráeresztve, ami egyszerû utasításokat tartalmazna (soronként olvasva hajtaná végre)
+		+ egyszerû leimplementálni
+		+ mûködne windowson és linuxon is egyaránt
+		- extra tárhelyet igényel a scene fájl
+
+fizikai motorok:
+----------------
+
+követelmény:
+	- terep rombolás
+	- animált karakterek kezelése
+
+JBullet:
+	http://jbullet.advel.cz/
+	https://stackoverflow.com/questions/12927654/jbullet-example
+
+ode4j:
+	https://github.com/tzaeschke/ode4j/blob/master/demo/src/main/java/org/ode4j/demo/DemoTrimesh.java
+
+dyn4j:
+	http://www.dyn4j.org/
+
+react4j:
+	https://github.com/flow/react
+
+position-based-dynamics:
+	https://github.com/InteractiveComputerGraphics/PositionBasedDynamics/tree/master/Simulation

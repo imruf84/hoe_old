@@ -1,0 +1,9 @@
+Libwebsockets:
+--------------
+
+https://libwebsockets.org/
+https://github.com/warmcat/libwebsockets/tree/master/minimal-examples/http-server/minimal-http-server
+https://github.com/iamscottmoyers/simple-libwebsockets-example
+https://github.com/warmcat/libwebsockets/blob/master/READMEs/README.generic-sessions.md
+
+Minimál http szerver, ami egész jónak tűnik: https://github.com/iamscottmoyers/simple-libwebsockets-example/blob/master/server.c

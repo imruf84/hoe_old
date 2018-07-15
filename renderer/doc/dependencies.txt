@@ -1,0 +1,13 @@
+# Common deps
+apt-get install -y mesa-common-dev libosmesa6-dev libglu1-mesa-dev freeglut3-dev gcc cmake libssl-dev
+
+# Libwebsockets
+git clone https://libwebsockets.org/repo/libwebsockets
+cd ./libwebsockets/lib
+mkdir build
+cd build
+cmake ../.. -DLIB_SUFFIX=64
+make
+sudo make install
+ldconfig
+export LD_LIBRARY_PATH=/usr/local/lib64/
