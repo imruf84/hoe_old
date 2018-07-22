@@ -32,6 +32,9 @@ public abstract class HttpServletWithUserValidator extends MyHttpServlet {
      * @throws IOException kivétel
      */
     protected void doUserValidation(HttpServletRequest request, HttpServletResponse response, int requestType) throws IOException {
+        
+        setAccessControlHeaders(request, response);
+        
         // Ha a felhasználó hitelesítése nem megy akkor átirányítjuk a bejelentkező ablakhoz.
         if (!UserManager.userIsValid(request)) {
             validateUser(request, response, null, requestType);
@@ -40,6 +43,12 @@ public abstract class HttpServletWithUserValidator extends MyHttpServlet {
 
         validateUser(request, response, UserManager.getUserBySession(request), requestType);
     }
+    
+    private void setAccessControlHeaders(HttpServletRequest request, HttpServletResponse response) {
+      //response.setHeader("Access-Control-Allow-Origin", "http://localhost:8000,http://192.168.0.20:8000");
+      //response.setHeader("Access-Control-Allow-Origin", "*");
+      //response.setHeader("Access-Control-Allow-Methods", "*");
+  }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {

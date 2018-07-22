@@ -1,74 +1,24 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>#!PAGE_TITLE!#</title>
+        <title>TODO supply a title</title>
         <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
-        <link rel="stylesheet" href="css/main.css">
-        <link rel="stylesheet" href="css/logout-link.css">
-        <link rel="stylesheet" href="css/chat.css">
-        <link rel="stylesheet" href="css/scroll.css">
-        <link rel="stylesheet" href="css/ui.css">
-        
-        <script src="js/debug.js"></script>
-        <script src="js/scroll-to-left.js"></script>
-        <script src="js/canvas-video-player.js"></script>
-        <script src="js/iscroll-zoom.js"></script>
-        <script src="js/communication-handler.js"></script>
-        <script src="js/long-polling.js"></script>
-        
-        <script src="js/init.js"></script>
-
-        
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
     </head>
-    <body onload="init()">
+    <body>
+        <canvas id="canvas" style="border: solid 1px black" width="1000" height="500"></canvas>
         
-                <video class="video js-video" muted="" style="display: none;">
-                    <source src="http://www.quirksmode.org/html5/videos/big_buck_bunny.webm" type="video/webm">
-                    <source src="http://www.quirksmode.org/html5/videos/big_buck_bunny.mp4" type="video/mp4">
-                    <source src="http://www.quirksmode.org/html5/videos/big_buck_bunny.ogv" type="video/ogg">
-                    Your browser does not support HTML5 video.
-                </video>
-
-        
-        <div id="wrapper">
-            <div id="scroller">
-                <div style="background-color: green;width: 200px;height: 200px;"></div>
-                <canvas class="canvas js-canvas" width="1600" height="900"></canvas>
-            </div>
-        </div>
-        
-        
-        <div style='width:100%;height:100%;pointer-events:none;position:absolute;z-index:1'>
-            <!-- Fő táblázat a GUI elemek igazításához. -->
-            <table border=0 cellSpacing=0 cellPadding=0 style='width:100%;height:100%;'>
-                <tr style='width:100%;'>
-                    <td style='padding:5px;'><b><big><div id=userNameDiv style='cursor:default;pointer-events:auto;background-color:gray;white-space:nowrap;width:auto;-webkit-touch-callout: none;-webkit-user-select: none;-khtml-user-select: none;-moz-user-select: none;-ms-user-select: none;'></div></big></b></td>
-                    <td style='width:100%;'></td>
-                    <td align=right><a href='/logout' class='link-button'>#!LOGOUT!#</a></td></tr>
-                <tr style='height:100%;'>
-                    <td colSpan=3 vAlign=bottom> <div id='chatMsgBox' class='chat-messages' style='display: table-cell; vertical-align: bottom;margin-left:5px;overflow:hidden;max-width:20%;max-height:70%;'></div></td>
-                </tr>
-                <tr>
-                    <td colSpan=3>
-                        <table border=0 cellSpacing=0 cellPadding=0 style='width:100%;height:100%;'>
-                            <tr style='pointer-events:auto;cursor:default;background-color:gray;width:100%;'>
-                                <td style='padding:5px;border-top:1px solid black;-webkit-touch-callout: none;-webkit-user-select: none;-khtml-user-select: none;-moz-user-select: none;-ms-user-select: none;'>
-                                    #!MESSAGE!#:
-                                </td>
-                                <td style='width:100%;padding:5px;border-top:1px solid black;'>
-                                    <input type='text' id='chatInput' maxlength='100' style='width:calc(100% - 10px);'>
-                                </td>
-                                <td style='padding:5px;border-top:1px solid black;'>
-                                    <input id='sendChatMsgButton' type='button' value='#!SEND_MESSAGE!#'>
-                                </td>
-                            </tr>
-                        </table>
-                    </td>
-                </tr>
-            </table>
-        </div>
-
+        <script>
+            var canvas = document.getElementById('canvas');
+            var context = canvas.getContext('2d');
+            context.fillRect(10, 10, 100, 200);
+            
+            var img = new Image();
+            img.onload = function () {
+                context.drawImage(img, 0, 0);
+            };
+            img.src = 'http://localhost:8000/tiles/bbb.png';
+            
+        </script>
     </body>
 </html>

@@ -25,7 +25,7 @@ public class TileServlet extends HttpServletWithUserValidator {
         }
         
         // Fájl megnyitása.
-        File image = new File("tiles/test.jpg");
+        File image = new File("assets/tiles/test.jpg");
 
         // Ha nem létezik a fájl akkor kilépünk.
         if (!image.exists()) {

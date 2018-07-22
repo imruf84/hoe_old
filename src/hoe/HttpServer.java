@@ -1,11 +1,17 @@
 package hoe;
 
 import java.io.File;
+import java.net.InetSocketAddress;
+import java.util.EnumSet;
+import javax.servlet.DispatcherType;
 import javax.servlet.http.HttpServlet;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.session.SessionHandler;
+import org.eclipse.jetty.servlet.FilterHolder;
+import org.eclipse.jetty.servlet.FilterMapping;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.servlets.CrossOriginFilter;
 
 /**
  * HTTP szerver.
@@ -61,7 +67,7 @@ public class HttpServer extends HttpServlet {
 
         // Üzenetek toltása.
         org.eclipse.jetty.util.log.Log.setLog(new NothingLogger());
-        
+
         // Játéktér inicializálása.
         Universe.init();
         // Játékmenet inicializálása.
@@ -69,6 +75,7 @@ public class HttpServer extends HttpServlet {
 
         // Szerver létrehozása.
         Server server = new Server(port);
+        //Server server = new Server(new InetSocketAddress("192.168.0.20", 80));
 
         ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
 
@@ -80,7 +87,24 @@ public class HttpServer extends HttpServlet {
         context.addServlet(new ServletHolder(new LoginServlet()), LOGIN_PATH);
         context.addServlet(new ServletHolder(new LogoutServlet()), LOGOUT_PATH);
         context.addServlet(new ServletHolder(new RegisterServlet()), REGISTER_PATH);
-        context.addServlet(new ServletHolder(new TileServlet()), TILE_PATH);
+        //context.addServlet(new ServletHolder(new TileServlet()), TILE_PATH);
+        
+        /*FilterHolder filter = new FilterHolder(CrossOriginFilter.class);
+        filter.setInitParameter("allowedOrigins", "*");
+        filter.setInitParameter("allowedMethods", "*");
+	filter.setInitParameter("allowedHeaders", "*");
+        context.addFilter(filter, "/*", EnumSet.of(DispatcherType.REQUEST));*/
+        
+        /*FilterHolder holder = new FilterHolder(CrossOriginFilter.class);
+        holder.setInitParameter(CrossOriginFilter.ALLOWED_ORIGINS_PARAM, "*");
+        holder.setInitParameter(CrossOriginFilter.ACCESS_CONTROL_ALLOW_ORIGIN_HEADER, "*");
+        holder.setInitParameter(CrossOriginFilter.ALLOWED_METHODS_PARAM, "GET,POST,HEAD");
+        holder.setInitParameter(CrossOriginFilter.ALLOWED_HEADERS_PARAM, "*");
+        holder.setName("cross-origin");
+        FilterMapping fm = new FilterMapping();
+        fm.setFilterName("cross-origin");
+        fm.setPathSpec("*");
+        context.addFilter(holder, "*", null);*/
 
         MySessionManager sm = new MySessionManager();
         sm.setSessionCookie(SESSION_COOKIE + port);
@@ -90,7 +114,7 @@ public class HttpServer extends HttpServlet {
 
         server.start();
         Log.info("HTTP server is listening at port " + port + "...");
-        
+
         // Sessionok visszaállítása fájlból.
         UserManager.init(sm);
 

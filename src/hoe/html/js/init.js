@@ -39,7 +39,7 @@ function initVideo() {
 
 function init() {
     initScroll();
-    initVideo();
+    //initVideo();
     initCommunicationHandler();
     longPolling();
 }
