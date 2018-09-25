@@ -35,3 +35,27 @@ react4j:
 
 position-based-dynamics:
 	https://github.com/InteractiveComputerGraphics/PositionBasedDynamics/tree/master/Simulation
+	https://bundle-archive.plex.tv/Scrawk/Position-Based-Dynamics/tree/master/Assets (c# átirat, amit én is tudok java-sítani)
+
+https://github.com/samuelgirardin/Energy.js
+
+http://lo-th.github.io/Oimo.js/#donut:
+	van soft body
+	nincs folyadék
+
+https://github.com/NathanJAdams/verJ
+	javaban van írva
+	nincs példaprogram
+	elvileg van ütközésvizsgálat???
+
+https://github.com/saharan/OimoPhysics/tree/master/src/oimo/dynamics
+	javahoz nagyon hasonló nyelv
+	van egy vagon joint (breakable is)
+	nincs folyadék
+	nincs soft body de van rugó kényszerítõ
+	
+	
+
+hasznos linkek:
+---------------
+	érdekes algoritmusok (implementálva Unitiben): https://www.digital-dust.com/code

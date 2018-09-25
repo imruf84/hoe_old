@@ -15,7 +15,7 @@ public class HandhulOfEarth {
      * @param args parancssori argumentumok -p 8086:port meagadása
      * @throws java.lang.Exception kivétel
      */
-    public static void main(String[] args) throws Exception {
+    public static void main_(String[] args) throws Exception {
         
         // Kapcsolók megjelenítése.
         if (!(Arrays.asList(args).indexOf("-h") < 0)) {

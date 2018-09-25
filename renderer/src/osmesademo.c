@@ -283,8 +283,6 @@ write_ppm(const char *filename, const GLfloat *buffer, int width, int height)
    }
 }
 
-
-
 int main2( int argc, char *argv[] )
 {
    GLfloat *buffer;
