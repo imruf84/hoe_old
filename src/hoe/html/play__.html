@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="js/canvid.js"></script>
+    </head>
+    <body>
+        <!--<canvas id="canvas" style="border: solid 1px black" width="1000" height="500"></canvas>-->
+        <div id="canvas" style="border: solid 1px black"></div>
+
+
+        <script>
+            //https://gka.github.io/canvid/
+            var canvidControl = canvid({
+                selector: '#canvas',
+                videos: {
+                    clip1: {src: 'http://localhost/tile/', frames: 250, cols: 6, loops: NaN, fps:30, onEnd: function () {}}
+                },
+                width: 568/2,
+                height: 320/2,
+                loaded: function () {
+                    canvidControl.play('clip1');
+                    // reverse playback
+                    // canvidControl.play('clip1', true);
+                }
+            });
+        </script>
+
+        <script>
+            /*function zfill(num, len) {
+             return (Array(len).join("0") + num).slice(-len);
+             }
+             
+             var canvas = document.getElementById('canvas');
+             //var context = canvas.getContext('2d');
+             //context.fillRect(10, 10, 100, 200);
+             
+             function initAnimation(obj) {
+             var frames = {currentFrame: obj.from, framesFrom: obj.from, framesTo: obj.to};
+             frames.framesCount = frames.framesTo - frames.framesFrom + 1;
+             frames.framesLoadLeft = frames.framesCount;
+             frames.loop = obj.loop;
+             frames.src = obj.src;
+             frames.digits = obj.digits;
+             frames.canvas = obj.canvas;
+             frames.context = frames.canvas.getContext('2d');
+             frames.frames = {};
+             frames.onprogress = obj.onprogress;
+             frames.onload = obj.onload;
+             frames.getProgress = function () {
+             return 100 - Math.round((this.framesLoadLeft / this.framesCount) * 100);
+             };
+             frames.load = function () {
+             for (var i = frames.framesFrom; i <= frames.framesTo; i++) {
+             var frame = new Image();
+             frame.onload = function () {
+             frames.framesLoadLeft--;
+             frames.onprogress(frames);
+             if (frames.framesLoadLeft === 0) {
+             frames.onload(frames);
+             }
+             };
+             frame.src = frames.src.replace('[FRAME]', zfill(i, frames.digits));
+             frames.frames[i] = frame;
+             }
+             };
+             frames.playing = false;
+             frames.play = function () {
+             if (this.playing === true) {
+             return;
+             }
+             
+             this.playing = true;
+             frames.interval = setInterval(function () {
+             if (frames.currentFrame > frames.framesTo) {
+             if (frames.loop) {
+             frames.currentFrame = frames.framesFrom;
+             } else {
+             frames.currentFrame = Math.min(frames.framesTo, frames.currentFrame);
+             frames.pause();
+             }
+             }
+             frames.draw();
+             frames.currentFrame++;
+             }, 50);
+             };
+             frames.pause = function () {
+             if (this.playing === false) {
+             return;
+             }
+             
+             this.playing = false;
+             clearInterval(frames.interval);
+             frames.interval = null;
+             };
+             frames.setFrame = function (frame) {
+             this.currentFrame = Math.max(Math.min(frames.framesTo, frame), frames.framesFrom);
+             };
+             frames.draw = function () {
+             frames.context.drawImage(frames.frames[frames.currentFrame], 0, 0);
+             };
+             frames.rewind = function() {
+             this.setFrame(this.framesFrom);
+             this.draw();
+             };
+             
+             return frames;
+             }
+             
+             var animation = initAnimation({
+             from: 0, to: 249, loop: true, canvas: canvas, 
+             src: 'http://localhost:8000/videos/test1/frame[FRAME].png', digits: 3,
+             onprogress: function (anim) {
+             //console.log(anim.getProgress());
+             document.title = anim.getProgress()+'%';
+             },
+             onload: function (anim) {
+             anim.play();
+             }
+             });
+             animation.load();
+             */
+        </script>
+    </body>
+</html>

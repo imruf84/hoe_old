@@ -1,14 +1,56 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>TODO supply a title</title>
+        <title>#!PAGE_TITLE!#</title>
         <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+        <link rel="stylesheet" href="css/main.css">
+        <link rel="stylesheet" href="css/logout-link.css">
+        <link rel="stylesheet" href="css/chat.css">
+        <link rel="stylesheet" href="css/scroll.css">
+        <link rel="stylesheet" href="css/ui.css">
+        
+        <script src="js/debug.js"></script>
+        <script src="js/scroll-to-left.js"></script>
         <script src="js/canvid.js"></script>
+        <!--<script src="js/canvas-video-player.js"></script>-->
+        <script src="js/iscroll-zoom.js"></script>
+        <script src="js/communication-handler.js"></script>
+        <script src="js/long-polling.js"></script>
+        
+        <script src="js/init.js"></script>
+
+        
     </head>
-    <body>
-        <!--<canvas id="canvas" style="border: solid 1px black" width="1000" height="500"></canvas>-->
-        <div id="canvas" style="border: solid 1px black"></div>
+    <body onload="init()">
+        <!--
+                <video class="video js-video" muted="" style="display: none;">
+                    <source src="http://www.quirksmode.org/html5/videos/big_buck_bunny.webm" type="video/webm">
+                    <source src="http://www.quirksmode.org/html5/videos/big_buck_bunny.mp4" type="video/mp4">
+                    <source src="http://www.quirksmode.org/html5/videos/big_buck_bunny.ogv" type="video/ogg">
+                    
+                    
+                    <source src="http://84.21.7.31:8000/videos/big_buck_bunny.ogv" type="video/ogg">
+                    <source src="http://84.21.7.31:8000/videos/big_buck_bunny.webm" type="video/webm">
+                    <source src="http://84.21.7.31:8000/videos/big_buck_bunny.mp4" type="video/mp4">
+                    Your browser does not support HTML5 video.
+                </video>
+-->
+        
+        <div id="wrapper">
+            <div id="scroller">
+                <div id="canvas" style="border: solid 1px black;top:0px;left:0px;position:absolute;"></div>
+                <!--<div style="top:0px;left:0px;position: absolute;background-image: url(http://192.168.0.20:8000/tiles/test.jpg); height: 400px; width: 400px; border: 1px solid black;"></div>-->
+                <!--<div style="top:0px;left:400px;position: absolute;background-image: url(http://192.168.0.20:8000/tiles/test.jpg); height: 400px; width: 400px; border: 1px solid black;"></div>-->
+                <!--<div style="background-color: green;width: 200px;height: 200px;"></div>-->
+<!--                <img style="top:0px;left:0px;position: absolute;" src="http://localhost/tile/" alt="map" height="2048" width="2048">-->
+<!--                <div style="top:0px;left:0px;position: absolute;width:1000px;height:1000px;background-color: red;border: solid 1px black;"></div>-->
+                <!--img style="top:0px;left:0px;position: absolute;" src="http://84.21.7.31:8000/tiles/test.jpg" alt="map" height="2048" width="2048">-->
+                <!--<img style="top:100px;left:100px;position: absolute;" src="http://84.21.7.31:8000/videos/test1.gif" alt="animation">-->
+                <!--<canvas style="top:200px;left:200px;position: absolute" class="canvas js-canvas" width="1600" height="900"></canvas>-->
+            </div>
+        </div>
 
 
         <script>
@@ -16,112 +58,54 @@
             var canvidControl = canvid({
                 selector: '#canvas',
                 videos: {
-                    clip1: {src: 'http://localhost:8000/videos/test1.jpg', frames: 250, cols: 6, loops: NaN, fps:30, onEnd: function () {}}
+                    clip1: {src: 'http://localhost/tile/', frames: 250, cols: 6, loops: NaN, fps:30, onEnd: function () {}}
                 },
-                width: 568/2,
-                height: 320/2,
+                width: 568*4,
+                height: 320*4,
                 loaded: function () {
+                    var scroller = document.getElementById('scroller');
+                    scroller.style.width = 568*4+'px';
+                    scroller.style.height = 320*4+'px';
+                    myScroll.refresh();
+                    //canvidControl.setCurrentFrame(1);
                     canvidControl.play('clip1');
+                    canvidControl.pause();
                     // reverse playback
                     // canvidControl.play('clip1', true);
                 }
             });
         </script>
+        
+        
+        <div style='width:100%;height:100%;pointer-events:none;position:absolute;z-index:1'>
+            <!-- Fő táblázat a GUI elemek igazításához. -->
+            <table border=0 cellSpacing=0 cellPadding=0 style='width:100%;height:100%;'>
+                <tr style='width:100%;'>
+                    <td style='padding:5px;'><b><big><div id=userNameDiv style='cursor:default;pointer-events:auto;background-color:gray;white-space:nowrap;width:auto;-webkit-touch-callout: none;-webkit-user-select: none;-khtml-user-select: none;-moz-user-select: none;-ms-user-select: none;'></div></big></b></td>
+                    <td style='width:100%;'></td>
+                    <td align=right><a href='/logout' class='link-button'>#!LOGOUT!#</a></td></tr>
+                <tr style='height:100%;'>
+                    <td colSpan=3 vAlign=bottom> <div id='chatMsgBox' class='chat-messages' style='display: table-cell; vertical-align: bottom;margin-left:5px;overflow:hidden;max-width:20%;max-height:70%;'></div></td>
+                </tr>
+                <tr>
+                    <td colSpan=3>
+                        <table border=0 cellSpacing=0 cellPadding=0 style='width:100%;height:100%;'>
+                            <tr style='pointer-events:auto;cursor:default;background-color:gray;width:100%;'>
+                                <td style='padding:5px;border-top:1px solid black;-webkit-touch-callout: none;-webkit-user-select: none;-khtml-user-select: none;-moz-user-select: none;-ms-user-select: none;'>
+                                    #!MESSAGE!#:
+                                </td>
+                                <td style='width:100%;padding:5px;border-top:1px solid black;'>
+                                    <input type='text' id='chatInput' maxlength='100' style='width:calc(100% - 10px);'>
+                                </td>
+                                <td style='padding:5px;border-top:1px solid black;'>
+                                    <input id='sendChatMsgButton' type='button' value='#!SEND_MESSAGE!#'>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </div>
 
-        <script>
-            /*function zfill(num, len) {
-             return (Array(len).join("0") + num).slice(-len);
-             }
-             
-             var canvas = document.getElementById('canvas');
-             //var context = canvas.getContext('2d');
-             //context.fillRect(10, 10, 100, 200);
-             
-             function initAnimation(obj) {
-             var frames = {currentFrame: obj.from, framesFrom: obj.from, framesTo: obj.to};
-             frames.framesCount = frames.framesTo - frames.framesFrom + 1;
-             frames.framesLoadLeft = frames.framesCount;
-             frames.loop = obj.loop;
-             frames.src = obj.src;
-             frames.digits = obj.digits;
-             frames.canvas = obj.canvas;
-             frames.context = frames.canvas.getContext('2d');
-             frames.frames = {};
-             frames.onprogress = obj.onprogress;
-             frames.onload = obj.onload;
-             frames.getProgress = function () {
-             return 100 - Math.round((this.framesLoadLeft / this.framesCount) * 100);
-             };
-             frames.load = function () {
-             for (var i = frames.framesFrom; i <= frames.framesTo; i++) {
-             var frame = new Image();
-             frame.onload = function () {
-             frames.framesLoadLeft--;
-             frames.onprogress(frames);
-             if (frames.framesLoadLeft === 0) {
-             frames.onload(frames);
-             }
-             };
-             frame.src = frames.src.replace('[FRAME]', zfill(i, frames.digits));
-             frames.frames[i] = frame;
-             }
-             };
-             frames.playing = false;
-             frames.play = function () {
-             if (this.playing === true) {
-             return;
-             }
-             
-             this.playing = true;
-             frames.interval = setInterval(function () {
-             if (frames.currentFrame > frames.framesTo) {
-             if (frames.loop) {
-             frames.currentFrame = frames.framesFrom;
-             } else {
-             frames.currentFrame = Math.min(frames.framesTo, frames.currentFrame);
-             frames.pause();
-             }
-             }
-             frames.draw();
-             frames.currentFrame++;
-             }, 50);
-             };
-             frames.pause = function () {
-             if (this.playing === false) {
-             return;
-             }
-             
-             this.playing = false;
-             clearInterval(frames.interval);
-             frames.interval = null;
-             };
-             frames.setFrame = function (frame) {
-             this.currentFrame = Math.max(Math.min(frames.framesTo, frame), frames.framesFrom);
-             };
-             frames.draw = function () {
-             frames.context.drawImage(frames.frames[frames.currentFrame], 0, 0);
-             };
-             frames.rewind = function() {
-             this.setFrame(this.framesFrom);
-             this.draw();
-             };
-             
-             return frames;
-             }
-             
-             var animation = initAnimation({
-             from: 0, to: 249, loop: true, canvas: canvas, 
-             src: 'http://localhost:8000/videos/test1/frame[FRAME].png', digits: 3,
-             onprogress: function (anim) {
-             //console.log(anim.getProgress());
-             document.title = anim.getProgress()+'%';
-             },
-             onload: function (anim) {
-             anim.play();
-             }
-             });
-             animation.load();
-             */
-        </script>
     </body>
 </html>

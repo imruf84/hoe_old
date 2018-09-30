@@ -1,7 +1,12 @@
-gif-ek szétszedése frame-kre imagemagick-el:
+﻿gif-ek szétszedése frame-kre imagemagick-el:
 --------------------------------------------
 convert -coalesce counter.gif counter/frame%05d.png
 
 képek kombinálása egy nagy képpé:
 ---------------------------------
 montage -border 0 -geometry 568x -tile 6x -quality 60% frame*.png test1.jpg
+
+glsl:
+-----
+egész jó tutorialok:
+https://learnopengl.com/Advanced-Lighting/Parallax-Mapping

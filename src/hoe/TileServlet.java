@@ -6,6 +6,8 @@ import java.nio.file.Files;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.eclipse.jetty.http.HttpStatus;
+import org.eclipse.jetty.websocket.api.StatusCode;
 
 /**
  * Csempék letöltését vezérlő szervlet osztálya.
@@ -17,15 +19,16 @@ public class TileServlet extends HttpServletWithUserValidator {
     @Override
     public void validateUser(HttpServletRequest request, HttpServletResponse response, User user, int requestType) throws IOException {
      
-        System.out.println(request.getPathInfo());
+//        System.out.println(request.getPathInfo());
         
         // Ha a felhasználó nincs hitelesítve akkor nem küldünk semmit.
         if (null == user) {
+            response.setStatus(HttpStatus.UNAUTHORIZED_401);
             return;
         }
         
         // Fájl megnyitása.
-        File image = new File("assets/tiles/test.jpg");
+        File image = new File("assets/videos/test1.jpg");
 
         // Ha nem létezik a fájl akkor kilépünk.
         if (!image.exists()) {

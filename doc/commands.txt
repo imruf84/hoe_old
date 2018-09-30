@@ -1,2 +1,13 @@
 Start PHP builtin webserver:
 php -S localhost:8000
+
+start H2 tcp server:
+http://www.h2database.com/javadoc/org/h2/tools/Server.html
+https://stackoverflow.com/questions/9318116/how-to-run-h2-database-in-server-mode
+java -jar h2-1.3.160.jar -webAllowOthers -tcpAllowOthers
+http://A.B.C.D:8082 web
+http://127.0.1.1:8082/login.jsp
+tcp://A.B.C.D:9092 tcp
+jdbc:h2:tcp://localhost/./universe
+pg://A.B.C.D:5435 local only
+change pwd: ALTER USER sa SET PASSWORD '12345';

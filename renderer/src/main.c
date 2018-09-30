@@ -3,7 +3,7 @@
 
 int main(int argc, char *argv[])
 {
-    printf("aaa\n");
+    printf("aa\n");
     
     return EXIT_SUCCESS;
 }

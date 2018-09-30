@@ -11,7 +11,18 @@ import java.sql.SQLException;
  */
 public abstract class DataBase {
     
-    public static final String DATA_BASE_PATH = "./data/";
+    /**
+     * Adatbázis elérési útja.
+     */
+    public static final String DATA_BASE_PATH = "tcp://localhost/./";
+    /**
+     * Adatbázisfelhasználó neve.
+     */
+    public static final String DATA_BASE_USER = "sa";
+    /**
+     * Adatbázis jelszó.
+     */
+    public static final String DATA_BASE_PASSWORD = "12345";
     /**
      * Adatbáziskapcsolat.
      */
@@ -31,7 +42,7 @@ public abstract class DataBase {
     public DataBase(String dbName) throws ClassNotFoundException, SQLException {
         dataBaseName = dbName;
         Class.forName("org.h2.Driver");
-        connection = DriverManager.getConnection("jdbc:h2:" + DATA_BASE_PATH + getDataBaseName() + ";trace_level_file=0;AUTO_SERVER=TRUE", "sa", "");
+        connection = DriverManager.getConnection("jdbc:h2:" + DATA_BASE_PATH + getDataBaseName() + ";trace_level_file=0;", "sa", "12345");
         
         doThings();
     }
