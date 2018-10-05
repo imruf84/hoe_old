@@ -13,9 +13,8 @@
         
         <script src="js/debug.js"></script>
         <script src="js/scroll-to-left.js"></script>
-        <script src="js/canvid.js"></script>
-        <!--<script src="js/canvas-video-player.js"></script>-->
         <script src="js/iscroll-zoom.js"></script>
+        <script src="js/canvid.js"></script>
         <script src="js/communication-handler.js"></script>
         <script src="js/long-polling.js"></script>
         
@@ -24,58 +23,14 @@
         
     </head>
     <body onload="init()">
-        <!--
-                <video class="video js-video" muted="" style="display: none;">
-                    <source src="http://www.quirksmode.org/html5/videos/big_buck_bunny.webm" type="video/webm">
-                    <source src="http://www.quirksmode.org/html5/videos/big_buck_bunny.mp4" type="video/mp4">
-                    <source src="http://www.quirksmode.org/html5/videos/big_buck_bunny.ogv" type="video/ogg">
-                    
-                    
-                    <source src="http://84.21.7.31:8000/videos/big_buck_bunny.ogv" type="video/ogg">
-                    <source src="http://84.21.7.31:8000/videos/big_buck_bunny.webm" type="video/webm">
-                    <source src="http://84.21.7.31:8000/videos/big_buck_bunny.mp4" type="video/mp4">
-                    Your browser does not support HTML5 video.
-                </video>
--->
-        
+
         <div id="wrapper">
             <div id="scroller">
-                <div id="canvas" style="border: solid 1px black;top:0px;left:0px;position:absolute;"></div>
-                <!--<div style="top:0px;left:0px;position: absolute;background-image: url(http://192.168.0.20:8000/tiles/test.jpg); height: 400px; width: 400px; border: 1px solid black;"></div>-->
-                <!--<div style="top:0px;left:400px;position: absolute;background-image: url(http://192.168.0.20:8000/tiles/test.jpg); height: 400px; width: 400px; border: 1px solid black;"></div>-->
-                <!--<div style="background-color: green;width: 200px;height: 200px;"></div>-->
-<!--                <img style="top:0px;left:0px;position: absolute;" src="http://localhost/tile/" alt="map" height="2048" width="2048">-->
-<!--                <div style="top:0px;left:0px;position: absolute;width:1000px;height:1000px;background-color: red;border: solid 1px black;"></div>-->
-                <!--img style="top:0px;left:0px;position: absolute;" src="http://84.21.7.31:8000/tiles/test.jpg" alt="map" height="2048" width="2048">-->
-                <!--<img style="top:100px;left:100px;position: absolute;" src="http://84.21.7.31:8000/videos/test1.gif" alt="animation">-->
-                <!--<canvas style="top:200px;left:200px;position: absolute" class="canvas js-canvas" width="1600" height="900"></canvas>-->
+<!--                <div id="tile00" style="top:500px;left:800px;position:absolute;"></div>-->
+<!--                <div id="tile00" style="width:500px;height:500px;top:0px;left:0px;position:absolute;background-repeat: no-repeat;background-attachment: fixed;background-position: -250px 0px;background-image: url('tile/9/9')"></div>-->
+<canvas id="tiles" style="top:0px;left:0px;position:absolute;background-color: red;"></canvas>
             </div>
         </div>
-
-
-        <script>
-            //https://gka.github.io/canvid/
-            var canvidControl = canvid({
-                selector: '#canvas',
-                videos: {
-                    clip1: {src: 'http://localhost/tile/', frames: 250, cols: 6, loops: NaN, fps:30, onEnd: function () {}}
-                },
-                width: 568*4,
-                height: 320*4,
-                loaded: function () {
-                    var scroller = document.getElementById('scroller');
-                    scroller.style.width = 568*4+'px';
-                    scroller.style.height = 320*4+'px';
-                    myScroll.refresh();
-                    //canvidControl.setCurrentFrame(1);
-                    canvidControl.play('clip1');
-                    canvidControl.pause();
-                    // reverse playback
-                    // canvidControl.play('clip1', true);
-                }
-            });
-        </script>
-        
         
         <div style='width:100%;height:100%;pointer-events:none;position:absolute;z-index:1'>
             <!-- Fő táblázat a GUI elemek igazításához. -->
