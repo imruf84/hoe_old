@@ -59,3 +59,7 @@ https://github.com/saharan/OimoPhysics/tree/master/src/oimo/dynamics
 hasznos linkek:
 ---------------
 	érdekes algoritmusok (implementálva Unitiben): https://www.digital-dust.com/code
+
+UI lehetne hasonló ehhez:
+-------------------------
+	hatszögrácsban jelenne meg az odavezetõ út költsége: https://www.youtube.com/watch?v=U_k4p_-ee10&t=0h10m44s

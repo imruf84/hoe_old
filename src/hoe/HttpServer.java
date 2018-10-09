@@ -88,6 +88,7 @@ public class HttpServer extends HttpServlet {
         context.addServlet(new ServletHolder(new LogoutServlet()), LOGOUT_PATH);
         context.addServlet(new ServletHolder(new RegisterServlet()), REGISTER_PATH);
         context.addServlet(new ServletHolder(new TileServlet()), TILE_PATH);
+        context.addServlet(new ServletHolder(new VideoServlet()), "/video/*");
         
         /*FilterHolder filter = new FilterHolder(CrossOriginFilter.class);
         filter.setInitParameter("allowedOrigins", "*");

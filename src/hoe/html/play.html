@@ -10,28 +10,32 @@
         <link rel="stylesheet" href="css/chat.css">
         <link rel="stylesheet" href="css/scroll.css">
         <link rel="stylesheet" href="css/ui.css">
-        
+
         <script src="js/debug.js"></script>
         <script src="js/scroll-to-left.js"></script>
         <script src="js/iscroll-zoom.js"></script>
         <script src="js/canvid.js"></script>
+        <script src="js/tile.js"></script>
         <script src="js/communication-handler.js"></script>
         <script src="js/long-polling.js"></script>
-        
+
         <script src="js/init.js"></script>
 
-        
+
     </head>
-    <body onload="init()">
+    <!--    <body onload="init()">-->
+    <body>
 
         <div id="wrapper">
             <div id="scroller">
-<!--                <div id="tile00" style="top:500px;left:800px;position:absolute;"></div>-->
-<!--                <div id="tile00" style="width:500px;height:500px;top:0px;left:0px;position:absolute;background-repeat: no-repeat;background-attachment: fixed;background-position: -250px 0px;background-image: url('tile/9/9')"></div>-->
-<canvas id="tiles" style="top:0px;left:0px;position:absolute;background-color: red;"></canvas>
+                <div id="mousePointerToScroll" style="top:500px;left:800px;width:0;height:0;position:absolute;background-color:blue;"></div>        
+                <video id=v>
+                    <source src="video/video.mp4" type="video/mp4" />
+                    Your browser does not support HTML5 video.
+                </video>
             </div>
         </div>
-        
+
         <div style='width:100%;height:100%;pointer-events:none;position:absolute;z-index:1'>
             <!-- Fő táblázat a GUI elemek igazításához. -->
             <table border=0 cellSpacing=0 cellPadding=0 style='width:100%;height:100%;'>
@@ -61,6 +65,9 @@
                 </tr>
             </table>
         </div>
+
+
+        <script>init();</script>
 
     </body>
 </html>
