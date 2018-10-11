@@ -40,11 +40,11 @@ public class TileServlet extends HttpServletWithUserValidator {
                         coords[0] = Integer.parseInt(saTileCoords[1]);
                         coords[1] = Integer.parseInt(saTileCoords[2]);
                         break;
-                    case 4:
+                    /*case 4:
                         coords[0] = Integer.parseInt(saTileCoords[1]);
                         coords[1] = Integer.parseInt(saTileCoords[2]);
                         frame = Integer.parseInt(saTileCoords[3]);
-                        break;
+                        break;*/
                 }
             }
         } catch (NumberFormatException e) {
@@ -53,8 +53,8 @@ public class TileServlet extends HttpServletWithUserValidator {
         }
 
         // Fájl megnyitása.
-        //File image = new File("assets/videos/anim_" + coords[0] + "_" + coords[1] + ".jpg");
-        File image = new File("assets/tiles/tile_" + coords[0] + "_" + coords[1] + "_" + frame + ".jpg");
+        File image = new File("assets/tiles/tile_" + coords[0] + "_" + coords[1] + ".jpg");
+        //File image = new File("assets/tiles/tile_" + coords[0] + "_" + coords[1] + "_" + frame + ".jpg");
 
         // Ha nem létezik a fájl akkor kilépünk.
         if (!image.exists()) {

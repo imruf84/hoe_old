@@ -1,7 +1,12 @@
 var myScroll;
 var canvasVideo;
+var scrollerDiv;
+var video;
 
 function initScroll() {
+
+    scrollerDiv = document.getElementById('scroller');
+
     myScroll = new IScroll('#wrapper', {
         startX: 0,
         startY: 0,
@@ -12,11 +17,11 @@ function initScroll() {
         mouseWheel: true,
         wheelAction: 'zoom',
         startZoom: 1,
-        zoomMin: .5,
-        zoomMax: 4,
+        zoomMin: .35,
+        zoomMax: 1,
         tap: true,
         click: true,
-        bounce: true
+        bounce: !true
     });
 
     function onDblClick(evt) {
@@ -51,11 +56,10 @@ function initScroll() {
 
         switch (key) {
             case 32:
-                var v = document.getElementById('v');
-                if (v.paused)
-                    v.play();
+                if (video.paused)
+                    video.play();
                 else
-                    v.pause();
+                    video.pause();
                 break;
         }
     }
@@ -63,60 +67,105 @@ function initScroll() {
     function onClick(evt) {
     }
 
-    document.getElementById('scroller').addEventListener('tap', onClick, false);
-    document.getElementById('scroller').addEventListener('dblclick', onDblClick, false);
+    scrollerDiv.addEventListener('tap', onClick, false);
+    scrollerDiv.addEventListener('dblclick', onDblClick, false);
 }
-/*
- function createTiles() {
- for (let x = 0; x < 2; x++) {
- for (let y = 0; y < 2; y++) {
- let tile = {};
- let div = tile.div = document.createElement('div');
- div.id = 'tile_' + x + '_' + y;
- div.style.position = 'absolute';
- div.style.width = "500px";
- div.style.height = "500px";
- div.style.top = y * 500 + "px";
- div.style.left = x * 500 + "px";
- div.style.border = 'solid 1px black';
- document.getElementById('scroller').appendChild(div);
- let vc = tile.videoControl = canvid({
- selector: '#' + div.id,
- videos: {
- clip1: {src: 'http://localhost/tile/' + y + '/' + x, frames: 238, cols: 15, loops: Math.NaN, fps: 10, onEnd: function () {}}
- },
- width: 500,
- height: 500,
- loaded: function () {
- vc.play('clip1');
- //vc.pause();
- }
- });
- }
- }
- 
- var scroller = document.getElementById('scroller');
- scroller.style.width = 500 * 7 + 'px';
- scroller.style.height = 500 * 4 + 'px';
- myScroll.refresh();
- }
- */
+
+function createTiles() {
+
+    var tilesDiv = document.getElementById('tiles');
+    var tileWidth = 500;
+    var tileHeight = 500;
+    var tilesCountX = 8000 / tileWidth;
+    var tilesCountY = 13000 / tileHeight;
+
+    scrollerDiv.style.width = tilesCountX * tileWidth + 'px';
+    scrollerDiv.style.height = tilesCountY * tileHeight + 'px';
+    myScroll.refresh();
+    let images = [];
+    for (let x = 0; x < tilesCountX; x++) {
+        for (let y = 0; y < tilesCountY; y++) {
+            let image = new Image();
+            image.style.position = 'absolute';
+            image.style.left = (x * tileWidth) + 'px';
+            image.style.top = (y * tileHeight) + 'px';
+            image.width = tileWidth;
+            image.height = tileHeight;
+            image.style.border = 'solid 2px red';
+            image.tileX = x;
+            image.tileY = y;
+            image.id = 'tile_' + image.tileX + '_' + image.tileY;
+            tilesDiv.appendChild(image);
+            image.addEventListener('tap',
+                    function (e) {
+                        console.log(this.tileX, this.tileY);
+                    }, false);
+            image.onload = function () {
+                let i = images.shift();
+                if (!i) {
+                    return;
+                }
+                i.src = 'tile/' + i.tileX + '/' + i.tileY;
+            };
+            images.push(image);
+        }
+    }
+
+    let i = images.shift();
+    i.src = 'tile/' + i.tileX + '/' + i.tileY;
+
+
+
+    /* for (let x = 0; x < 2; x++) {
+     for (let y = 0; y < 2; y++) {
+     let tile = {};
+     let div = tile.div = document.createElement('div');
+     div.id = 'tile_' + x + '_' + y;
+     div.style.position = 'absolute';
+     div.style.width = "500px";
+     div.style.height = "500px";
+     div.style.top = y * 500 + "px";
+     div.style.left = x * 500 + "px";
+     div.style.border = 'solid 1px black';
+     document.getElementById('scroller').appendChild(div);
+     let vc = tile.videoControl = canvid({
+     selector: '#' + div.id,
+     videos: {
+     clip1: {src: 'http://localhost/tile/' + y + '/' + x, frames: 238, cols: 15, loops: Math.NaN, fps: 10, onEnd: function () {}}
+     },
+     width: 500,
+     height: 500,
+     loaded: function () {
+     vc.play('clip1');
+     //vc.pause();
+     }
+     });
+     }
+     }
+     
+     var scroller = document.getElementById('scroller');
+     scroller.style.width = 500 * 7 + 'px';
+     scroller.style.height = 500 * 4 + 'px';
+     myScroll.refresh();*/
+}
+
 
 
 function initVideo() {
+    video = document.getElementById('video');
+    //video.style.display = 'none';
 
     document.addEventListener('DOMContentLoaded', function () {
-            var v = document.getElementById('v');
+
         //    var canvas = document.getElementById('c');
         //    var context = canvas.getContext('2d');
 
-        v.addEventListener("loadedmetadata", function (e) {
+        video.addEventListener("loadedmetadata", function (e) {
             //canvas.width = this.videoWidth;
             //canvas.height = this.videoHeight;
 
-            var scroller = document.getElementById('scroller');
-            scroller.style.width = this.videoWidth + 'px';
-            scroller.style.height = this.videoHeight + 'px';
+            scrollerDiv.style.width = this.videoWidth + 'px';
+            scrollerDiv.style.height = this.videoHeight + 'px';
             myScroll.refresh();
 
         }, false);
@@ -127,8 +176,6 @@ function initVideo() {
 
     }, false);
 
-
-    //createTiles();
     /*
      var tileWidth = 500;
      var tileHeight = 500;
@@ -208,5 +255,6 @@ function init() {
     initScroll();
     initCommunicationHandler();
     longPolling();
-    initVideo();
+    //initVideo();
+    createTiles();
 }

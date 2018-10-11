@@ -49,6 +49,10 @@ public class HttpServer extends HttpServlet {
      */
     public static final String TILE_PATH = "/tile/*";
     /**
+     * Videók elérési útja.
+     */
+    public static final String VIDEO_PATH = "/video/*";
+    /**
      * Post kérés.
      */
     public static int POST_REQUEST = 0;
@@ -88,7 +92,7 @@ public class HttpServer extends HttpServlet {
         context.addServlet(new ServletHolder(new LogoutServlet()), LOGOUT_PATH);
         context.addServlet(new ServletHolder(new RegisterServlet()), REGISTER_PATH);
         context.addServlet(new ServletHolder(new TileServlet()), TILE_PATH);
-        context.addServlet(new ServletHolder(new VideoServlet()), "/video/*");
+        context.addServlet(new ServletHolder(new VideoServlet()), VIDEO_PATH);
         
         /*FilterHolder filter = new FilterHolder(CrossOriginFilter.class);
         filter.setInitParameter("allowedOrigins", "*");
