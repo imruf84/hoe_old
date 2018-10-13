@@ -1,0 +1,9 @@
+img {
+    opacity: 1;
+    transition: opacity 1.0s;
+}
+
+img[data-src],img[load-src] {
+    opacity: 0;
+}
+

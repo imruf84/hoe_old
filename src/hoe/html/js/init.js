@@ -2,6 +2,39 @@ var myScroll;
 var canvasVideo;
 var scrollerDiv;
 var video;
+var tilesDiv;
+var tileWidth = 500;
+var tileHeight = 500;
+
+function isCursorInInputField() {
+    return chatInput.focused;
+}
+
+function isElementInViewport(el) {
+
+    var rect = el.getBoundingClientRect();
+    return (
+            Math.max(rect.left, 0) < Math.min(rect.right, (getWindowSize()[0])) &&
+            Math.max(rect.top, 0) < Math.min(rect.bottom, (getWindowSize()[1]))
+            );
+
+}
+
+function isElementInViewportFully(el) {
+
+    var rect = el.getBoundingClientRect();
+    return (
+            rect.top <= 0 &&
+            rect.left <= 0 &&
+            rect.bottom >= getWindowSize()[0] &&
+            rect.right >= getWindowSize()[1]
+            );
+
+}
+
+function getWindowSize() {
+    return [window.innerWidth || document.documentElement.clientWidth, window.innerHeight || document.documentElement.clientheight];
+}
 
 function initScroll() {
 
@@ -21,29 +54,22 @@ function initScroll() {
         zoomMax: 1,
         tap: true,
         click: true,
-        bounce: !true
+        bounce: !true,
+        useTransition: true,
+        keyBindings: false
     });
 
     function onDblClick(evt) {
         var x = evt.pageX;
         var y = evt.pageY;
 
-        //var x = evt.pageX - this.offsetLeft; 
-        //var y = evt.pageY - this.offsetTop; 
-
         var globalX = x - myScroll.x;
         var globalY = y - myScroll.y;
-
-        //myScroll.scale
-        //
-        //myScroll.scrollTo(x, y, 400, IScroll.utils.ease.quadratic);
 
         var mouseTarget = document.getElementById('mousePointerToScroll');
         mouseTarget.style.left = globalX + 'px';
         mouseTarget.style.top = globalY + 'px';
         myScroll.scrollToElement(mouseTarget, 1000, true, true)
-
-        //myScroll.scrollToElement(document.getElementById('target1'),200,true,true)
 
         globalX /= myScroll.scale;
         globalY /= myScroll.scale;
@@ -52,14 +78,66 @@ function initScroll() {
     }
 
     window.onkeyup = function (e) {
+
+        // Ha éppen chat üzenett írunk, akkor nem dolgozunk fel eseményeket.
+        if (isCursorInInputField()) {
+            return;
+        }
+
         var key = e.keyCode ? e.keyCode : e.which;
+        var isShift = e.shiftKey;
+        var isCtrl = e.ctrlKey;
+
+        var scrollBy = [myScroll.scale * tileWidth, myScroll.scale * tileHeight];
+        if (isShift) {
+            scrollBy = [getWindowSize()[0], getWindowSize()[1]];
+        }
+        var scrollByDuration = 500;
+
+        var screenCenterX = getWindowSize()[0] / 2;
+        var screenCenterY = getWindowSize()[1] / 2;
+        var scaleBy = (myScroll.options.zoomMax - myScroll.options.zoomMin) / 2;
+        if (isShift) {
+            scaleBy = myScroll.options.zoomMax - myScroll.options.zoomMin;
+        }
+        var scaleByDuration = 1000;
 
         switch (key) {
+            // delete (logout)
+            case 46:
+                window.location.href = 'logout';
+                break;
+                // space
             case 32:
                 if (video.paused)
                     video.play();
                 else
                     video.pause();
+                break;
+                // + (zoom in)
+            case 51:
+            case 107:
+                myScroll.zoom(myScroll.scale + scaleBy, screenCenterX, screenCenterY, scaleByDuration);
+                break;
+                // - (zoom out)
+            case 109:
+            case 189:
+                myScroll.zoom(myScroll.scale - scaleBy, screenCenterX, screenCenterY, scaleByDuration);
+                break;
+            case 38:
+                myScroll.scrollBy(0, scrollBy[1], scrollByDuration);
+                break;
+                // down
+            case 40:
+                myScroll.scrollBy(0, -scrollBy[1], scrollByDuration);
+                break;
+                // right
+            case 39:
+                myScroll.scrollBy(-scrollBy[0], 0, scrollByDuration);
+                break;
+                // left
+            case 37:
+                myScroll.scrollBy(scrollBy[0], 0, scrollByDuration);
                 break;
         }
     }
@@ -73,16 +151,53 @@ function initScroll() {
 
 function createTiles() {
 
-    var tilesDiv = document.getElementById('tiles');
-    var tileWidth = 500;
-    var tileHeight = 500;
+    let tilesQueueWasEmpty = true;
+    let tilesQueueToLoad = [];
+
+    function loadTileFromQueue() {
+        let img = tilesQueueToLoad.pop();
+        if (img) {
+            img.onload = function () {
+                loadTileFromQueue();
+            };
+            setTimeout(function () {
+                img.setAttribute('src', img.getAttribute('load-src'));
+                img.removeAttribute('load-src');
+            }, 2);
+        }
+    }
+    ;
+
+    setInterval(function () {
+        tilesQueueWasEmpty = (tilesQueueToLoad.length === 0);
+
+        [].forEach.call(document.querySelectorAll('img[data-src]'),
+                function (img) {
+
+                    if (isElementInViewport(img)) {
+                        img.setAttribute('load-src', img.getAttribute('data-src'));
+                        img.removeAttribute('data-src');
+                        tilesQueueToLoad.push(img);
+                    }
+            });
+
+        if (tilesQueueWasEmpty) {
+            loadTileFromQueue();
+        }
+
+        if (tilesQueueWasEmpty) {
+            loadTileFromQueue();
+        }
+    }, 100);
+
+    tilesDiv = document.getElementById('tiles');
     var tilesCountX = 8000 / tileWidth;
     var tilesCountY = 13000 / tileHeight;
 
     scrollerDiv.style.width = tilesCountX * tileWidth + 'px';
     scrollerDiv.style.height = tilesCountY * tileHeight + 'px';
     myScroll.refresh();
-    let images = [];
+    let tilesToLoad = [];
     for (let x = 0; x < tilesCountX; x++) {
         for (let y = 0; y < tilesCountY; y++) {
             let image = new Image();
@@ -94,59 +209,18 @@ function createTiles() {
             image.style.border = 'solid 2px red';
             image.tileX = x;
             image.tileY = y;
+            image.className = 'lazy';
             image.id = 'tile_' + image.tileX + '_' + image.tileY;
+            image.setAttribute('data-src', 'tile/' + image.tileX + '/' + image.tileY);
             tilesDiv.appendChild(image);
             image.addEventListener('tap',
                     function (e) {
-                        console.log(this.tileX, this.tileY);
+                        console.log('tile click', this.tileX, this.tileY);
                     }, false);
-            image.onload = function () {
-                let i = images.shift();
-                if (!i) {
-                    return;
-                }
-                i.src = 'tile/' + i.tileX + '/' + i.tileY;
-            };
-            images.push(image);
+            tilesToLoad.push(image);
         }
     }
 
-    let i = images.shift();
-    i.src = 'tile/' + i.tileX + '/' + i.tileY;
-
-
-
-    /* for (let x = 0; x < 2; x++) {
-     for (let y = 0; y < 2; y++) {
-     let tile = {};
-     let div = tile.div = document.createElement('div');
-     div.id = 'tile_' + x + '_' + y;
-     div.style.position = 'absolute';
-     div.style.width = "500px";
-     div.style.height = "500px";
-     div.style.top = y * 500 + "px";
-     div.style.left = x * 500 + "px";
-     div.style.border = 'solid 1px black';
-     document.getElementById('scroller').appendChild(div);
-     let vc = tile.videoControl = canvid({
-     selector: '#' + div.id,
-     videos: {
-     clip1: {src: 'http://localhost/tile/' + y + '/' + x, frames: 238, cols: 15, loops: Math.NaN, fps: 10, onEnd: function () {}}
-     },
-     width: 500,
-     height: 500,
-     loaded: function () {
-     vc.play('clip1');
-     //vc.pause();
-     }
-     });
-     }
-     }
-     
-     var scroller = document.getElementById('scroller');
-     scroller.style.width = 500 * 7 + 'px';
-     scroller.style.height = 500 * 4 + 'px';
-     myScroll.refresh();*/
 }
 
 
@@ -154,100 +228,23 @@ function createTiles() {
 function initVideo() {
     video = document.getElementById('video');
     //video.style.display = 'none';
-
-    document.addEventListener('DOMContentLoaded', function () {
-
-        //    var canvas = document.getElementById('c');
-        //    var context = canvas.getContext('2d');
-
-        video.addEventListener("loadedmetadata", function (e) {
-            //canvas.width = this.videoWidth;
-            //canvas.height = this.videoHeight;
-
-            scrollerDiv.style.width = this.videoWidth + 'px';
-            scrollerDiv.style.height = this.videoHeight + 'px';
-            myScroll.refresh();
-
-        }, false);
-        /*
-             v.addEventListener('play', function () {
-                 draw(this, context, cw, ch);
-             }, false);*/
-
-    }, false);
-
     /*
-     var tileWidth = 500;
-     var tileHeight = 500;
-     var tilesCountX = 7;
-     var tilesCountY = 4;
-     var columnsCount = 15;
-     var framesCount = (15 * 16) - 2;
-     var frame = 0;
-     var canvasWidth = tileWidth * tilesCountX;
-     var canvasHeight = tileHeight * tilesCountY;
+     document.addEventListener('DOMContentLoaded', function () {
      
-     var scroller = document.getElementById('scroller');
-     scroller.style.width = canvasWidth + 'px';
-     scroller.style.height = canvasHeight + 'px';
+     //    var canvas = document.getElementById('c');
+     //    var context = canvas.getContext('2d');
+     
+     video.addEventListener("loadedmetadata", function (e) {
+     //canvas.width = this.videoWidth;
+     //canvas.height = this.videoHeight;
+     
+     scrollerDiv.style.width = this.videoWidth + 'px';
+     scrollerDiv.style.height = this.videoHeight + 'px';
      myScroll.refresh();
      
-     var canvas = document.getElementById('tiles');
-     var c2d = canvas.getContext('2d');
-     c2d.canvas.width = canvasWidth;
-     c2d.canvas.height = canvasHeight;
+     }, false);
      
-     for (var x = 0; x < tilesCountX; x++) {
-     for (var y = 0; y < tilesCountY; y++) {
-     c2d.strokeRect(x * tileWidth, y * tileHeight, tileWidth, tileHeight);
-     }
-     }
-     */
-    /*
-     var tilesToLoad = [];
-     let tiles = [];
-     
-     //for (let xx = 0; xx < tilesCountX; xx++) {
-     for (let xx = 1; xx < tilesCountX-2; xx++) {
-     //for (let yy = 0; yy < tilesCountY; yy++) {
-     for (let yy = 0; yy < tilesCountY-1; yy++) {
-     let t = new Tile({
-     x: xx, y: yy,
-     width: 500,
-     height: 500,
-     columns: 15,
-     //frames: (15 * 16) - 2,
-     frames: [0, (15 * 16) - 2 - 1],
-     //frames: [0, 40],
-     context: c2d,
-     onload: function(tile) {
-     
-     tiles.push(tile);
-     
-     tile.draw();
-     toDebug(tile.id+' loaded:'+tile.images.length);
-     let tt = tilesToLoad.shift();
-     if (tt) {
-     tt.load();
-     return;
-     }
-     
-     setInterval(function (){
-     for (var t of tiles) {
-     t.drawNext();
-     }
-     },1/10*1000);
-     }
-     });
-     
-     tilesToLoad.push(t);
-     }
-     }
-     
-     //toDebug(tilesToLoad.length);
-     //console.log(tilesToLoad);
-     
-     tilesToLoad.shift().load();
+     }, false);
      */
 }
 

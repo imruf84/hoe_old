@@ -1308,7 +1308,9 @@ IScroll.prototype = {
 
 		deltaScale = this.scale + wheelDeltaY / 5;
 
-		this.zoom(deltaScale, e.pageX, e.pageY, 500);
+		this.zoom(deltaScale, e.pageX, e.pageY);
+                
+                this._execEvent('zoomStart'); //add this
 	},
 
 	_initWheel: function () {
