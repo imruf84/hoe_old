@@ -9,9 +9,9 @@ function initTiles() {
 
     let tilesQueueWasEmpty = true;
     let tilesQueueToLoad = [];
-
     function loadTileFromQueue() {
-        let img = tilesQueueToLoad.pop();
+        sortTilesByDistanceOfScreenCenter(tilesQueueToLoad);
+        let img = tilesQueueToLoad.shift();
         if (img) {
             img.onload = function () {
                 loadTileFromQueue();
@@ -23,10 +23,8 @@ function initTiles() {
         }
     }
     ;
-
     setInterval(function () {
         tilesQueueWasEmpty = (tilesQueueToLoad.length === 0);
-
         [].forEach.call(document.querySelectorAll('img[data-src]'),
                 function (img) {
 
@@ -35,8 +33,7 @@ function initTiles() {
                         img.removeAttribute('data-src');
                         tilesQueueToLoad.push(img);
                     }
-            });
-
+                });
         if (tilesQueueWasEmpty) {
             loadTileFromQueue();
         }
@@ -45,11 +42,9 @@ function initTiles() {
             loadTileFromQueue();
         }
     }, 100);
-
     tilesDiv = document.getElementById('tiles');
     var tilesCountX = 8000 / tileWidth;
     var tilesCountY = 13000 / tileHeight;
-
     scrollerDiv.style.width = tilesCountX * tileWidth + 'px';
     scrollerDiv.style.height = tilesCountY * tileHeight + 'px';
     myScroll.refresh();
@@ -78,34 +73,54 @@ function initTiles() {
 }
 
 function markCenterTile() {
-    var ct = getClosestTileToCenterOfScreen();
+    var ct = getClosestTileToScreenCenter();
     if (!ct) {
         return;
     }
-    iterateTiles(function (t){removeClass(t, 'tile-video');});
+    iterateTiles(function (t) {
+        removeClass(t, 'tile-video');
+    });
     addClass(ct, 'tile-video');
 }
 
-function getClosestTileToCenterOfScreen() {
+function getTileDistanceFromScreenCenter(tile) {
+    let sc = [getWindowSize()[0] / 2, getWindowSize()[1] / 2];
+    let rect = tile.getBoundingClientRect();
+    let tc = [(rect.left + rect.right) / 2, (rect.top + rect.bottom) / 2];
+    let d = Math.sqrt((tc[0] - sc[0]) * (tc[0] - sc[0]) + (tc[1] - sc[1]) * (tc[1] - sc[1]));
+    return d;
+}
+
+function getClosestTileToScreenCenter() {
     let result = null;
     let dMin = 0;
-    let sc = [getWindowSize()[0]/2,getWindowSize()[1]/2];
     iterateTiles(function (tile) {
         if (isElementInViewport(tile)) {
-        let rect = tile.getBoundingClientRect();
-        let tc = [(rect.left+rect.right)/2,(rect.top+rect.bottom)/2];
-        let d = Math.sqrt((tc[0]-sc[0])*(tc[0]-sc[0])+(tc[1]-sc[1])*(tc[1]-sc[1]));
-        
-        if (result === null || d < dMin) {
-            result = tile;
-            dMin = d;
+            let d = getTileDistanceFromScreenCenter(tile);
+            if (result === null || d < dMin) {
+                result = tile;
+                dMin = d;
+            }
         }
-    }
     });
-    
     return result;
 }
 
+function sortTilesByDistanceOfScreenCenter(tiles) {
+    function compare(a,b) {
+        var da = getTileDistanceFromScreenCenter(a);
+        var db = getTileDistanceFromScreenCenter(b);
+        if (da < db)
+            return -1;
+        if (da > db)
+            return 1;
+        return 0;
+    }
+    
+    tiles.sort(compare);
+    
+}
+
 function iterateTiles(func) {
-    [].forEach.call(document.querySelectorAll('.tile'),func);
+    [].forEach.call(document.querySelectorAll('.tile'), func);
 }

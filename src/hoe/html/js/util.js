@@ -46,9 +46,9 @@ function getWindowSize() {
 
 function addClass(element, name) {
     var arr = element.className.split(' ');
-    if (arr.indexOf(name) === -1) {
-        element.className += ' ' + name;
-    }
+    if (arr.indexOf(name) === -1) {
+        element.className += ' ' + name;
+    }
 }
 
 function removeClass(element, name) {
