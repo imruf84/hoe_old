@@ -47,7 +47,7 @@ var sendMsgFunc = function () {
         sendToServer(JSON.stringify({a: 'cm', d: {msg: escape(chatInput.value)}}));
         chatInput.value = '';
     }
-}
+};
 
 // Üzenet érkezett.
 function isJSON(text) {
@@ -97,7 +97,7 @@ var handleResponse = function (responseText) {
                 break;
         }
     }
-}
+};
 
 // Játékadatok szinkronizálása.
 function syncData() {

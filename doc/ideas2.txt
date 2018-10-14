@@ -1,0 +1,23 @@
+﻿ALAP STRATÉGIA KÖRÖNKÉNT: támadás, védekezés, helyezkedés (átcsoportosítás, esetleg új egységek kérése, vagy meglévők karbantartása)
+
+- a játékteret hatszögrács alkotja
+- minden játékos rendelkezik egy hőssel és legfeljebb hat egységgel
+- ezek az egységek a hős hat oldalán helyezkednek el (elgondolkodni más formációkon is [elvileg felesleges, kivéve ha fedezékbe akarom őket küldeni])
+- az egységek átcsoportosíthatóak minden kör végén (elgondolkodni azon, hogy a játékos dönthetné el, hogy átcsoportosít, az egységek képességeit használja fel, vagy mozog)
+- egységek típusai:
+  * védekező:
+    + felfogja a támadásokat (adott számút)
+    - nem tud harcolni
+  * közelharci:
+    + közelharcra jó (meggondolni, hogy kiküldhető lenne minimális távolságokra is harcolni)
+  * távolharci:
+    + távoli távolságra jó
+
+/-\
+\-/
+
+
+
+VAGY
+
+nincs kötött formáció, és a játékos döntheti el, hogy melyik egységet hová küldi (adott távolságon belül) és mit csinál velük

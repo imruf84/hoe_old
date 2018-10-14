@@ -7,3 +7,11 @@ img[data-src],img[load-src] {
     opacity: 0;
 }
 
+.tile {
+    position: absolute;
+}
+
+.tile-video {
+    position: absolute;
+    border: solid 6px red;
+}
