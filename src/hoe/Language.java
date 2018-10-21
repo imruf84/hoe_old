@@ -2,29 +2,12 @@ package hoe;
 
 import java.util.HashMap;
 
-/**
- * Üzeneteket kezelő osztály.
- *
- * @author imruf84
- */
 public class Language {
 
-    /**
-     * Üzenetek tárolója.
-     */
     private static final HashMap<String, HashMap<LanguageMessageKey, String>> MESSAGES = new HashMap<>();
-    /**
-     * Nyelvek.
-     */
     private static final String LANG_HU = "hu";
-    /**
-     * Aktuális nyelv.
-     */
     private static String currentLanguage = LANG_HU;
 
-    /**
-     * Inicializálás.
-     */
     public static void init() {
         MESSAGES.put(LANG_HU, new HashMap<>());
         MESSAGES.get(LANG_HU).put(LanguageMessageKey.NAME, "Név");
@@ -50,41 +33,18 @@ public class Language {
         MESSAGES.get(LANG_HU).put(LanguageMessageKey.GETTING_MESSAGES, "Beszélgetés letöltése...");
     }
 
-    /**
-     * Aktuális nyelv lekérdezése.
-     *
-     * @return aktuális nyelv
-     */
     public static String getCurrentLanguage() {
         return currentLanguage;
     }
 
-    /**
-     * Aktuális nyelv megadása.
-     *
-     * @param currentLanguage aktuális nyelv
-     */
     public static void setCurrentLanguage(String currentLanguage) {
         Language.currentLanguage = currentLanguage;
     }
 
-    /**
-     * Szöveg lekérdezése.
-     *
-     * @param language nyelv
-     * @param messageKey szöveg kódja
-     * @return szöveg
-     */
     public static String getText(String language, LanguageMessageKey messageKey) {
         return MESSAGES.get(language).get(messageKey);
     }
 
-    /**
-     * Szöveg lekérdezése az aktuális nyelven.
-     *
-     * @param messageKey szöveg kódja
-     * @return szöveg
-     */
     public static String getText(LanguageMessageKey messageKey) {
         return Language.getText(currentLanguage, messageKey);
     }

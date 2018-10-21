@@ -1,10 +1,5 @@
 package hoe;
 
-/**
- * Üzenetek szövegeinek azonosítói.
- *
- * @author imruf84
- */
 public enum LanguageMessageKey {
     NAME,
     PASSWORD,

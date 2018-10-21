@@ -2,42 +2,71 @@ package hoe;
 
 import java.util.Arrays;
 
-/**
- * Handful Of Meteors alkalmazás alaposztálya.
- *
- * @author imruf84
- */
 public class HandhulOfEarth {
 
-    /**
-     * Belépési pont.
-     *
-     * @param args parancssori argumentumok -p 8086:port meagadása
-     * @throws java.lang.Exception kivétel
-     */
+    public static String CL_HELP = "h";
+    public static String CL_DEBUG = "d";
+    public static String CL_PORT = "p";
+    public static String CL_DATABASE_SERVER = "db";
+    public static String CL_GAME_SERVER = "g";
+    public static String CL_USER_DATABASE = "u";
+    public static String CL_SCENE_DATABASE = "s";
+
+    public static String sc(String s) {
+        return "-" + s;
+    }
+
     public static void main(String[] args) throws Exception {
-        
-        // Kapcsolók megjelenítése.
-        if (!(Arrays.asList(args).indexOf("-h") < 0)) {
-            System.out.println("-d: show debug messages");
-            System.out.println("-p number: use alternative port number");
+
+        if (!(Arrays.asList(args).indexOf(sc(CL_HELP)) < 0) || args.length == 0) {
+            Log.print(sc(CL_HELP) + ": show this messages");
+            Log.print(sc(CL_DEBUG) + ": show debug messages");
+            Log.print(sc(CL_PORT) + " number: use alternative port number");
+            Log.print(sc(CL_DATABASE_SERVER) + ": run database server");
+            Log.print(sc(CL_GAME_SERVER) + ": run game server");
+            Log.print(sc(CL_USER_DATABASE) + " ip: ip of users database server");
+            Log.print(sc(CL_SCENE_DATABASE) + " ip: ip of scene database server");
             return;
         }
-        
-        // Debug üzenetek megjelenítése.
-        Log.showDebugMessages = !(Arrays.asList(args).indexOf("-d") < 0);
-        
+
+        //for (int i = 0; i < 10; i++) System.out.println(UUID.randomUUID());
+        Log.showDebugMessages = !(Arrays.asList(args).indexOf(sc(CL_DEBUG)) < 0);
+
         Language.init();
-        
-        try {
-            // Megadott port használata.
-            int portIndex = Arrays.asList(args).indexOf("-p");
-            int port = (!(portIndex < 0) ? Integer.parseInt(args[portIndex + 1]) : 80);
 
-            HttpServer srv = new HttpServer(port);
+        boolean runDatabaseServer = !(Arrays.asList(args).indexOf(sc(CL_DATABASE_SERVER)) < 0);
+        if (runDatabaseServer) {
+            database.DatabaseServer.startServers();
+        }
 
-        } catch (Exception ex) {
-            Log.error(Language.getText(LanguageMessageKey.CREATING_SERVER_FAILED), ex);
+        boolean hasUsersDataBaseIp = !(Arrays.asList(args).indexOf(sc(CL_USER_DATABASE)) < 0);
+        if (hasUsersDataBaseIp) {
+            int usersDataBaseIndex = Arrays.asList(args).indexOf(sc(CL_USER_DATABASE));
+            if (!(usersDataBaseIndex < 0)) {
+                UserManager.setDataBaseIp(args[usersDataBaseIndex + 1]);
+            }
+        }
+
+        boolean hasSceneDataBaseIp = !(Arrays.asList(args).indexOf(sc(CL_SCENE_DATABASE)) < 0);
+        if (hasSceneDataBaseIp) {
+            int sceneDataBaseIndex = Arrays.asList(args).indexOf(sc(CL_SCENE_DATABASE));
+            if (!(sceneDataBaseIndex < 0)) {
+                SceneManager.setDataBaseIp(args[sceneDataBaseIndex + 1]);
+            }
+        }
+
+        boolean runGameServer = !(Arrays.asList(args).indexOf(sc(CL_GAME_SERVER)) < 0);
+        if (runGameServer) {
+            try {
+                int portIndex = Arrays.asList(args).indexOf(sc(CL_PORT));
+                int port = (!(portIndex < 0) ? Integer.parseInt(args[portIndex + 1]) : 80);
+
+                HttpServer server = new HttpServer(port);
+                server.start();
+
+            } catch (Exception ex) {
+                Log.error(Language.getText(LanguageMessageKey.CREATING_SERVER_FAILED), ex);
+            }
         }
     }
 

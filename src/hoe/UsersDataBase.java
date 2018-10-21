@@ -4,26 +4,16 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-/**
- * Felhasználók adatbázisát kezelő osztály.
- *
- * @author imruf84
- */
 public class UsersDataBase extends DataBase {
 
-    /**
-     * SHA algoritmus iterációinak a száma
-     */
     private static final int SHA_LENGTH = 1000;
 
-    /**
-     * Konstruktor.
-     *
-     * @throws ClassNotFoundException kivétel
-     * @throws SQLException kivétel
-     */
     public UsersDataBase() throws ClassNotFoundException, SQLException {
         super("users");
+    }
+
+    public UsersDataBase(String ip) throws ClassNotFoundException, SQLException {
+        super(ip, "users");
     }
 
     @Override
@@ -33,13 +23,6 @@ public class UsersDataBase extends DataBase {
         }
     }
 
-    /**
-     * Felhasználó létezésének ellenörzése.
-     *
-     * @param user felhasználó
-     * @return létezés esetén igaz egyébként hamis
-     * @throws SQLException kivétel
-     */
     public boolean isUserStored(User user) throws SQLException {
 
         if (null == user) {
@@ -55,13 +38,6 @@ public class UsersDataBase extends DataBase {
 
     }
 
-    /**
-     * Felhasználó tárolása.
-     *
-     * @param user felhasználó
-     * @return sikeres tárolás esetén igaz egyébként hamis
-     * @throws java.sql.SQLException kivétel
-     */
     public synchronized boolean storeUser(User user) throws SQLException {
         if (isUserStored(user)) {
             return false;
@@ -76,13 +52,6 @@ public class UsersDataBase extends DataBase {
         }
     }
 
-    /**
-     * Felhasználó hitelesítése.
-     *
-     * @param user felhasználó
-     * @return hiteles felhasználó esetén igaz egyébként hamis
-     * @throws SQLException kivétel
-     */
     public boolean validateUser(User user) throws SQLException {
         try (
                 Statement st = getConnection().createStatement();

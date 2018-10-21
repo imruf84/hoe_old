@@ -1,4 +1,3 @@
 #!/bin/sh
 cd ..
-cd bin
-java -jar hoe.jar
+java -jar ./bin/hoe.jar -g

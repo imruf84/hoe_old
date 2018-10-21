@@ -10,6 +10,7 @@ import com.jogamp.opengl.glu.GLU;
 import javax.swing.JFrame;
 
 import com.jogamp.opengl.util.FPSAnimator;
+import hoe.Log;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -166,7 +167,7 @@ public class OGL2 implements GLEventListener, MouseListener, MouseMotionListener
             try {
                 Server.createWebServer().start();
             } catch (SQLException ex) {
-                Logger.getLogger(OGL2.class.getName()).log(Level.SEVERE, null, ex);
+                Log.error(ex);
             }
         });
         
@@ -174,7 +175,7 @@ public class OGL2 implements GLEventListener, MouseListener, MouseMotionListener
             try {
                 Server.createTcpServer().start();
             } catch (SQLException ex) {
-                Logger.getLogger(OGL2.class.getName()).log(Level.SEVERE, null, ex);
+                Log.error(ex);
             }
         });
         

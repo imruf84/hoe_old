@@ -11,67 +11,25 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
-/**
- * Felhasználó.
- *
- * @author imruf84
- */
 public class User {
 
-    /**
-     * Felhasználói név session azonosítójának neve.
-     */
     public static String USER_NAME_SESSION_KEY = "user";
-    /**
-     * Válaszcsatorna long pollinghoz.
-     */
     private final AtomicReference<LinkedList<AsyncContext>> context = new AtomicReference<>(new LinkedList<>());
-    /**
-     * Session azonosító.
-     */
     private final String sessionId;
-    /**
-     * Felhasználó neve.
-     */
     private final String userName;
-    /**
-     * Felhasználó jelszava.
-     */
     private final String password;
-    /**
-     * Küldendő üzenetek.
-     */
     private final LinkedList<String> messages = new LinkedList<>();
 
-    
-    /**
-     * Konstruktor.
-     *
-     * @param sessionId session azonosító
-     * @param userName felhasználó neve
-     * @param password jelszó
-     */
     public User(final String sessionId, final String userName, final String password) {
         this.sessionId = sessionId;
         this.userName = userName.replaceAll("\"", "\\\\\"").replaceAll("'", "\\\\'");
         this.password = password;
     }
 
-    /**
-     * Session azonosító lekérdezése.
-     *
-     * @return session azonosító
-     */
     public String getSessionId() {
         return sessionId;
     }
 
-    /**
-     * Felhasználó hitelességének a vizsgálata.
-     *
-     * @param request kérelem
-     * @return igaz esetén a felhasználó hiteles, egyébként nem
-     */
     public boolean isValid(final HttpServletRequest request) {
 
         HttpSession session = request.getSession();
@@ -83,76 +41,43 @@ public class User {
 
         return lUserName.equals(getUserName());
     }
-    
-    /**
-     * Játékos aktív-e?
-     * 
-     * @param request kérés
-     * @return igaz esetén aktív egyébként hamis
-     */
+
     public boolean isActive(final HttpServletRequest request) {
         return isValid(request) && hasActiveContext();
     }
-    
-    /**
-     * Rendelkezik-e aktív kapcsolattal?
-     * 
-     * @return ha rendelkezik akkor igaz, egyébként hamis
-     */
+
     public boolean hasActiveContext() {
         return (context.get().size() > 0);
     }
 
-    /**
-     * Felhasználó nevének a lekérdezése.
-     *
-     * @return felhasználó neve
-     */
     public String getUserName() {
         return userName;
     }
 
-    /**
-     * Jelszó lekérdezése.
-     * 
-     * @return jelszó
-     */
     public String getPassword() {
         return password;
     }
 
-    /**
-     * Üzenet küldése a felhasználónak.
-     *
-     * @param msg üzenet
-     * @throws IOException kivétel
-     */
     public void sendMessage(final String msg) throws IOException {
 
-        // Üzenet tárolása.
+        // Storing message.
         synchronized (messages) {
             messages.add(msg);
         }
 
-        // Üzenet(ek) küldése.
+        // Sending messages.
         flushMessages();
     }
 
-    /**
-     * Aszinkron szál tárolása (long polling válasz csatorna).
-     *
-     * @param r kérés
-     * @throws IOException kivétel
-     */
     public void storeAsyncContext(final HttpServletRequest r) throws IOException {
 
-        // Ha nincs tárolandó dolog, akkor csak az üzeneteket továbbítjuk.
+        // If there are no soring thing we send the messages.
         if (null == r) {
             flushMessages();
             return;
         }
 
-        // Események regisztrálása.
+        // Registering events.
         AsyncContext c = r.startAsync();
         c.setTimeout(20000);
         c.addListener(new AsyncListener() {
@@ -183,29 +108,24 @@ public class User {
 
         synchronized (context) {
 
-            // Előző csatornák törlése.
+            // Removing previous channels.
             if (0 < context.get().size()) {
                 flushContexts();
             }
 
-            // Új csatorna tárolása.
+            // Storing new channel.
             context.get().add(c);
             Log.debug("storeContext[" + getUserName() + ":" + context.get().size() + "]:" + c.toString());
 
-            // Aszinkron szál nyitása.
+            // Open async signal.
             c.start(() -> {
             });
         }
 
-        // Majd továbbítjuk a felhalmozott üzeneteket.
+        // Sending stored messages.
         flushMessages();
     }
 
-    /**
-     * Csatorna törlése.
-     *
-     * @param c kapcsolat
-     */
     private void removeContext(AsyncContext c) {
         synchronized (context) {
             context.get().remove(c);
@@ -213,12 +133,9 @@ public class User {
         }
     }
 
-    /**
-     * Csatornák befejezése.
-     */
     public void flushContexts() {
 
-        // Válaszcsatornák zárása.
+        // Closing response channels.
         synchronized (context) {
             for (AsyncContext ac : context.get()) {
                 ac.complete();
@@ -226,40 +143,35 @@ public class User {
         }
     }
 
-    /**
-     * Üzenetek kiküldése.
-     *
-     * @throws IOException kivétel
-     */
     private void flushMessages() throws IOException {
 
         synchronized (messages) {
 
-            // Ha nincs küldendő üzenet, akkor kilépünk.
+            // If there are no sending message we exit.
             if (messages.isEmpty()) {
                 return;
             }
 
             synchronized (context) {
 
-                // Ha nincs aktív nyitott csatorna, akkor kilépünk.
+                // If there are no opened channel we exit.
                 if (0 == context.get().size()) {
                     return;
                 }
 
-                // Üzenetek összefűzése.
-                // TODO: egyidőben csak adott számú üzenet összefésülése küldésre, hogy elkerüljük a nagyon nagy mennyiségű adatküldést
+                // Joining messages.
+                // TODO: send only small amount of message at the same time
                 String s = Arrays.toString(messages.toArray());
                 messages.clear();
 
-                // Küldés.
+                // Sending.
                 for (AsyncContext ac : context.get()) {
                     ServletResponse sr = ac.getResponse();
                     sr.setContentType("text/json");
                     sr.setCharacterEncoding("UTF-8");
                     sr.getWriter().append(s);
 
-                    // Válaszcsatorna zárása.
+                    // Closing response channel.
                     ac.complete();
                 }
 
@@ -269,11 +181,6 @@ public class User {
 
     }
 
-    /**
-     * Aktív kapcsolatok számának a lekérdezése.
-     *
-     * @return aktív kapcsolatok száma
-     */
     public int getAsyncChannelsCount() {
         return context.get().size();
     }

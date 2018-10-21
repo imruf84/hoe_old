@@ -1,4 +1,4 @@
 #!/bin/sh
 cd ..
-cd data
-java -jar ../libs/h2-1.4.187.jar -webAllowOthers -tcpAllowOthers
+java -jar ./bin/hoe.jar -db
+#java -jar ../libs/h2-1.4.187.jar -webAllowOthers -tcpAllowOthers

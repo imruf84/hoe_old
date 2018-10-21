@@ -1,84 +1,44 @@
 package hoe;
 
+import hoe.servlets.TileServlet;
+import hoe.servlets.VideoServlet;
+import hoe.servlets.LogoutServlet;
+import hoe.servlets.LoginServlet;
+import hoe.servlets.PlayServlet;
+import hoe.servlets.RegisterServlet;
 import java.io.File;
-import java.net.InetSocketAddress;
-import java.util.EnumSet;
-import javax.servlet.DispatcherType;
 import javax.servlet.http.HttpServlet;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.session.SessionHandler;
-import org.eclipse.jetty.servlet.FilterHolder;
-import org.eclipse.jetty.servlet.FilterMapping;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
-import org.eclipse.jetty.servlets.CrossOriginFilter;
 
-/**
- * HTTP szerver.
- *
- * @author imruf84
- */
 public class HttpServer extends HttpServlet {
 
-    /**
-     * Alkalmazás neve.
-     */
     public static final String APP_TITLE = "Handful of Earth";
-    /**
-     * Session kulcs.
-     */
     private static final String SESSION_COOKIE = "hoesession";
-    /**
-     * Bejelentkező oldal elérési útja.
-     */
     public static final String LOGIN_PATH = "/";
-    /**
-     * Kijelentkező oldal elérési útja.
-     */
     public static final String LOGOUT_PATH = "/logout";
-    /**
-     * Játék oldalának elérési útja.
-     */
     public static final String PLAY_PATH = "/play";
-    /**
-     * Új felhasználó regisztrációjának az elérési útja.
-     */
     public static final String REGISTER_PATH = "/register";
-    /**
-     * Csempék elérési útja.
-     */
     public static final String TILE_PATH = "/tile/*";
-    /**
-     * Videók elérési útja.
-     */
     public static final String VIDEO_PATH = "/video/*";
-    /**
-     * Post kérés.
-     */
+    public static final String GET_IP_PATH = "/getip";
     public static int POST_REQUEST = 0;
-    /**
-     * Get kérés.
-     */
     public static int GET_REQUEST = 1;
+    private final Server server;
+    private final FileSessionManager sm;
+    private final int port;
 
-    /**
-     * Konstruktor.
-     *
-     * @param port port
-     * @throws Exception kivétel
-     */
     public HttpServer(int port) throws Exception {
+        this.port = port;
 
-        // Üzenetek toltása.
         org.eclipse.jetty.util.log.Log.setLog(new NothingLogger());
 
-        // Játéktér inicializálása.
-        Universe.init();
-        // Játékmenet inicializálása.
+        SceneManager.init();
         Game.init();
 
-        // Szerver létrehozása.
-        Server server = new Server(port);
+        server = new Server(getPort());
         //Server server = new Server(new InetSocketAddress("192.168.0.20", 80));
 
         ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
@@ -93,14 +53,14 @@ public class HttpServer extends HttpServlet {
         context.addServlet(new ServletHolder(new RegisterServlet()), REGISTER_PATH);
         context.addServlet(new ServletHolder(new TileServlet()), TILE_PATH);
         context.addServlet(new ServletHolder(new VideoServlet()), VIDEO_PATH);
-        
+        context.addServlet(new ServletHolder(new GetIpServlet()), GET_IP_PATH);
+
         /*FilterHolder filter = new FilterHolder(CrossOriginFilter.class);
         filter.setInitParameter("allowedOrigins", "*");
         filter.setInitParameter("allowedMethods", "*");
 	filter.setInitParameter("allowedHeaders", "*");
         context.addFilter(filter, "/*", EnumSet.of(DispatcherType.REQUEST));*/
-        
-        /*FilterHolder holder = new FilterHolder(CrossOriginFilter.class);
+ /*FilterHolder holder = new FilterHolder(CrossOriginFilter.class);
         holder.setInitParameter(CrossOriginFilter.ALLOWED_ORIGINS_PARAM, "*");
         holder.setInitParameter(CrossOriginFilter.ACCESS_CONTROL_ALLOW_ORIGIN_HEADER, "*");
         holder.setInitParameter(CrossOriginFilter.ALLOWED_METHODS_PARAM, "GET,POST,HEAD");
@@ -110,19 +70,23 @@ public class HttpServer extends HttpServlet {
         fm.setFilterName("cross-origin");
         fm.setPathSpec("*");
         context.addFilter(holder, "*", null);*/
-
-        MySessionManager sm = new MySessionManager();
+        sm = new FileSessionManager();
         sm.setSessionCookie(SESSION_COOKIE + port);
         sm.setStoreDirectory(new File("./sessions"));
         SessionHandler sh = new SessionHandler(sm);
         context.setSessionHandler(sh);
+    }
 
+    public final int getPort() {
+        return port;
+    }
+
+    public void start() throws Exception {
         server.start();
-        Log.info("HTTP server is listening at port " + port + "...");
+        Log.info("HTTP server is listening at port " + getPort() + "...");
 
-        // Sessionok visszaállítása fájlból.
+        // Restoring sessions from file.
         UserManager.init(sm);
-
     }
 
 }

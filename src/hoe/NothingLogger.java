@@ -2,11 +2,6 @@ package hoe;
 
 import org.eclipse.jetty.util.log.Logger;
 
-/**
- * Semmit loggoló.
- *
- * @author imruf84
- */
 public class NothingLogger implements Logger {
 
     @Override
