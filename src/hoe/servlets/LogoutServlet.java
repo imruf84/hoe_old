@@ -1,6 +1,6 @@
 package hoe.servlets;
 
-import hoe.HttpServer;
+import hoe.servers.GameServer;
 import hoe.Log;
 import hoe.UserManager;
 import java.io.IOException;
@@ -21,6 +21,6 @@ public class LogoutServlet extends HttpServlet {
             Log.error(ex.getLocalizedMessage(), ex);
         }
         
-        response.sendRedirect(HttpServer.LOGIN_PATH);
+        response.sendRedirect(GameServer.LOGIN_PATH);
     }
 }

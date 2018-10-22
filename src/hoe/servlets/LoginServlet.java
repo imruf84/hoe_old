@@ -1,7 +1,6 @@
 package hoe.servlets;
 
-import hoe.HttpServer;
-import hoe.HttpServletWithUserValidator;
+import hoe.servers.GameServer;
 import hoe.Language;
 import hoe.LanguageMessageKey;
 import hoe.Log;
@@ -21,7 +20,7 @@ public class LoginServlet extends HttpServletWithUserValidator {
 
         // Redirection valid user to the game.
         if (null != user) {
-            response.sendRedirect(HttpServer.PLAY_PATH);
+            response.sendRedirect(GameServer.PLAY_PATH);
             return;
         }
 
@@ -52,7 +51,7 @@ public class LoginServlet extends HttpServletWithUserValidator {
 
             // Redirecting on active connection...
             if (user.hasActiveContext()) {
-                user.sendMessage("{\"a\":\"rd\",\"d\":{\"url\":\"" + HttpServer.LOGOUT_PATH + "\"}}");
+                user.sendMessage("{\"a\":\"rd\",\"d\":{\"url\":\"" + GameServer.LOGOUT_PATH + "\"}}");
 
                 // Waiting while user is exists.
                 while (null != UserManager.getUserByName(username)) {
@@ -87,7 +86,7 @@ public class LoginServlet extends HttpServletWithUserValidator {
                 return;
             }
 
-            response.sendRedirect(HttpServer.PLAY_PATH);
+            response.sendRedirect(GameServer.PLAY_PATH);
 
         } catch (Exception ex) {
             Log.error(ex.getLocalizedMessage(), ex);
@@ -99,7 +98,7 @@ public class LoginServlet extends HttpServletWithUserValidator {
     protected String insertCustomVariableValue(HttpServletRequest request, HttpServletResponse response, String v) {
 
         if (v.equals(HTML_REGISTER_LINK_VARIABLE_NAME)) {
-            return HttpServer.REGISTER_PATH;
+            return GameServer.REGISTER_PATH;
         }
 
         return super.insertCustomVariableValue(request, response, v);

@@ -1,5 +1,8 @@
 package hoe;
 
+import hoe.servers.GameServer;
+import hoe.editor.Editor;
+import hoe.servers.RenderServer;
 import java.util.Arrays;
 
 public class HandhulOfEarth {
@@ -8,9 +11,11 @@ public class HandhulOfEarth {
     public static String CL_DEBUG = "d";
     public static String CL_PORT = "p";
     public static String CL_DATABASE_SERVER = "db";
+    public static String CL_RENDER_SERVER = "r";
     public static String CL_GAME_SERVER = "g";
     public static String CL_USER_DATABASE = "u";
     public static String CL_SCENE_DATABASE = "s";
+    public static String CL_EDITOR = "e";
 
     public static String sc(String s) {
         return "-" + s;
@@ -23,9 +28,11 @@ public class HandhulOfEarth {
             Log.print(sc(CL_DEBUG) + ": show debug messages");
             Log.print(sc(CL_PORT) + " number: use alternative port number");
             Log.print(sc(CL_DATABASE_SERVER) + ": run database server");
+            Log.print(sc(CL_RENDER_SERVER) + ": run render server");
             Log.print(sc(CL_GAME_SERVER) + ": run game server");
             Log.print(sc(CL_USER_DATABASE) + " ip: ip of users database server");
             Log.print(sc(CL_SCENE_DATABASE) + " ip: ip of scene database server");
+            Log.print(sc(CL_EDITOR) + ": run editor");
             return;
         }
 
@@ -36,7 +43,7 @@ public class HandhulOfEarth {
 
         boolean runDatabaseServer = !(Arrays.asList(args).indexOf(sc(CL_DATABASE_SERVER)) < 0);
         if (runDatabaseServer) {
-            database.DatabaseServer.startServers();
+            hoe.servers.DatabaseServer.startServers();
         }
 
         boolean hasUsersDataBaseIp = !(Arrays.asList(args).indexOf(sc(CL_USER_DATABASE)) < 0);
@@ -55,19 +62,32 @@ public class HandhulOfEarth {
             }
         }
 
+        boolean runRenderServer = !(Arrays.asList(args).indexOf(sc(CL_RENDER_SERVER)) < 0);
+        if (runRenderServer) {
+            RenderServer server = new RenderServer(8083);
+            server.start();
+        }
+
         boolean runGameServer = !(Arrays.asList(args).indexOf(sc(CL_GAME_SERVER)) < 0);
         if (runGameServer) {
             try {
                 int portIndex = Arrays.asList(args).indexOf(sc(CL_PORT));
                 int port = (!(portIndex < 0) ? Integer.parseInt(args[portIndex + 1]) : 80);
 
-                HttpServer server = new HttpServer(port);
+                GameServer server = new GameServer(port);
                 server.start();
 
             } catch (Exception ex) {
                 Log.error(Language.getText(LanguageMessageKey.CREATING_SERVER_FAILED), ex);
             }
         }
+
+        boolean runEditor = !(Arrays.asList(args).indexOf(sc(CL_EDITOR)) < 0);
+        if (runEditor) {
+            Editor editor = new Editor();
+            editor.show();
+        }
+
     }
 
 }

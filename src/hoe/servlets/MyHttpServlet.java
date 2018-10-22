@@ -1,6 +1,6 @@
 package hoe.servlets;
 
-import hoe.HttpServer;
+import hoe.servers.GameServer;
 import hoe.Language;
 import hoe.LanguageMessageKey;
 import java.io.BufferedReader;
@@ -125,7 +125,7 @@ public abstract class MyHttpServlet extends HttpServlet {
     protected String insertCustomVariableValue(HttpServletRequest request, HttpServletResponse response, String v) {
 
         if (v.equals(HTML_PAGE_TITLE_VARIABLE_NAME)) {
-            return HttpServer.APP_TITLE;
+            return GameServer.APP_TITLE;
         }
 
         return "";

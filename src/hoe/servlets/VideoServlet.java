@@ -1,7 +1,6 @@
 package hoe.servlets;
 
-import hoe.HttpServer;
-import hoe.HttpServletWithUserValidator;
+import hoe.servers.GameServer;
 import hoe.User;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -116,7 +115,7 @@ public class VideoServlet extends HttpServletWithUserValidator {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        doUserValidation(request, response, HttpServer.GET_REQUEST);
+        doUserValidation(request, response, GameServer.GET_REQUEST);
     }
 
     @Override

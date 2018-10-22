@@ -1,7 +1,6 @@
 package hoe.servlets;
 
-import hoe.HttpServer;
-import hoe.HttpServletWithUserValidator;
+import hoe.servers.GameServer;
 import hoe.Language;
 import hoe.LanguageMessageKey;
 import hoe.Log;
@@ -21,7 +20,7 @@ public class RegisterServlet extends HttpServletWithUserValidator {
     public void validateUser(HttpServletRequest request, HttpServletResponse response, User user, int requestType) throws IOException {
         // Redirecting valid players to the game
         if (null != user) {
-            response.sendRedirect(HttpServer.PLAY_PATH);
+            response.sendRedirect(GameServer.PLAY_PATH);
             return;
         }
 
@@ -65,7 +64,7 @@ public class RegisterServlet extends HttpServletWithUserValidator {
             }
 
             // Redirecting user to the game.
-            response.sendRedirect(HttpServer.PLAY_PATH);
+            response.sendRedirect(GameServer.PLAY_PATH);
 
         } catch (SQLException ex) {
             Log.error(ex.getLocalizedMessage(), ex);
@@ -76,10 +75,10 @@ public class RegisterServlet extends HttpServletWithUserValidator {
     protected String insertCustomVariableValue(HttpServletRequest request, HttpServletResponse response, String v) {
 
         if (v.equals(HTML_PAGE_TITLE_VARIABLE_NAME)) {
-            return HttpServer.APP_TITLE + " - " + Language.getText(LanguageMessageKey.REGISTER);
+            return GameServer.APP_TITLE + " - " + Language.getText(LanguageMessageKey.REGISTER);
         }
         if (v.equals(HTML_LOGIN_LINK_VARIABLE_NAME)) {
-            return HttpServer.LOGIN_PATH;
+            return GameServer.LOGIN_PATH;
         }
 
         return "";

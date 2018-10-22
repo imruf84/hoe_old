@@ -3,8 +3,7 @@ package hoe.servlets;
 import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
 import hoe.Game;
-import hoe.HttpServer;
-import hoe.HttpServletWithUserValidator;
+import hoe.servers.GameServer;
 import hoe.Language;
 import hoe.LanguageMessageKey;
 import hoe.Log;
@@ -32,23 +31,22 @@ public class PlayServlet extends HttpServletWithUserValidator {
         // Redirection invalid user to the login page.
         if (null == user) {
             Log.debug("User is not valid: sID=" + request.getSession().getId());
-            response.sendRedirect(HttpServer.LOGIN_PATH);
+            response.sendRedirect(GameServer.LOGIN_PATH);
             return;
         }
 
         // We only share GET requests.
-        if (requestType == HttpServer.GET_REQUEST) {
+        if (requestType == GameServer.GET_REQUEST) {
 
             // Exit on already connected users.
             if (0 < user.getAsyncChannelsCount()) {
                 Log.debug("User is valid but already connected: name=" + user.getUserName() + " sID=" + user.getSessionId());
                 response.setContentType("text/html");
                 response.setStatus(HttpServletResponse.SC_OK);
-                response.getWriter().append(
-                        "<!DOCTYPE html><html>"
+                response.getWriter().append("<!DOCTYPE html><html>"
                         + "<head>"
                         + "  <meta charset='UTF-8'>"
-                        + "  <title>" + HttpServer.APP_TITLE + "</title>"
+                        + "  <title>" + GameServer.APP_TITLE + "</title>"
                         + "</head>"
                         + "<body>"
                         + "  <div id='timeDiv'></div>"
