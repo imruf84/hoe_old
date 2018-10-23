@@ -45,17 +45,21 @@ public class TileServlet extends HttpServletWithUserValidator {
             response.setStatus(HttpStatus.BAD_REQUEST_400);
             return;
         }
-
+/*
         File image = new File("assets/tiles/tile_" + coords[0] + "_" + coords[1] + "_" + turn + ".jpg");
 
         if (!image.exists()) {
             return;
         }
-
+*/
         response.reset();
-        response.setContentType(getServletContext().getMimeType(image.getName()));
-        response.setHeader("Content-Length", String.valueOf(image.length()));
-        Files.copy(image.toPath(), response.getOutputStream());
+        response.setStatus(HttpStatus.MOVED_PERMANENTLY_301);
+//        response.setContentType(getServletContext().getMimeType(image.getName()));
+        //response.setHeader("Content-Length", String.valueOf(image.length()));
+        response.setHeader("Location", "http://192.168.0.24:8083/render");
+        //response.setHeader("Location", "http://localhost:8083/render");
+        //response.setHeader("Location", "https://static1.squarespace.com/static/53ebf129e4b0b62422de7a7a/t/578421abe3df287846917de6/1468277166715/?format=500w");
+//        Files.copy(image.toPath(), response.getOutputStream());
     }
 
     @Override

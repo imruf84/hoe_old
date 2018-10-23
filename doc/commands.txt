@@ -11,3 +11,6 @@ tcp://A.B.C.D:9092 tcp
 jdbc:h2:tcp://localhost/./universe
 pg://A.B.C.D:5435 local only
 change pwd: ALTER USER sa SET PASSWORD '12345';
+
+wifi autoconnect:
+wicd-curses

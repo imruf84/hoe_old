@@ -1,0 +1,4 @@
+apt-get install wicd-curses
+bugfix:
+wget https://bugs.launchpad.net/wicd/+bug/1432423/+attachment/4375350/+files/netentry_curses.py
+cp netentry_curses.py /usr/share/wicd/curses/
