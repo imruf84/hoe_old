@@ -25,8 +25,8 @@ public class GameServer extends AbstractServer {
     public static final String LOGOUT_PATH = "/logout";
     public static final String PLAY_PATH = "/play";
     public static final String REGISTER_PATH = "/register";
-    public static final String TILE_PATH = "/tile/*";
-    public static final String VIDEO_PATH = "/video/*";
+    public static final String TILE_PATH = "/tile/";
+    public static final String VIDEO_PATH = "/video/";
     public static final String GET_IP_PATH = "/getip";
     public static int POST_REQUEST = 0;
     public static int GET_REQUEST = 1;
@@ -43,15 +43,15 @@ public class GameServer extends AbstractServer {
         ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
         context.setContextPath("/");
         getServer().setHandler(context);
-        ServletHolder psh = new ServletHolder(new PlayServlet());
+        ServletHolder psh = new ServletHolder(new PlayServlet(this));
         psh.setAsyncSupported(true);
         context.addServlet(psh, PLAY_PATH);
-        context.addServlet(new ServletHolder(new LoginServlet()), LOGIN_PATH);
+        context.addServlet(new ServletHolder(new LoginServlet(this)), LOGIN_PATH);
         context.addServlet(new ServletHolder(new LogoutServlet()), LOGOUT_PATH);
-        context.addServlet(new ServletHolder(new RegisterServlet()), REGISTER_PATH);
-        context.addServlet(new ServletHolder(new TileServlet()), TILE_PATH);
-        context.addServlet(new ServletHolder(new VideoServlet()), VIDEO_PATH);
-        context.addServlet(new ServletHolder(new GetIpServlet()), GET_IP_PATH);
+        context.addServlet(new ServletHolder(new RegisterServlet(this)), REGISTER_PATH);
+        context.addServlet(new ServletHolder(new TileServlet(this)), TILE_PATH + "*");
+        context.addServlet(new ServletHolder(new VideoServlet(this)), VIDEO_PATH + "*");
+        context.addServlet(new ServletHolder(new GetIpServlet(this)), GET_IP_PATH);
 
         /*FilterHolder filter = new FilterHolder(CrossOriginFilter.class);
         filter.setInitParameter("allowedOrigins", "*");

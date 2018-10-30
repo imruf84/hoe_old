@@ -15,7 +15,7 @@ public class RenderServer extends AbstractServer {
         ServletContextHandler context = new ServletContextHandler();
         context.setContextPath("/");
         getServer().setHandler(context);
-        context.addServlet(new ServletHolder(new RenderServlet()), RENDER_PATH);
+        context.addServlet(new ServletHolder(new RenderServlet(this)), RENDER_PATH);
     }
 
     @Override

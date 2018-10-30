@@ -2,6 +2,7 @@ package hoe.servlets;
 
 import hoe.servers.GameServer;
 import hoe.User;
+import hoe.servers.AbstractServer;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
@@ -23,6 +24,10 @@ public class VideoServlet extends HttpServletWithUserValidator {
     private static final long EXPIRE_TIME = 1000 * 60 * 60 * 24;
     private static final Pattern RANGE_PATTERN = Pattern.compile("bytes=(?<start>\\d*)-(?<end>\\d*)");
     private final String videoPath = "./assets/videos/";
+
+    public VideoServlet(AbstractServer server) {
+        super(server);
+    }
 
     @Override
     public void validateUser(HttpServletRequest request, HttpServletResponse response, User user, int requestType) throws IOException {

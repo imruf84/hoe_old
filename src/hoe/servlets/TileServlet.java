@@ -1,16 +1,23 @@
 package hoe.servlets;
 
+import hoe.Cryptography;
+import hoe.RedirectAction;
 import hoe.servers.GameServer;
 import hoe.User;
-import java.io.File;
+import hoe.servers.AbstractServer;
+import hoe.servers.RedirectServer;
 import java.io.IOException;
-import java.nio.file.Files;
+import java.time.Instant;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.http.HttpStatus;
 
 public class TileServlet extends HttpServletWithUserValidator {
+
+    public TileServlet(AbstractServer server) {
+        super(server);
+    }
 
     @Override
     public void validateUser(HttpServletRequest request, HttpServletResponse response, User user, int requestType) throws IOException {
@@ -45,20 +52,29 @@ public class TileServlet extends HttpServletWithUserValidator {
             response.setStatus(HttpStatus.BAD_REQUEST_400);
             return;
         }
-/*
+        /*
         File image = new File("assets/tiles/tile_" + coords[0] + "_" + coords[1] + "_" + turn + ".jpg");
 
         if (!image.exists()) {
             return;
         }
-*/
+         */
         response.reset();
         response.setStatus(HttpStatus.MOVED_PERMANENTLY_301);
+
+        TileRequest ta = new TileRequest(coords[0], coords[1], turn);
+        String eta = Cryptography.encryptObject(ta);
+        GameServer server = (GameServer) getServer();
+
+        RedirectAction ra = new RedirectAction(GameServer.TILE_PATH, Instant.now().getEpochSecond(), user.getUserName());
+        ra.setData(eta);
+        String era = Cryptography.encryptObject(ra);
+
+        String redirectUrl = server.getRedirectServerUrl() + RedirectServer.REDIRECT_SERVLET_PATH + era;
+
 //        response.setContentType(getServletContext().getMimeType(image.getName()));
         //response.setHeader("Content-Length", String.valueOf(image.length()));
-        response.setHeader("Location", "http://192.168.0.24:8083/render");
-        //response.setHeader("Location", "http://localhost:8083/render");
-        //response.setHeader("Location", "https://static1.squarespace.com/static/53ebf129e4b0b62422de7a7a/t/578421abe3df287846917de6/1468277166715/?format=500w");
+        response.setHeader("Location", redirectUrl);
 //        Files.copy(image.toPath(), response.getOutputStream());
     }
 

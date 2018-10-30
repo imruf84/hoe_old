@@ -3,22 +3,26 @@ package hoe.servlets;
 import hoe.servers.GameServer;
 import hoe.Language;
 import hoe.LanguageMessageKey;
+import hoe.servers.AbstractServer;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-public abstract class HttpServletWithTemplateEngine extends HttpServlet {
+public abstract class HttpServletWithTemplateEngine extends HttpServletBase {
 
     public static final String HTML_TAG_FROM = "#!";
     public static final String HTML_TAG_TO = "!#";
     public static final String HTML_ERROR_VARIABLE_NAME = "ERROR";
     public static final String HTML_PAGE_TITLE_VARIABLE_NAME = "PAGE_TITLE";
+
+    public HttpServletWithTemplateEngine(AbstractServer server) {
+        super(server);
+    }
 
     protected abstract String getDefaultPagePath();
 

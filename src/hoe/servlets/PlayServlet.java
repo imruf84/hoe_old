@@ -12,6 +12,7 @@ import hoe.JsonUtil;
 import hoe.SceneManager;
 import hoe.User;
 import hoe.UserManager;
+import hoe.servers.AbstractServer;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Map;
@@ -23,6 +24,10 @@ public class PlayServlet extends HttpServletWithUserValidator {
     public static final String HTML_ENABLE_DEBUG_VARIABLE_NAME = "DEBUG_ENABLED";
     public static final String HTML_PLAYER_NAME_VARIABLE_NAME = "PLAYER_NAME";
     public static final String HTML_CHAT_MESSAGES_VARIABLE_NAME = "DOWNLOADING_CHAT_MESSAGES";
+
+    public PlayServlet(AbstractServer server) {
+        super(server);
+    }
 
     @Override
     public void validateUser(HttpServletRequest request, HttpServletResponse response, User user, int requestType) throws IOException {
@@ -82,6 +87,7 @@ public class PlayServlet extends HttpServletWithUserValidator {
 
         // Working with data.
         Gson gson = new Gson();
+        @SuppressWarnings("unchecked")
         Map<String, Object> root = gson.fromJson(jsonString, Map.class);
 
         // "a" key for actions.

@@ -2,6 +2,7 @@ package hoe.servlets;
 
 import hoe.User;
 import hoe.UserManager;
+import hoe.servers.AbstractServer;
 import hoe.servers.GameServer;
 import java.io.IOException;
 import javax.servlet.ServletException;
@@ -9,6 +10,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 public abstract class HttpServletWithUserValidator extends HttpServletWithTemplateEngine {
+
+    public HttpServletWithUserValidator(AbstractServer server) {
+        super(server);
+    }
 
     public abstract void validateUser(HttpServletRequest request, HttpServletResponse response, User user, int requestType) throws IOException;
 

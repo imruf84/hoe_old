@@ -21,3 +21,21 @@
 VAGY
 
 nincs kötött formáció, és a játékos döntheti el, hogy melyik egységet hová küldi (adott távolságon belül) és mit csinál velük
+
+
+HARC:
+ - minden egység minden körben csak egyszer kap lehetőséget harcra (vagy csak védekezik, vagy helyezkedik)
+ - minden kör elején meg kell határozni, hogy milyen lézer (esetleg lézerek, vagy csak egy fajtával lehetne áthatolni a palyzson???) ellen akarunk védelmet
+ VAGY
+ - minden egység rendelkezne bizonyos mennyiségű vakmerősség/óvatosság aránnyal, amit a játékos határoz meg. a vakmerő egységek többet sebeznek találat esetén (ami nem biztos, hogy bekövetkezik), viszont kevesebb a védelmi értéke is
+ VAGY
+ - minden egység adott számú támadást tudna indítani egy körön belül, de csak ugyanarra az egységre (így ha ágyuval ő verébre, akkor megszívja) (egyes egységek pl. géppuskás több egységet is támadhatna egy körön belül)
+távolsági harc:
+ - 3 (vagy elég csak 2???) fajta lézer (különböző színű, melyek pl a frekvenciában térnek el egymástól) lenne
+
+SPECIÁLIS MEZŐK:
+ - stratégiai pontok:
+   - helyőrség: nem biztos, hogy szükséges, de ha mégis, akkor itt tartózkodva lehetne új egységeket igényelni
+     - esetleg úgy, hogy a hatótávolságon belüli (esetleg elfoglalt????) helyről jönnének ki az új egységek (EZ LENNE A LEGJOBB, MERT ÖSSZEEGYEZTETHETŐ BÁRMELYIK TÉMÁVAL)
+   - megfigyelőpont: a hős ha itt tartózkodik, akkor sokkal messzebbről irányíthatja az egységeket
+   - tábor: ugyanaz, mint a helyőrség, annyi különbséggel, hogy innen indul ki minden játékos

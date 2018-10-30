@@ -20,7 +20,7 @@ public class LogoutServlet extends HttpServlet {
         } catch (Exception ex) {
             Log.error(ex.getLocalizedMessage(), ex);
         }
-        
+
         response.sendRedirect(GameServer.LOGIN_PATH);
     }
 }

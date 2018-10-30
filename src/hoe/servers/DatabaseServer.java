@@ -15,11 +15,11 @@ public class DatabaseServer {
             webServer = Server.createWebServer("-webPort", "8082", "-webAllowOthers");
             webServer.start();
             Log.info(webServer.getStatus());
-            
+
             Log.info("Starting databse TCP server...");
             tcpServer = Server.createTcpServer("-tcpPort", "9092", "-tcpAllowOthers");
             tcpServer.start();
-            Log.info( tcpServer.getStatus());
+            Log.info(tcpServer.getStatus());
         } catch (SQLException ex) {
             Log.error(ex);
         }

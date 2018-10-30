@@ -1,0 +1,10 @@
+1. database server web: 8082
+   database server tcp: 9092
+2. redirect server: 8084
+3. game server: 80
+4. content server: 8085
+
+1. java -jar ./bin/hoe.jar -runDbServer
+2. java -jar ./bin/hoe.jar -runRedirectServer
+3. java -jar ./bin/hoe.jar -runGameServer -connectUserDb 192.168.56.1:9092 -connectSceneDb 192.168.56.1:9092 -redirectServerUrl 192.168.56.1:8084
+4. java -jar ./bin/hoe.jar -runContentServer -redirectServerUrl 192.168.56.1:8084

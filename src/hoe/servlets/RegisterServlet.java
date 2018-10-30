@@ -6,6 +6,7 @@ import hoe.LanguageMessageKey;
 import hoe.Log;
 import hoe.User;
 import hoe.UserManager;
+import hoe.servers.AbstractServer;
 import java.io.IOException;
 import java.sql.SQLException;
 import javax.servlet.ServletException;
@@ -15,6 +16,10 @@ import javax.servlet.http.HttpServletResponse;
 public class RegisterServlet extends HttpServletWithUserValidator {
 
     public static final String HTML_LOGIN_LINK_VARIABLE_NAME = "LOGIN_LINK";
+
+    public RegisterServlet(AbstractServer server) {
+        super(server);
+    }
 
     @Override
     public void validateUser(HttpServletRequest request, HttpServletResponse response, User user, int requestType) throws IOException {

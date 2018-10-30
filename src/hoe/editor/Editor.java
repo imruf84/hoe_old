@@ -76,11 +76,11 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
         gl.glTexCoord2f(1, 0);
         gl.glColor3f(1.0f, 0.0f, 0.0f);
         gl.glVertex3f(0.0f, 0.0f, 0.0f);
-        
+
         gl.glTexCoord2f(0, 1);
         gl.glColor3f(0.0f, 1.0f, 0.0f);
         gl.glVertex3f(1.0f, 0.0f, 0.0f);
-        
+
         gl.glTexCoord2f(0, 0);
         gl.glColor3f(0.0f, 0.0f, 1.0f);
         gl.glVertex3f(0.0f, 1.0f, 0.0f);
@@ -107,8 +107,7 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
             + "void main()"
             + "{"
             + "    gl_FragColor = col;"
-            + "}",
-        };
+            + "}",};
 
         int fs2 = gl.glCreateShader(GL2.GL_FRAGMENT_SHADER);
         gl.glShaderSource(fs2, 1, fc, null);

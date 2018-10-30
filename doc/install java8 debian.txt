@@ -1,0 +1,16 @@
+https://tecadmin.net/install-java-8-on-debian/
+
+nano /etc/apt/sources.list.d/java-8-debian.list
+
+and add following content in it:
+deb http://ppa.launchpad.net/webupd8team/java/ubuntu trusty main
+deb-src http://ppa.launchpad.net/webupd8team/java/ubuntu trusty main
+
+apt-key adv --keyserver keyserver.ubuntu.com --recv-keys EEA14886
+
+apt-get update
+
+apt-get install oracle-java8-installer
+
+add-apt-repository -r ppa:webupd8team/java
+apt-get install software-properties-common

@@ -6,6 +6,7 @@ import hoe.LanguageMessageKey;
 import hoe.Log;
 import hoe.User;
 import hoe.UserManager;
+import hoe.servers.AbstractServer;
 import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -14,6 +15,10 @@ import javax.servlet.http.HttpServletResponse;
 public class LoginServlet extends HttpServletWithUserValidator {
 
     public static final String HTML_REGISTER_LINK_VARIABLE_NAME = "REGISTER_LINK";
+
+    public LoginServlet(AbstractServer server) {
+        super(server);
+    }
 
     @Override
     public void validateUser(HttpServletRequest request, HttpServletResponse response, User user, int requestType) throws IOException {
