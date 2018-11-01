@@ -9,8 +9,8 @@ public class ContentServer extends AbstractServer {
 
     public static final String CONTENT_PATH = "/content/";
 
-    public ContentServer(int port) {
-        super(port);
+    public ContentServer(String ip, int port) {
+        super(SubscribeRequest.CONTENT_SERVER_TYPE, ip, port);
 
         ServletContextHandler context = new ServletContextHandler();
         context.setContextPath("/");

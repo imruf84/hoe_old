@@ -32,14 +32,12 @@ public class GameServer extends AbstractServer {
     public static int GET_REQUEST = 1;
     private final FileSessionManager sm;
 
-    public GameServer(int port) throws Exception {
-        super(port);
+    public GameServer(String ip, int port) throws Exception {
+        super(SubscribeRequest.GAME_SERVER_TYPE, ip, port);
 
         SceneManager.init();
         Game.init();
 
-        //server = new Server(getPort());
-        //Server server = new Server(new InetSocketAddress("192.168.0.20", 80));
         ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
         context.setContextPath("/");
         getServer().setHandler(context);

@@ -1,0 +1,20 @@
+# NI specific IP
+ip=192.168.56.1
+debug=true
+secretkey=abcd1234
+
+#startdbserver=true
+#dbserverwebport=8082
+#dbservertcpport=9092
+
+#startredirectserver=true
+#redirectserverport=8084
+
+#startgameserver=true
+#gameserverport=80
+#redirectserverurl=http://192.168.56.1:8084
+#userdbip=192.168.56.1:9092
+#scenedbip=192.168.56.1:9092
+
+#startcontentserver=true
+#contentserverport=8085

@@ -9,11 +9,17 @@ import java.awt.Graphics2D;
 import java.awt.GraphicsEnvironment;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
+import java.awt.image.RenderedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.eclipse.jetty.http.HttpStatus;
 
 public class ContentServlet extends HttpServletWithEncryption {
 
@@ -56,13 +62,33 @@ public class ContentServlet extends HttpServletWithEncryption {
             g.dispose();
 
             response.reset();
-            response.setContentType("image/jpeg");
             response.setStatus(HttpServletResponse.SC_OK);
+            response.setContentType("image/jpeg");
             ImageIO.write(image, "jpg", response.getOutputStream());
-            
-            return;
+
         }
-        
+
+    }
+
+    public static String imgToBase64String(final RenderedImage img, final String formatName) {
+        final ByteArrayOutputStream os = new ByteArrayOutputStream();
+        try {
+            ImageIO.write(img, formatName, Base64.getEncoder().wrap(os));
+            return os.toString(StandardCharsets.ISO_8859_1.name());
+        } catch (final IOException ioe) {
+            Log.error(ioe);
+        }
+
+        return null;
+    }
+
+    public static BufferedImage base64StringToImg(final String base64String) {
+        try {
+            return ImageIO.read(new ByteArrayInputStream(Base64.getDecoder().decode(base64String)));
+        } catch (final IOException ioe) {
+            Log.error(ioe);
+        }
+        return null;
     }
 
 }

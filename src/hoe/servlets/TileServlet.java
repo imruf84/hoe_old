@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.http.HttpStatus;
 
+
 public class TileServlet extends HttpServletWithUserValidator {
 
     public TileServlet(AbstractServer server) {
@@ -71,6 +72,7 @@ public class TileServlet extends HttpServletWithUserValidator {
         String era = Cryptography.encryptObject(ra);
 
         String redirectUrl = server.getRedirectServerUrl() + RedirectServer.REDIRECT_SERVLET_PATH + era;
+        //Log.debug("Redirecting user ["+user.getUserName()+"] to: "+redirectUrl+"...");
 
 //        response.setContentType(getServletContext().getMimeType(image.getName()));
         //response.setHeader("Content-Length", String.valueOf(image.length()));

@@ -1,6 +1,6 @@
 package hoe.servlets;
 
-import hoe.HandfulOfEarth;
+import hoe.Log;
 import hoe.RedirectAction;
 import hoe.servers.AbstractServer;
 import hoe.servers.ContentServer;
@@ -31,8 +31,9 @@ public class RedirectServlet extends HttpServletWithEncryption {
         // Redirecting to content server.
         switch (ra.getPath()) {
             case GameServer.TILE_PATH:
-                //response.setHeader("Location", "http://localhost:" + HandfulOfEarth.DEFAULT_CONTENT_SERVER_PORT + ContentServer.CONTENT_PATH + data);
-                response.setHeader("Location", server.getClients().getFirst() + ContentServer.CONTENT_PATH + data);
+                String redirectUrl = server.getClients().getFirst() + ContentServer.CONTENT_PATH + data;
+                //Log.debug("Redirecting user to: "+redirectUrl+"...");
+                response.setHeader("Location", redirectUrl);
                 return;
         }
 

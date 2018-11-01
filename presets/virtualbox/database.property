@@ -1,0 +1,8 @@
+# NI specific IP
+ip=192.168.56.103
+debug=true
+secretkey=abcd1234
+
+startdbserver=true
+dbserverwebport=8082
+dbservertcpport=9092

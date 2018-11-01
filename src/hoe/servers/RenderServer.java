@@ -9,8 +9,8 @@ public class RenderServer extends AbstractServer {
 
     public static final String RENDER_PATH = "/render";
 
-    public RenderServer(int port) {
-        super(port);
+    public RenderServer(String ip, int port) {
+        super(SubscribeRequest.RENDER_SERVER_TYPE, ip, port);
 
         ServletContextHandler context = new ServletContextHandler();
         context.setContextPath("/");

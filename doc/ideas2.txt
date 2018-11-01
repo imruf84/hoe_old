@@ -39,3 +39,5 @@ SPECIÁLIS MEZŐK:
      - esetleg úgy, hogy a hatótávolságon belüli (esetleg elfoglalt????) helyről jönnének ki az új egységek (EZ LENNE A LEGJOBB, MERT ÖSSZEEGYEZTETHETŐ BÁRMELYIK TÉMÁVAL)
    - megfigyelőpont: a hős ha itt tartózkodik, akkor sokkal messzebbről irányíthatja az egységeket
    - tábor: ugyanaz, mint a helyőrség, annyi különbséggel, hogy innen indul ki minden játékos
+
+a felderitetlen tile-ok lehetnének fekete fehérek (itt csak a terep lenne látható, az ellenséges mozgás nem [esetleg adott távolság után a baráti sem])

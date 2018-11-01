@@ -1,5 +1,6 @@
 package hoe.servers;
 
+import hoe.servlets.SubscribeServlet;
 import hoe.servlets.RedirectServlet;
 import hoe.Log;
 import java.util.LinkedList;
@@ -13,8 +14,8 @@ public class RedirectServer extends AbstractServer {
     
     private final LinkedList<String> clients = new LinkedList<>();
 
-    public RedirectServer(int port) {
-        super(port);
+    public RedirectServer(String ip, int port) {
+        super(null, ip, port);
 
         ServletContextHandler context = new ServletContextHandler();
         context.setContextPath("/");
