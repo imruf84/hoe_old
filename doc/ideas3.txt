@@ -1,0 +1,60 @@
+﻿- minden valós időben fog eldőlni
+- minden játékos a saját egységeit vezérelheti tetszőleges számú parancs kiadásával
+- a parancsok egymás után hajtódnak végre
+- a szimuláció futtatásakor értékelődnek ki a parancsok
+- minden kör adott ideig tart
+- a körök végén lehetőség van a terv módosítására/folytatására
+
+parancsok:
+- helyváltoztatás: adott pozícióba küldés
+  - ha az adott útvonalat akadályok keresztezik, akkor nem keresünk automatikusan kerülő utat
+  - a játékos feladata a kerülőút megkeresése (beleértve az akadályok átugrását/megmászásást és/vagy átkúszást alatta)
+  - adott útvonalra bármennyi csomópont beszúrható és megadható az átmenet (töréspont, simított)
+  - az útvonal minden pontján a terepviszonyok, a szintkülönbség, az egység tulajdonságai (esetleg sebesülés????), a testhelyzet, a mostgásforma (séta, kocogás, futás stb.) és az orientáció határozza meg a sebességet
+  - kitalálni, hogy mi legyen ha keresztezik egymást más egységek útvonalai???
+    - lehetne az, hogy automatikusan kikerülik egymást
+    - lehetne az, hogy az egyik elsőbbséget ad a másiknak (kitalálni, hogy mi alapján dőljön el az elsőbbségadás????)
+    - ne egyen ütközésvizsgálat (nem a legjobb ötlet, mert ha két egység pontosan egymáson van, amikor lejár a kör az gondokat okozhat)
+- testhelyzet változtatása
+  - álló, térdelő, fekvő
+  - lehetőség van adott útvonalon bárhol testhelyzet változtatásra
+- orientáció változtatása
+  - meghatározható, hogy merre forduljon a felsőtest
+  - a haladási irány nem változik meg, csak a mozgásforma
+  - a felsőtest elfordulása és a testhelyzet alapján módosul a mozgásforma
+- mozgásforma változtatása
+  - álló
+  - séta
+  - kocogás
+  - futás
+  - sprint, mint skill????
+- távolsági harc: adott célpont támadása
+  - ellenséges egység támadása:
+    - álló helyzetben automatikusan a cél felé fordulva tüzel az egység
+    - mozgás közben a mozgásformától függően az orientációnak megfelelően változik a mozgásforma
+    - megadható a leadott lövések száma (automatikus újratöltéssel), kivéve ha a célpont megsemmisül, vagy a lövéshez szükséges feltételek megszűnnek
+    - a támadás automatikusan véget ér az ellenség megsemmítése (vagy egyéb hátráltató tényezők) után
+  - adott célterület támadása
+- várakozás: adott ideig nem történik semmi
+- fegyver újratöltése
+- gránát eldobása
+- közelharc:
+  - kontrolzónába lépés után automatikusan csak közelharcot lehet folytatni (vagy mozgást)
+  - mozgás (menekülés) esetén amint kivül ért a kontrolzónából az ellenség simán hátbalőheti az egységet (így megéri inkább felvenni a harcot)
+  - közelharc esetén megadható maximum (kitalálni, hogy mennyi???):
+    - kitérés/védekezés/támadás sorozat
+    VAGY
+    - kő/papír/olló elv alapján pl. szúrás/csapás/suhintás
+    - képek az egyes mozdulatokra: 
+      http://combation.com/5-10-rifle-with-fixed-bayonet/
+      http://www.mtnmengifts.com/product/other-cool-stuff/gi-trifold-shovel/66428
+      https://www.youtube.com/watch?v=bXGjOakWz2g
+      - szúrás: 
+      - csapás (függőleges irányú): 
+      - suhintás (vízszintes irányú): 
+    VAGY
+    - választhat, hogy
+      - (fent) puskatussal alulról felfelé állba (vagy oldalirányba fejbe????) csapja:
+      - (középen) előre dől és mellkason szúrja: 
+      - (lent) ágyékon rúgja: védtelen a feje:
+  - ha a játékos nem ad meg semmit (azaz nem készül elő a harcra), akkor nincs automatikus védekezés (így lesz mindenki rákényszertve arra, hogy számoljon a közelharcra is)

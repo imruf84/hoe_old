@@ -1,4 +1,3 @@
-# NI specific IP
 ip=192.168.0.25
 debug=true
 secretkey=abcd1234
@@ -6,8 +5,8 @@ secretkey=abcd1234
 startgameserver=true
 gameserverport=80
 redirectserverurl=http://192.168.0.24:8084
-userdbip=192.168.0.24:9092
-scenedbip=192.168.0.24:9092
+userdbip=192.168.0.27:9092
+scenedbip=192.168.0.27:9092
 
 startcontentserver=true
 contentserverport=8085

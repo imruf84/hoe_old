@@ -14,7 +14,7 @@ import java.util.Properties;
  */
 public class HandfulOfEarth {
 
-    public static void main(String[] args) throws Exception {
+    public static void main_(String[] args) throws Exception {
 
         Properties prop = new Properties();
         prop.load(new BufferedReader(new FileReader(args[0])));

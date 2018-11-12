@@ -12,10 +12,17 @@
     + közelharcra jó (meggondolni, hogy kiküldhető lenne minimális távolságokra is harcolni)
   * távolharci:
     + távoli távolságra jó
-
-/-\
-\-/
-
+  * tiszt: irányítja az egységeket, az egységek csak adott távolságra kerülhetnének egymástól
+     ??? megfontolni, hogy van-e szükség rá?
+       - azért lenne felesleges, mert nem lenne igazán semmi haszna, mivel harcolni nem tud és semmi mást sem (csak mozogni), viszont ha meghal akkor egy vagon plusz logika kell, hogy újra játékba lehessen helyezni
+       - ha nincs rá szükség, akkor az adott egységek adott távolságra kerülhetnének csak egymástól (ez a távolság lehetne egy újabb tulajdonság, amit pl skillekkel lehetne ideiglenesen kezelni)
+       - ha egy egység mégis kikerül az irányításból (pl A-B-C közül B-t kiiktatják és emiatt A-C távolság túl nagy akkor mi legyen??? 
+         - esetleg lehetne az, hogy ilyenkor minden egység automatikusan elindul a tömegközéppont felé [amit minden körben újraszámolunk az aktuális pozíciók alapján] (a tátékos nem avatkozhat bele), amíg a távolságok újra nem lesznek megfelelőek)
+         - ha megszakad a lánc, akkor a játékos feladata lenne újra rendezni a csapatot úgy, hogy ő határozná meg a tömegközéppontot és a gép automatikusan odamozgatná azokat az egységeket, amelyek túl távol esnek a csapattól (a többi egységgel automatikusan játszhatna tovább)
+         - ha megszakad a lánc akkor azzal az egységekkel, amelyek érintettek csak mozoghatnak, harcolni (és semmi mást sem) tehetnek
+         - EZ LENNE A LEGJOBB: ha nem teljes a gráf, akkor a csapat mindaddig csak mozogni tudna (harcolni ÉS/VAGY skilleket használni nem [skillek mehetnének -kivéve a csapat skilleket???-, mert azzal is gyorsíthatná az újrarendeződést]),
+           így ez lenne a büntetés azért, mert nem tartotta a csapatot össze, valamint stratégiai előny lehetne ha az ellenség kiiktatná a gyenge pontokat, valamint ha új egységet kéerk utánpótlásba, akkor mindaddig amíg fel nem zárkóznak
+           az új egységek ki kellene tartani a frontvonalban lévőknek (így meg kellene fontolni, hogy ki és mikor kér erősítést)
 
 
 VAGY
@@ -30,8 +37,28 @@ HARC:
  - minden egység rendelkezne bizonyos mennyiségű vakmerősség/óvatosság aránnyal, amit a játékos határoz meg. a vakmerő egységek többet sebeznek találat esetén (ami nem biztos, hogy bekövetkezik), viszont kevesebb a védelmi értéke is
  VAGY
  - minden egység adott számú támadást tudna indítani egy körön belül, de csak ugyanarra az egységre (így ha ágyuval ő verébre, akkor megszívja) (egyes egységek pl. géppuskás több egységet is támadhatna egy körön belül)
-távolsági harc:
- - 3 (vagy elég csak 2???) fajta lézer (különböző színű, melyek pl a frekvenciában térnek el egymástól) lenne
+ VAGY
+ - az alábbi táblázat alapján történne minden:
+	testhelyzet	mozgásban van (séta)		mozgás	védelem	sebzés
+	álló		igen (sprint, aktív skill)	+2	+2	-
+	álló		igen				+1	+1	-1
+	álló		nem				+0	+0	-0
+	térdelő		igen				+0	+0	+0
+	térdelő		nem				-1	+1	+1
+	fekvő		igen				-1	+1	-
+	fekvő		nem				-2	+2	+2
+   - közelharc közvetlen közelről (+0 védelem, +0 sebzés) erre csak közelharccal lehet válaszolni az adott egység tulajdonságai alapján (csak álló helyzetből lehet kezdeményezni)
+     - ha az ellenfél:
+       - fekvő helyzetben van:
+       - térdelő helyzetben van:
+       - álló helyzetben van:
+   - közelharc adott távolságból azaz roham: (lehetne skill)
+   - ha egy egységhez megfelelő közel van ellenség (ez azt jelenti, hogy képes közelharcot kezdeményezni akár közvetlen közelről, akár adott távolságról [pl skill esetén]), akkor az adott egység csak közelharcra képes (így megérné megfontolni, hogy érdemes-e közel mennem az ellenséghez, mert ha kiderül, hoy erősebb akkor már nincs lehetőség menekülésre)
+   - tényleges sebzés (ami levonódik az életből) = védelem-sebzés
+     - ha az élet elfogy, akkor az egység meghal
+     - megéri tehát adott helyzetben mérlegelni, hogy a védelmet vagy a sebzést érdemes magasan tartani (növelni, vagy nem csökkenteni)
+   VAGY
+   - ha a sebzés nagyobb (vagy valamennyivel nagyobb???), mint a védelem, akkor levonódik egy életpont
 
 SPECIÁLIS MEZŐK:
  - stratégiai pontok:
@@ -41,3 +68,23 @@ SPECIÁLIS MEZŐK:
    - tábor: ugyanaz, mint a helyőrség, annyi különbséggel, hogy innen indul ki minden játékos
 
 a felderitetlen tile-ok lehetnének fekete fehérek (itt csak a terep lenne látható, az ellenséges mozgás nem [esetleg adott távolság után a baráti sem])
+
+
+EGYSÉGEK TULAJDONSÁGAI:
+ - sebzés: maximális sebzés, 
+   amit egyéb tényezők csökkenthetnek: közelség (távolharc esetén), skillek
+   esetleg növelhetnek:
+ - védelem: maximális védelem, 
+   amit egyéb tényezők növelhetnek: távolság (távolharc esetén), fedezék, skillek
+   esetleg csökkenthetnek:
+ - morál: adott egység morálja, amit skillek beváltására lehet használni, NINCS HATÁSSAL A SEBZÉSRE ÉS A VÉDELEMRE, CSAK AZ EGYSÉGEK RENDELKEZNEK VELE (a tisztek nem)
+   növekszik: adott körönként automatikusan???
+              megölt egységek után (vagy ha többet sebez az ellenségnek, mint amit ő szenved el???)
+   csökken: ha több sebzést szenved el, amint amit ad (átgondolni, hogy ha többen támadnak egyet, akkor külön-külön értékelődjön ki [ez lenne a jobb], vagy összeadódna hogy összesen mennyit sebzett ő és összesen mennyit sérült???)
+   MEGFONTOLNI: lenne egy alapmorál, amitől ha több van akkor lassan csökkenni kezd (elkezd a katona unatkozni), vagy ha kevesebb van akkor nőni kezd (kezd lenyugodni a katona) [nem lenne rossz ötlet]
+ - passzív skill: az egység alapból rendekezik vele
+ - aktív skill: morálért cserébe kiváltható az adott egységre
+ - csapatmorál: az egységek moráljának összege, csapatszintű skillek válthatóak be belőle (pl. mindenki dupla sebzéssel rendelkezik)
+
+VAGY
+

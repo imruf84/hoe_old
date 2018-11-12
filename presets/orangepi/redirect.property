@@ -1,0 +1,6 @@
+ip=192.168.0.24
+debug=true
+secretkey=abcd1234
+
+startredirectserver=true
+redirectserverport=8084

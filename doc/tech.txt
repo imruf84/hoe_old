@@ -12,6 +12,13 @@ renderer:
 		+ egyszerû leimplementálni
 		+ mûködne windowson és linuxon is egyaránt
 		- extra tárhelyet igényel a scene fájl
+ pbr redering elmélet+shaders:
+   https://github.com/KhronosGroup/glTF-WebGL-PBR/tree/master/shaders
+   http://dominium.maksw.com/articles/physically-based-rendering-pbr/pbr-part-one/
+   https://learnopengl.com/PBR/Theory
+   https://github.com/Nadrin/PBR/blob/master/data/shaders/glsl/pbr_fs.glsl
+  ez tûnik a legjobbnak, mert van benne parallax mapping is:
+   https://github.com/GeorgeWeb/CGI-3D-works/blob/master/coursework/res/shaders/PBR.frag
 
 fizikai motorok:
 ----------------
