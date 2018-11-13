@@ -1,17 +1,22 @@
 package prototype;
 
 import Jama.Matrix;
+import java.text.DecimalFormat;
+import java.util.Arrays;
 import java.util.LinkedList;
-import javafx.scene.Group;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
 import physics.Vector3D;
-import prototype.curves.CurvePath;
 
 public class Curve {
 
     private final LinkedList<CurvePath> paths = new LinkedList<>();
     private final LinkedList<Vector3D> points = new LinkedList<>();
+    private final int iterations;
+    private boolean closed = true;
+
+    public Curve(int iterations, boolean closed) {
+        this.iterations = iterations;
+        this.closed = closed;
+    }
 
     public void addPoint(Vector3D p) {
         getPoints().add(p);
@@ -35,44 +40,46 @@ public class Curve {
         return points;
     }
 
-    public Group getCurve() {
+    public int getIterations() {
+        return iterations;
+    }
 
-        Group result = new Group();
+    public boolean isClosed() {
+        return closed;
+    }
 
-        for (CurvePath cp : getPaths()) {
-            result.getChildren().add(cp.getSegmens());
-        }
-
-        for (Vector3D p : getPoints()) {
-            Circle c = new Circle(2d);
-            c.setTranslateX(p.x);
-            c.setTranslateY(p.y);
-            c.setTranslateZ(p.z);
-            c.setFill(Color.BLUE);
-            c.setStroke(Color.BLACK);
-            result.getChildren().add(c);
-        }
-
-        return result;
+    public void setClosed(boolean closed) {
+        this.closed = closed;
+        updateControlPoints();
     }
 
     public static double area(Vector3D va, Vector3D vb, Vector3D vc) {
 
-        double a = Vector3D.subtract(va,vb).length();
-        double b = Vector3D.subtract(va,vc).length();
-        double c = Vector3D.subtract(vb,vc).length();
+        double a = Vector3D.subtract(va, vb).length();
+        double b = Vector3D.subtract(va, vc).length();
+        double c = Vector3D.subtract(vb, vc).length();
 
         double s = (a + b + c) / 2.0d;
         double x = (s * (s - a) * (s - b) * (s - c));
 
-        return Math.sqrt(x);
+        if (x > 0) {
+            return Math.sqrt(x);
+        }
+
+        return Math.pow(10, -10);
     }
 
     public int getIndex(int i, int n) {
-        return (i < 0 ? i + n : i) % n;
+
+        if (isClosed()) {
+            return (i < 0 ? i + n : i) % n;
+        }
+
+        return Math.min(Math.max(i, 0), n - 1);
+
     }
 
-    public final void updateControlPoints(int iterations) {
+    public final void updateControlPoints() {
 
         if (getPoints().size() < 2) {
             return;
@@ -80,11 +87,11 @@ public class Curve {
 
         boolean init = true;
         int n = getPoints().size();
-        
+
         for (int k = 0; k < iterations; k++) {
-            
+
             double l[] = new double[n];
-            
+
             // Lambda
             if (init) {
                 for (int i = 0; i < n; i++) {
@@ -99,11 +106,22 @@ public class Curve {
                     l[i] = a / (a + b);
                 }
             }
-
+            
+//l[0]=.5;
+//System.out.println(Arrays.toString(l));
             // c_i,0, c_i,2
+
             for (int i = 0; i < n; i++) {
+//            for (int i = 1; i < n; i++) {
                 c(i, 2).set(Vector3D.add(Vector3D.scale(c(i, 1), 1 - l[i]), Vector3D.scale(c(i + 1, 1), l[i])));
                 c(i + 1, 0).set(c(i, 2));
+            }
+
+            if (!isClosed()) {
+//c(0,2).set(p(0));
+
+                c(1, 0).set(p(0));
+                c(n - 2, 2).set(p(n - 1));
             }
 
             if (getPoints().size() < 3) {
@@ -120,13 +138,15 @@ public class Curve {
                 if (a != 0) {
                     Cubic cubic = new Cubic();
                     cubic.solve(a, b, c, d);
-                    t[i] = cubic.x1;
+                    t[i] = cubic.getRootForCurve();
                 }
             }
-
+t[0]=1;
+//System.out.println(Arrays.toString(t));
+            
             // c_i,1
             int coords = 2;
-            int m = getPoints().size() * coords;
+            int m = n * coords;
             Matrix A = new Matrix(m, m);
             Matrix b = new Matrix(m, 1);
             for (int i = 0; i < n; i++) {
@@ -154,15 +174,45 @@ public class Curve {
                 b.set(i * coords + 1, 0, p.y);
             }
 
+  /*          
+            if (!isClosed()) {
+                Matrix AA = new Matrix(A.getArray());
+                A = new Matrix(m - 2 * coords, m - 2 * coords);
+                Matrix bb = new Matrix(b.getArray());
+                b = new Matrix(m - 2 * coords, 1);
+
+                for (int i = 0; i < A.getRowDimension(); i++) {
+                    for (int j = 0; j < A.getColumnDimension(); j++) {
+                        A.set(i, j, AA.get(i + coords, j + coords));
+                    }
+                    b.set(i, 0, bb.get(i + coords, 0));
+                }
+            }
+*/
             Matrix x = A.solve(b);
             for (int i = 0; i < n; i++) {
+//            for (int i = 0; i < n-2; i++) {
                 Vector3D p = c(i, 1);
+//                Vector3D p = c(i+1, 1);
                 p.set(x.get(i * coords + 0, 0), x.get(i * coords + 1, 0), 0);
             }
 
             Matrix Residual = A.times(x).minus(b);
             double rnorm = Residual.normInf();
         }
+  
+/*        
+        for (int i = 0; i < getPoints().size(); i++) {
+            
+//            if (i>1 && i<getPoints().size()-2) continue;
+            
+            DecimalFormat df = new DecimalFormat("#.##");
+            System.out.print(i+"\t"+df.format(p(i).x)+","+df.format(p(i).y)+"\t\t");
+            System.out.print(df.format(c(i,0).x)+","+df.format(c(i,0).y)+"\t\t");
+            System.out.print(df.format(c(i,1).x)+","+df.format(c(i,1).y)+"\t\t");
+            System.out.println(df.format(c(i,2).x)+","+df.format(c(i,2).y));
+        }
+        System.out.println("-----------------------------------");*/
     }
 
 }

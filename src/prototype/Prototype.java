@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.Random;
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
 import javafx.scene.Group;
@@ -26,25 +27,36 @@ public class Prototype {
     private static final Group EDGES_GROUP = new Group();
 
     public static void main_(String[] args) {
-        //Matrix A = new Matrix(new double[][]{{1., 2.}, {4., 5.}, {7., 8.}});
-        Matrix A = Matrix.random(10, 6);
-        //Matrix b = new Matrix(new double[][]{{1.},{2.},{3.}});
-        Matrix b = Matrix.random(10, 1);
-        Matrix x = A.solve(b);
-        System.out.println(Arrays.toString(x.getRowPackedCopy()));
-        
-        Matrix Residual = A.times(x).minus(b);
-        double rnorm = Residual.normInf();
-        System.out.println(rnorm);
-        
-        /*System.out.println(Arrays.toString(A.getRowPackedCopy()));
-        System.out.println(Arrays.toString(b.getRowPackedCopy()));
-        System.out.println(Arrays.toString(Residual.getRowPackedCopy()));*/
-        
-        int n = 3;
-        for (int i = 0; i < 4*n; i++) {
-            System.out.println((i<0?i+n:i+n-1)%n);
+        Matrix M = new Matrix(4, 4);
+        int k = 0;
+        for (int i = 0; i < M.getRowDimension(); i++) {
+            for (int j = 0; j < M.getColumnDimension(); j++) {
+                M.set(i, j, k++);
+            }
         }
+
+        for (int i = 0; i < M.getRowDimension(); i++) {
+            for (int j = 0; j < M.getColumnDimension(); j++) {
+                System.out.print(M.get(i, j)+"\t");
+            }
+            System.out.println("");
+        }
+        
+        Matrix MM = new Matrix(M.getArray());
+        M = new Matrix(2, 2);
+        for (int i = 0; i < M.getRowDimension(); i++) {
+            for (int j = 0; j < M.getColumnDimension(); j++) {
+                M.set(i, j, MM.get(i+1, j+1));
+            }
+        }
+        
+        for (int i = 0; i < M.getRowDimension(); i++) {
+            for (int j = 0; j < M.getColumnDimension(); j++) {
+                System.out.print(M.get(i, j)+"\t");
+            }
+            System.out.println("");
+        }
+        
     }
 
     public static void main(String[] args) throws KeyManagementException, NoSuchAlgorithmException, IOException {
@@ -80,7 +92,8 @@ public class Prototype {
 
             // TEST
             CANVAS.setScale(4);
-            CANVAS.setTranslateY(CANVAS.getTranslateY() + 200);
+            CANVAS.setTranslateX(CANVAS.getTranslateX() + 300);
+            CANVAS.setTranslateY(CANVAS.getTranslateY() + 300);
 
             fxPanel.setScene(scene);
 
@@ -93,19 +106,17 @@ public class Prototype {
     private static void updateScene() {
 
         //NODES_GROUP.getChildren().add(new VPlayer(new Player("player 1"), NODE_GESTURES));
-        /*CurvePath cv = new CurvePath(new Vector3D(0, 0, 0), new Vector3D(10, 40, 0), new Vector3D(80, 20, 0));
-        NODES_GROUP.getChildren().add(cv.getSegmens());
-        cv = new CurvePath(new Vector3D(80, 20, 0), new Vector3D(200, 80, 0), new Vector3D(180, -5, 0));
-        NODES_GROUP.getChildren().add(cv.getSegmens());*/
-        
-        Curve c = new Curve();
-        c.addPoint(new Vector3D(0, 0, 0));
-        c.addPoint(new Vector3D(10, 50, 0));
-        c.addPoint(new Vector3D(100, 10, 0));
-        c.addPoint(new Vector3D(100, -10, 0));
-        c.addPoint(new Vector3D(70, 0, 0));
-        c.updateControlPoints(20);
-        NODES_GROUP.getChildren().add(c.getCurve());
+        VCurve vc = new VCurve(30, !true, NODE_GESTURES);
+        Random rnd = new Random();
+        int n = 6;
+        for (int i = 0; i < n; i++) {
+            double a = 2d * 3.1415d / (double) n;
+            double r = 100d;
+            vc.addPoint(new Vector3D(rnd.nextDouble() * r * Math.cos((double) i * a), rnd.nextDouble() * r * Math.sin((double) i * a), 0));
+        }
+        vc.updateVisuals();
+        vc.getHull().setVisible(false);
+        NODES_GROUP.getChildren().add(vc);
 
         /*for (int x = 0; x < 10; x++) {
             for (int y = 0; y < 10; y++) {

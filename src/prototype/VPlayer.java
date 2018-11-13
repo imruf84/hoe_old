@@ -11,6 +11,7 @@ import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.text.Font;
 import javafx.scene.text.TextAlignment;
 
+
 public class VPlayer extends StackPane {
 
     public static final double SHAPE_SIZE = 100d;

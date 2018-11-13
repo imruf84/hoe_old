@@ -64,6 +64,17 @@ public class Cubic {
         }
     }
 
+    public double getRootForCurve() {
+        if (!Double.isNaN(x1) && !(x1 < 0) && !(x1 > 1)) {
+            return x1;
+        }
+        if (!Double.isNaN(x2) && !(x2 < 0) && !(x2 > 1)) {
+            return x2;
+        }
+
+        return x3;
+    }
+
     private void sortRoots() {
         if (x1 < x2) {
             double tmp = x1;
