@@ -6,19 +6,27 @@ import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.Random;
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
 import javafx.scene.Group;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
+import javafx.scene.shape.Line;
 import javafx.stage.Screen;
 import javax.swing.JFrame;
 import javax.swing.UIManager;
 import physics.Vector3D;
 
+// http://hz2.org/blog/hobby_curve.html
+// http://i.stanford.edu/pub/cstr/reports/cs/tr/85/1047/CS-TR-85-1047.pdf
+// https://github.com/qzyse2017/k-Curve/blob/master/kCurve.py
+// https://www.stkent.com/2015/07/03/building-smooth-paths-using-bezier-curves.html
 public class Prototype {
 
     private static final PannableCanvas CANVAS = new PannableCanvas();
@@ -27,36 +35,7 @@ public class Prototype {
     private static final Group EDGES_GROUP = new Group();
 
     public static void main_(String[] args) {
-        Matrix M = new Matrix(4, 4);
-        int k = 0;
-        for (int i = 0; i < M.getRowDimension(); i++) {
-            for (int j = 0; j < M.getColumnDimension(); j++) {
-                M.set(i, j, k++);
-            }
-        }
 
-        for (int i = 0; i < M.getRowDimension(); i++) {
-            for (int j = 0; j < M.getColumnDimension(); j++) {
-                System.out.print(M.get(i, j)+"\t");
-            }
-            System.out.println("");
-        }
-        
-        Matrix MM = new Matrix(M.getArray());
-        M = new Matrix(2, 2);
-        for (int i = 0; i < M.getRowDimension(); i++) {
-            for (int j = 0; j < M.getColumnDimension(); j++) {
-                M.set(i, j, MM.get(i+1, j+1));
-            }
-        }
-        
-        for (int i = 0; i < M.getRowDimension(); i++) {
-            for (int j = 0; j < M.getColumnDimension(); j++) {
-                System.out.print(M.get(i, j)+"\t");
-            }
-            System.out.println("");
-        }
-        
     }
 
     public static void main(String[] args) throws KeyManagementException, NoSuchAlgorithmException, IOException {
@@ -105,32 +84,57 @@ public class Prototype {
 
     private static void updateScene() {
 
-        //NODES_GROUP.getChildren().add(new VPlayer(new Player("player 1"), NODE_GESTURES));
-        VCurve vc = new VCurve(30, !true, NODE_GESTURES);
+        Group pointsGroup = new Group();
+        NODES_GROUP.getChildren().add(pointsGroup);
         Random rnd = new Random();
-        int n = 6;
-        for (int i = 0; i < n; i++) {
-            double a = 2d * 3.1415d / (double) n;
-            double r = 100d;
-            vc.addPoint(new Vector3D(rnd.nextDouble() * r * Math.cos((double) i * a), rnd.nextDouble() * r * Math.sin((double) i * a), 0));
-        }
-        vc.updateVisuals();
-        vc.getHull().setVisible(false);
-        NODES_GROUP.getChildren().add(vc);
+        int n = 8;
 
-        /*for (int x = 0; x < 10; x++) {
-            for (int y = 0; y < 10; y++) {
-                HexaCell hc = new HexaCell(x, y);
-                HexaCellVisual hcv = new HexaCellVisual(hc, NODE_GESTURES);
-                NODES_GROUP.getChildren().add(hcv);
+        if (true) {
+            CCRCurve curve = new CCRCurve();
+            for (int i = 0; i < n; i++) {
+                double a = 2d * 3.1415d / (double) n;
+                double r = 100d;
+                curve.appendPoint(new Vec2f((float) (rnd.nextDouble() * r * Math.cos((double) i * a)), (float) (rnd.nextDouble() * r * Math.sin((double) i * a))));
+                //curve.appendPoint(new Vec2f((float) (r * Math.cos((double) i * a)), (float) (r * Math.sin((double) i * a))));
             }
-        }*/
- /*
-        EdgeVisual ev12 = new EdgeVisual(nv1, nv2);
-        EDGES_GROUP.getChildren().add(ev12);
-        EDGES_GROUP.toFront();
-        EDGES_VISUAL.add(ev12);
-         */
+
+            Group curvePathGroup = new Group();
+            NODES_GROUP.getChildren().add(curvePathGroup);
+            for (Vec2f p : curve.getPoints()) {
+                Circle c = new Circle(3);
+                c.setUserData(p);
+                c.setFill(new Color(0, 0, 1, .5));
+                c.setTranslateX(p.x);
+                c.setTranslateY(p.y);
+                pointsGroup.getChildren().add(c);
+                c.toFront();
+
+                c.addEventFilter(MouseEvent.MOUSE_PRESSED, NODE_GESTURES.getOnMousePressedEventHandler());
+                c.addEventFilter(MouseEvent.MOUSE_DRAGGED, NODE_GESTURES.getOnMouseDraggedEventHandler());
+                c.addEventFilter(MouseEvent.MOUSE_DRAGGED, (MouseEvent event) -> {
+
+                    Node node = (Node) event.getSource();
+                    Vec2f lp = (Vec2f) node.getUserData();
+                    lp.set((float) node.getTranslateX(), (float) node.getTranslateY());
+                    curvePathGroup.getChildren().clear();
+
+                    int steps = 100;
+                    for (int j = 0; j < curve.getPointsCount() - 1; j++) {
+                        for (int i = 1; i <= steps; i++) {
+                            Vec2f pp = curve.pointAt((float) j + (float) (i - 1) / (float) steps);
+                            Vec2f pn = curve.pointAt((float) j + (float) i / (float) steps);
+                            Line l = new Line(pp.x, pp.y, pn.x, pn.y);
+                            l.setStroke(Color.BLACK);
+                            l.setStrokeWidth(.2f);
+                            curvePathGroup.getChildren().add(l);
+                        }
+                    }
+
+                    event.consume();
+                });
+
+            }
+        }
     }
 
     public static void setLookAndFeel() {
