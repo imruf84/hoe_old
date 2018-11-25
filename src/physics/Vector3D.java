@@ -22,6 +22,10 @@ public class Vector3D {
         this.z = v.z;
     }
 
+    public Vector3D cpy() {
+        return new Vector3D(x, y, z);
+    }
+
     public void set(double x, double y, double z) {
         this.x = x;
         this.y = y;
@@ -38,6 +42,10 @@ public class Vector3D {
         return (double) Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
     }
 
+    public double len() {
+        return length();
+    }
+
     public double lengthSq() {
         return this.x * this.x + this.y * this.y + this.z * this.z;
     }
@@ -49,10 +57,12 @@ public class Vector3D {
         this.z *= l;
     }
 
-    public void add(Vector3D v) {
+    public Vector3D add(Vector3D v) {
         this.x += v.x;
         this.y += v.y;
         this.z += v.z;
+
+        return this;
     }
 
     public static Vector3D add(Vector3D v1, Vector3D v2) {
@@ -82,20 +92,28 @@ public class Vector3D {
         return z;
     }
 
-    public void subtract(Vector3D v) {
+    public Vector3D subtract(Vector3D v) {
         this.x -= v.x;
         this.y -= v.y;
         this.z -= v.z;
+
+        return this;
+    }
+
+    public Vector3D sub(Vector3D o) {
+        return subtract(o);
     }
 
     public static Vector3D subtract(Vector3D v1, Vector3D v2) {
         return new Vector3D(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z);
     }
 
-    public void scale(double s) {
+    public Vector3D scale(double s) {
         this.x *= s;
         this.y *= s;
         this.z *= s;
+
+        return this;
     }
 
     public static Vector3D scale(Vector3D v, double s) {

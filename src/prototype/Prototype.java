@@ -87,20 +87,20 @@ public class Prototype {
         Group pointsGroup = new Group();
         NODES_GROUP.getChildren().add(pointsGroup);
         Random rnd = new Random();
-        int n = 8;
+        int n = 4;
 
         if (true) {
-            CCRCurve curve = new CCRCurve();
+            CentripetalCatmullRomCurve curve = new CentripetalCatmullRomCurve();
             for (int i = 0; i < n; i++) {
                 double a = 2d * 3.1415d / (double) n;
                 double r = 100d;
-                curve.appendPoint(new Vec2f((float) (rnd.nextDouble() * r * Math.cos((double) i * a)), (float) (rnd.nextDouble() * r * Math.sin((double) i * a))));
-                //curve.appendPoint(new Vec2f((float) (r * Math.cos((double) i * a)), (float) (r * Math.sin((double) i * a))));
+                //curve.appendPoint(new Vector3D((float) (rnd.nextDouble() * r * Math.cos((double) i * a)), (float) (rnd.nextDouble() * r * Math.sin((double) i * a)), 0));
+                curve.appendPoint(new Vector3D((float) (r * Math.cos((double) i * a)), (float) (r * Math.sin((double) i * a)), 0));
             }
 
             Group curvePathGroup = new Group();
             NODES_GROUP.getChildren().add(curvePathGroup);
-            for (Vec2f p : curve.getPoints()) {
+            for (Vector3D p : curve.getPoints()) {
                 Circle c = new Circle(3);
                 c.setUserData(p);
                 c.setFill(new Color(0, 0, 1, .5));
@@ -114,21 +114,36 @@ public class Prototype {
                 c.addEventFilter(MouseEvent.MOUSE_DRAGGED, (MouseEvent event) -> {
 
                     Node node = (Node) event.getSource();
-                    Vec2f lp = (Vec2f) node.getUserData();
-                    lp.set((float) node.getTranslateX(), (float) node.getTranslateY());
+                    Vector3D lp = (Vector3D) node.getUserData();
+                    lp.set((float) node.getTranslateX(), (float) node.getTranslateY(), 0);
                     curvePathGroup.getChildren().clear();
 
-                    int steps = 100;
-                    for (int j = 0; j < curve.getPointsCount() - 1; j++) {
-                        for (int i = 1; i <= steps; i++) {
-                            Vec2f pp = curve.pointAt((float) j + (float) (i - 1) / (float) steps);
-                            Vec2f pn = curve.pointAt((float) j + (float) i / (float) steps);
+                    int steps = 10;
+                    boolean b = true;
+                    double length = 4;
+                    Vector3D pp = null;
+                    //curve.setClosed(true);
+                    //for (Vector3D pn:curve.generatePathPointsBySteps(steps)) {
+                    for (Vector3D pn : curve.generatePathPointsByLength(length)) {
+
+                        if (b) {
+                            curvePathGroup.getChildren().add(new Circle(pn.x, pn.y, 1d, Color.LIGHTGRAY));
+                        } else {
+                            curvePathGroup.getChildren().add(new Circle(pn.x, pn.y, 1d, Color.GRAY));
+                        }
+                        b = !b;
+
+                        if (pp != null) {
                             Line l = new Line(pp.x, pp.y, pn.x, pn.y);
                             l.setStroke(Color.BLACK);
                             l.setStrokeWidth(.2f);
                             curvePathGroup.getChildren().add(l);
+                            l.toBack();
                         }
+
+                        pp = pn;
                     }
+                    curvePathGroup.toBack();
 
                     event.consume();
                 });
