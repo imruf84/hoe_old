@@ -2,9 +2,9 @@ package prototype;
 
 import physics.Vector3D;
 
-public class CentripetalCatmullRomSegment extends AbstractSegment {
+public class CentripetalCatmullRomSegment {
 
-    private double [] time;
+    private double[] time;
     private Vector3D[] points;
 
     protected CentripetalCatmullRomSegment(Vector3D[] points) {
@@ -15,23 +15,18 @@ public class CentripetalCatmullRomSegment extends AbstractSegment {
         this.points = points;
         time = new double[4];
         time[0] = 0;
-        double approxLength = 0;
         for (int i = 1; i < 4; i++) {
             double len = 0;
             if (i > 0) {
                 len = points[i].cpy().sub(points[i - 1]).len();
             }
             if (len <= 0) {
-                len += 0.0001f;
+                len += 0.0001d;
             }
-            approxLength += len;
             time[i] = (float) Math.sqrt(len) + time[i - 1];
         }
-
-        init(approxLength / 2);
     }
 
-    @Override
     public Vector3D pointAt(double t) {
         t = t * (time[2] - time[1]) + time[1];
 

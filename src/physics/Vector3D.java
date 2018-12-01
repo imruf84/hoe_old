@@ -32,7 +32,7 @@ public class Vector3D {
         this.z = z;
     }
 
-    public void set(Vector3D v) {
+    public final void set(Vector3D v) {
         this.x = v.x;
         this.y = v.y;
         this.z = v.z;

@@ -1,4 +1,4 @@
-
+/*
 img {
     opacity: 1;
     transition: opacity 1.0s;
@@ -7,7 +7,7 @@ img {
 img[data-src],img[load-src] {
     opacity: 0;
 }
-
+*/
 .tile {
     position: absolute;
 }
