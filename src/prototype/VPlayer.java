@@ -68,7 +68,7 @@ public class VPlayer extends Player {
         label.setFont(new Font(SHAPE_SIZE / 3));
 
         getPane().getChildren().addAll(shape, label);
-        getContainer().getChildren().addAll(pathPointsGroup, pathGroup, getPane());
+        getContainer().getChildren().addAll(pathGroup, pathPointsGroup, getPane());
 
         update();
     }
