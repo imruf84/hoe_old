@@ -1,5 +1,6 @@
 package prototype;
 
+import java.util.ArrayList;
 import javafx.application.Platform;
 import javafx.scene.Group;
 import javafx.scene.Node;
@@ -21,6 +22,7 @@ public class VPlayer extends Player {
     private final Group pane = new Group();
     private final Group pathGroup = new Group();
     private final Group pathPointsGroup = new Group();
+    private final ArrayList<Node> pathPoints = new ArrayList<>();
     private final NodeGestures NODE_GESTURES;
 
     private Shape shape;
@@ -41,6 +43,31 @@ public class VPlayer extends Player {
     public Group getPane() {
         return pane;
     }
+    
+    @Override
+    protected  void recalculatePath(Vector3D newPos) {
+        super.recalculatePath(newPos);
+        updatePath();
+    }
+    
+    @Override
+    public void removeNavigationPoint(int i) {
+        
+        Node n = pathPoints.remove(i);
+        pathPointsGroup.getChildren().remove(n);
+        
+        super.removeNavigationPoint(i);
+    }
+    
+    @Override
+    public void oneStep() {
+        super.oneStep();
+        
+        int n = (int) Math.floor(getPosition().t);
+        for (int i = 0; i < n; i++) {
+            pathPoints.get(i).setVisible(false);
+        }
+    }
 
     private void init(NodeGestures nodeGestures) {
 
@@ -49,9 +76,13 @@ public class VPlayer extends Player {
         getPane().addEventFilter(MouseEvent.MOUSE_DRAGGED, (MouseEvent event) -> {
             if (getPath().getPoints().size() > 0) {
                 Node node = (Node) event.getSource();
-                Vector3D lp = getPath().getPoints().get(0);
+                Vector3D newPos = new Vector3D(node.getTranslateX(), node.getTranslateY(), 0);
+                getPosition().set(newPos);
+                recalculatePath(newPos);
+                /*Vector3D lp = getPath().getPoints().get(0);
                 lp.set(node.getTranslateX(), node.getTranslateY(), 0);
-                updatePath();
+                getPosition().t = 0;
+                updatePath();*/
             }
         });
 
@@ -68,6 +99,7 @@ public class VPlayer extends Player {
         label.setFont(new Font(SHAPE_SIZE / 3));
 
         getPane().getChildren().addAll(shape, label);
+        //getPane().setMouseTransparent(true);
         getContainer().getChildren().addAll(pathGroup, pathPointsGroup, getPane());
 
         update();
@@ -88,10 +120,15 @@ public class VPlayer extends Player {
         }
     }
 
+    @Override
     public void update() {
+        
+        super.update();
 
-        getContainer().setTranslateX(getPosition().x);
-        getContainer().setTranslateY(getPosition().y);
+        //getContainer().setTranslateX(getPosition().x);
+        //getContainer().setTranslateY(getPosition().y);
+        getPane().setTranslateX(getPosition().x);
+        getPane().setTranslateY(getPosition().y);
 
         label.setText(getName() + "\na\nb");
         Platform.runLater(() -> {
@@ -107,7 +144,7 @@ public class VPlayer extends Player {
 
     @Override
     public void addNavigationPoint(Vector3D p) {
-        
+
         super.addNavigationPoint(p);
 
         Circle c = new Circle(4);
@@ -116,6 +153,7 @@ public class VPlayer extends Player {
         c.setTranslateX(p.x);
         c.setTranslateY(p.y);
         pathPointsGroup.getChildren().add(c);
+        pathPoints.add(c);
         c.toFront();
 
         c.addEventFilter(MouseEvent.MOUSE_PRESSED, NODE_GESTURES.getOnMousePressedEventHandler());
@@ -124,6 +162,7 @@ public class VPlayer extends Player {
             Node node = (Node) event.getSource();
             Vector3D lp = (Vector3D) node.getUserData();
             lp.set(node.getTranslateX(), node.getTranslateY(), 0);
+            recalculatePath(getPosition());
             updatePath();
         });
 

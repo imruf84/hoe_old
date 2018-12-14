@@ -2,32 +2,24 @@ package prototype;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
-import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
 import javafx.scene.Group;
 import javafx.scene.Scene;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
-import javafx.scene.shape.StrokeLineCap;
 import javafx.stage.Screen;
-import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.UIManager;
-import nlopt.Calcfc;
-import nlopt.Cobyla;
-import nlopt.CobylaExitStatus;
 import physics.Vector3D;
 
 // https://github.com/prasser/newtonraphson
@@ -41,6 +33,8 @@ public class Prototype {
     private static final NodeGestures NODE_GESTURES = new NodeGestures(CANVAS);
     private static final Group PLAYER_NODES_GROUP = new Group();
     private static final Group EDGES_GROUP = new Group();
+    private static JPanel buttonsPanel;
+    private static ArrayList<Player> players = new ArrayList<Player>();
 
     public static void main(String[] args) throws KeyManagementException, NoSuchAlgorithmException, IOException {
 
@@ -50,14 +44,8 @@ public class Prototype {
         final JFXPanel fxPanel = new JFXPanel();
         frame.add(fxPanel, BorderLayout.CENTER);
 
-        JPanel buttonsPanel = new JPanel(new FlowLayout());
+        buttonsPanel = new JPanel(new FlowLayout());
         frame.add(buttonsPanel, BorderLayout.EAST);
-
-        JButton btn1 = new JButton("aaa");
-        btn1.addActionListener((ActionEvent e) -> {
-            System.out.println("a");
-        });
-        buttonsPanel.add(btn1);
 
         frame.setVisible(true);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -71,6 +59,15 @@ public class Prototype {
             Scene scene = new Scene(group, Screen.getPrimary().getVisualBounds().getWidth() - 100, Screen.getPrimary().getVisualBounds().getHeight() - 100);
             frame.setSize((int) scene.getWidth(), (int) scene.getHeight());
             frame.setLocationRelativeTo(null);
+
+            scene.setOnKeyTyped((KeyEvent e) -> {
+                if (e.getCharacter().equals(" ")) {
+                    for (Player p : players) {
+                        p.oneStep();
+                    }
+                    return;
+                }
+            });
 
             updateScene();
 
@@ -111,21 +108,22 @@ public class Prototype {
     }
 
     private static void updateScene() {
-        
-        /*
+
         Line xAxis = new Line(0, 0, 100, 0);
         xAxis.setStroke(Color.RED);
         Line yAxis = new Line(0, 0, 0, 100);
         yAxis.setStroke(Color.BLUE);
         EDGES_GROUP.getChildren().addAll(xAxis, yAxis);
 
-        VPlayer player = new VPlayer("player_1", new Vector3D(50, 0, 0), NODE_GESTURES);
+        VPlayer player = new VPlayer("player_1", new Vector3D(-50, 0, 0), NODE_GESTURES);
+        player.addNavigationPoint(new Vector3D(10, -30, 0));
         player.addNavigationPoint(new Vector3D(100, 0, 0));
         player.addNavigationPoint(new Vector3D(100, 100, 0));
         PLAYER_NODES_GROUP.getChildren().add(player.getContainer());
-         */
+        players.add(player);
 
-        class MyCircle {
+        
+ /*class MyCircle {
 
             public double r;
             public double px, py;
@@ -244,8 +242,7 @@ public class Prototype {
             l.setStrokeLineCap(StrokeLineCap.ROUND);
             l.setStrokeWidth(.2d);
             PLAYER_NODES_GROUP.getChildren().add(l);
-        }
-
+        }*/
     }
 
     public static void setLookAndFeel() {

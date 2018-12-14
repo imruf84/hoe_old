@@ -14,3 +14,7 @@ change pwd: ALTER USER sa SET PASSWORD '12345';
 
 wifi autoconnect:
 wicd-curses
+
+
+banana pi m2 zero working image:
+https://github.com/avafinger/bananapi-zero-ubuntu-base-minimal
