@@ -33,7 +33,7 @@ public class NodeGestures {
             nodeDragContext.mouseAnchorY = event.getSceneY();
 
             javafx.scene.Node node = (javafx.scene.Node) event.getSource();
-            node.toFront();
+            //node.toFront();
 
             nodeDragContext.translateAnchorX = node.getTranslateX();
             nodeDragContext.translateAnchorY = node.getTranslateY();

@@ -8,6 +8,7 @@ import javafx.scene.control.Label;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import javafx.scene.shape.Line;
 import javafx.scene.shape.Shape;
 import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.text.Font;
@@ -28,8 +29,8 @@ public class VPlayer extends Player {
     private Shape shape;
     private Label label;
 
-    public VPlayer(String name, Vector3D position, NodeGestures nodeGestures) {
-        super(name, position);
+    public VPlayer(String name, Vector3D position, double radius, NodeGestures nodeGestures) {
+        super(name, position, radius);
 
         this.NODE_GESTURES = nodeGestures;
 
@@ -60,9 +61,10 @@ public class VPlayer extends Player {
     }
     
     @Override
-    public void oneStep() {
-        super.oneStep();
-        
+    public void doOneStep(CurvePoint nextPos) {
+        super.doOneStep(nextPos);
+    
+        // Hide control points behind.
         int n = (int) Math.floor(getPosition().t);
         for (int i = 0; i < n; i++) {
             pathPoints.get(i).setVisible(false);
@@ -86,7 +88,7 @@ public class VPlayer extends Player {
             }
         });
 
-        shape = new Circle(SHAPE_SIZE);
+        shape = new Circle(getRadius());
         shape.setFill(new Color(1, 0, 0, .5));
         shape.setStrokeWidth(1d);
         shape.setStrokeLineCap(StrokeLineCap.ROUND);
@@ -97,10 +99,17 @@ public class VPlayer extends Player {
         label.setLineSpacing(-SHAPE_SIZE / 10d);
         label.setTextFill(Color.WHITE);
         label.setFont(new Font(SHAPE_SIZE / 3));
+        
+        double crossSize = getRadius();
+        Line l1 = new Line(-crossSize,0,crossSize,0);
+        l1.setStrokeWidth(.3d);
+        Line l2 = new Line(0,-crossSize,0,crossSize);
+        l2.setStrokeWidth(.3d);
 
-        getPane().getChildren().addAll(shape, label);
+        getPane().getChildren().addAll(l1,l2,shape, label);
         //getPane().setMouseTransparent(true);
-        getContainer().getChildren().addAll(pathGroup, pathPointsGroup, getPane());
+        getContainer().getChildren().addAll(pathGroup, getPane(), pathPointsGroup);
+        pathPointsGroup.toFront();
 
         update();
     }
@@ -109,7 +118,7 @@ public class VPlayer extends Player {
 
         getPathGroup().getChildren().clear();
 
-        boolean b = true;
+        boolean b = false;
         for (CurvePoint cn : getPath().generatePathPointsByLength(1d)) {
             if (!b) {
                 Circle c = new Circle(cn.x, cn.y, .5d, Color.BLACK);
@@ -130,7 +139,8 @@ public class VPlayer extends Player {
         getPane().setTranslateX(getPosition().x);
         getPane().setTranslateY(getPosition().y);
 
-        label.setText(getName() + "\na\nb");
+        //label.setText(getName() + "\na\nb");
+        label.setText(getName());
         Platform.runLater(() -> {
             label.setTranslateX(-label.getWidth() / 2d);
             label.setTranslateY(-label.getHeight() / 2d);

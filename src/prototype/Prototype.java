@@ -7,6 +7,7 @@ import java.math.BigInteger;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Random;
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
 import javafx.scene.Group;
@@ -20,6 +21,7 @@ import javafx.stage.Screen;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.UIManager;
+import nlopt.ObjectsPacker;
 import physics.Vector3D;
 
 // https://github.com/prasser/newtonraphson
@@ -62,9 +64,11 @@ public class Prototype {
 
             scene.setOnKeyTyped((KeyEvent e) -> {
                 if (e.getCharacter().equals(" ")) {
-                    for (Player p : players) {
-                        p.oneStep();
-                    }
+                    ObjectsPacker.packPlayers(players);
+                    /*for (Player p : players) {
+                        //p.doOneStep();
+                        p.update();
+                    }*/
                     return;
                 }
             });
@@ -113,136 +117,50 @@ public class Prototype {
         xAxis.setStroke(Color.RED);
         Line yAxis = new Line(0, 0, 0, 100);
         yAxis.setStroke(Color.BLUE);
-        EDGES_GROUP.getChildren().addAll(xAxis, yAxis);
-
-        VPlayer player = new VPlayer("player_1", new Vector3D(-50, 0, 0), NODE_GESTURES);
+        //EDGES_GROUP.getChildren().addAll(xAxis, yAxis);
+/*
+        VPlayer player = new VPlayer("P1", new Vector3D(-50, 0, 0), VPlayer.SHAPE_SIZE, NODE_GESTURES);
         player.addNavigationPoint(new Vector3D(10, -30, 0));
         player.addNavigationPoint(new Vector3D(100, 0, 0));
         player.addNavigationPoint(new Vector3D(100, 100, 0));
+        player.addNavigationPoint(new Vector3D(30, 10, 0));
         PLAYER_NODES_GROUP.getChildren().add(player.getContainer());
         players.add(player);
-
         
- /*class MyCircle {
-
-            public double r;
-            public double px, py;
-            public double nx, ny;
-            public double cx, cy;
-            public boolean immovable = false;
-
-            public MyCircle(double r, double px, double py, double nx, double ny) {
-                this.r = r;
-                this.px = px;
-                this.py = py;
-                this.nx = nx;
-                this.ny = ny;
-            }
-            
-            public MyCircle(double r, double px, double py, double nx, double ny, boolean immovable) {
-                this(r,px,py,nx,ny);
-                this.immovable = immovable;
-            }
-        }
-
-        ArrayList<MyCircle> circles = new ArrayList<>();
-        circles.add(new MyCircle(20, -40, 0, 0, -30, true));
-        circles.add(new MyCircle(10, 60, -50, 10, -20, !true));
-        circles.add(new MyCircle(15, 20, 0, 0, -10, true));
+        player = new VPlayer("P2", new Vector3D(-20, 10, 0), VPlayer.SHAPE_SIZE, NODE_GESTURES);
+        player.addNavigationPoint(new Vector3D(20, -50, 0));
+        player.addNavigationPoint(new Vector3D(80, 50, 0));
+        player.addNavigationPoint(new Vector3D(80, 100, 0));
+        PLAYER_NODES_GROUP.getChildren().add(player.getContainer());
+        players.add(player);
         
-        final int dimension = 2;
-
-        Calcfc calcfc = new Calcfc() {
-            @Override
-            public double Compute(int n, int m, double[] x, double[] c) {
-                
-                int cCounter = 0;
-                
-                double dSum = 0;
-                for (int i = 0; i < circles.size(); i++) {
-                    MyCircle circle = circles.get(i);
-                    dSum += Math.sqrt(Math.pow(circle.nx-x[i*dimension],2d)+Math.pow(circle.ny-x[i*dimension+1],2d));
-                    
-                    c[cCounter++] = Math.sqrt(Math.pow(circle.px-circle.nx,2d)+Math.pow(circle.py-circle.ny,2d))-Math.sqrt(Math.pow(circle.px-x[i*dimension],2d)+Math.pow(circle.py-x[i*dimension+1],2d));
-                    
-                    if (circle.immovable) {
-                        x[i*dimension] = circle.nx;
-                        x[i*dimension+1] = circle.ny;
-                    }
-                }
-                
-                for (int i = 0; i < circles.size()-1; i++) {
-                    MyCircle ci = circles.get(i);
-                    for (int j = i+1; j < circles.size(); j++) {
-                        MyCircle cj = circles.get(j);
-                        
-                        if (ci.immovable && cj.immovable) {
-                            cCounter++;
-                            continue;
-                        }
-                        
-                        c[cCounter++]=Math.sqrt(Math.pow(x[i*dimension]-x[j*dimension],2d)+Math.pow(x[i*dimension+1]-x[j*dimension+1],2d))-ci.r-cj.r;
-                    }
-                }
-                
-                return dSum;
-            }
-        };
-
-        LinkedList<Double> xx = new LinkedList<>();
-        for (MyCircle c : circles) {
-            xx.add(c.nx);
-            xx.add(c.ny);
-        }
-
-        double[] x = new double[xx.size()];
-        for (int i = 0; i < xx.size(); i++) {
-            x[i] = xx.get(i);
-        }
-        double rhobeg = 0.5;
-        double rhoend = 1.0e-6;
-        int iprint = 0;
-        int maxfun = 3500;
-        CobylaExitStatus result = Cobyla.FindMinimum(calcfc, x.length, (int) combinations(circles.size(), 2)+circles.size(), x, rhobeg, rhoend, iprint, maxfun);
-        System.out.println(result.equals(CobylaExitStatus.Normal));
+        player = new VPlayer("P3", new Vector3D(0, -50, 0), VPlayer.SHAPE_SIZE, NODE_GESTURES);
+        PLAYER_NODES_GROUP.getChildren().add(player.getContainer());
+        players.add(player);
         
-        for (int i = 0; i < circles.size(); i++) {
-            MyCircle c = circles.get(i);
-            c.cx = x[i*dimension];
-            c.cy = x[i*dimension+1];
+        player = new VPlayer("P4", new Vector3D(0,70, 20), VPlayer.SHAPE_SIZE, NODE_GESTURES);
+        PLAYER_NODES_GROUP.getChildren().add(player.getContainer());
+        players.add(player);
+        
+        player = new VPlayer("P5", new Vector3D(0, 20, -50), VPlayer.SHAPE_SIZE, NODE_GESTURES);
+        PLAYER_NODES_GROUP.getChildren().add(player.getContainer());
+        players.add(player);
+*/
+
+        Random rnd = new Random();
+        int range = 100;
+        int range2 = 50;
+        int np = 10;
+        int nn =2;
+        for (int i = 0; i < np; i++) {
+            VPlayer player = new VPlayer("P"+i, new Vector3D(range/2-rnd.nextInt(range), range/2-rnd.nextInt(range), 0), VPlayer.SHAPE_SIZE/2+rnd.nextInt((int) (VPlayer.SHAPE_SIZE/2)), NODE_GESTURES);
+            for (int j =0; j<rnd.nextInt(nn)+1;j++){
+                player.addNavigationPoint(new Vector3D(range2/2-rnd.nextInt(range), range2/2-rnd.nextInt(range), 0));
+            }
+            PLAYER_NODES_GROUP.getChildren().add(player.getContainer());
+            players.add(player);
         }
 
-        for (MyCircle ci : circles) {
-            Circle c = new Circle(ci.nx, ci.ny, ci.r, null);
-            c.getStrokeDashArray().addAll(1d, 2d);
-            c.setStroke(Color.BLACK);
-            c.setStrokeWidth(.2d);
-            c.setStrokeLineCap(StrokeLineCap.ROUND);
-            PLAYER_NODES_GROUP.getChildren().add(c);
-
-            c = new Circle(ci.px, ci.py, ci.r, null);
-            c.getStrokeDashArray().addAll(1d, 4d);
-            c.setStroke(Color.BLACK);
-            c.setStrokeWidth(.2d);
-            c.setStrokeLineCap(StrokeLineCap.ROUND);
-            PLAYER_NODES_GROUP.getChildren().add(c);
-
-            c = new Circle(ci.cx, ci.cy, ci.r, null);
-            c.setStroke(Color.BLACK);
-            c.setStrokeWidth(.5d);
-            c.setStrokeLineCap(StrokeLineCap.ROUND);
-            PLAYER_NODES_GROUP.getChildren().add(c);
-
-            Line l = new Line(ci.px, ci.py, ci.nx, ci.ny);
-            l.setStrokeLineCap(StrokeLineCap.ROUND);
-            l.setStrokeWidth(.2d);
-            l.getStrokeDashArray().addAll(2d);
-            PLAYER_NODES_GROUP.getChildren().add(l);
-            l = new Line(ci.px, ci.py, ci.cx, ci.cy);
-            l.setStrokeLineCap(StrokeLineCap.ROUND);
-            l.setStrokeWidth(.2d);
-            PLAYER_NODES_GROUP.getChildren().add(l);
-        }*/
     }
 
     public static void setLookAndFeel() {
