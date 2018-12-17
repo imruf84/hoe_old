@@ -29,8 +29,8 @@ public class VPlayer extends Player {
     private Shape shape;
     private Label label;
 
-    public VPlayer(String name, Vector3D position, double radius, NodeGestures nodeGestures) {
-        super(name, position, radius);
+    public VPlayer(String name, Vector3D position, double radius, double step, NodeGestures nodeGestures) {
+        super(name, position, radius, step);
 
         this.NODE_GESTURES = nodeGestures;
 
@@ -119,7 +119,8 @@ public class VPlayer extends Player {
         getPathGroup().getChildren().clear();
 
         boolean b = false;
-        for (CurvePoint cn : getPath().generatePathPointsByLength(1d)) {
+        //for (CurvePoint cn : getPath().generatePathPointsByLength(1d)) {
+        for (CurvePoint cn : getPath().generatePathPointsByLength(getMaxStep()/2d)) {
             if (!b) {
                 Circle c = new Circle(cn.x, cn.y, .5d, Color.BLACK);
                 getPathGroup().getChildren().add(c);

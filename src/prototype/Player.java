@@ -5,15 +5,19 @@ import physics.Vector3D;
 
 public class Player {
 
+    public static final double STEPS_UNIT_LENGTH = 2d;
+    
     private final String name;
     private final CurvePoint position;
     private final Curve path = new Curve();
     private final double radius;
+    private final double maxStep;
 
-    public Player(String name, Vector3D position, double radius) {
+    public Player(String name, Vector3D position, double radius, double maxStep) {
         this.name = name;
         this.radius = radius;
         this.position = new CurvePoint(position, 0);
+        this.maxStep = maxStep;
         addNavigationPoint();
     }
 
@@ -23,6 +27,10 @@ public class Player {
 
     public double getRadius() {
         return radius;
+    }
+
+    public double getMaxStep() {
+        return maxStep;
     }
 
     public Curve getPath() {
@@ -54,18 +62,12 @@ public class Player {
         
         CurvePoint currentPosOnPath = getPath().pointAt(getPosition().t);
         
-        double length = 2d;
+        double length = getMaxStep();
         
         LinkedList<CurvePoint> nextPoints = getPath().generatePathPointsByLength(getPosition().t, length, 2);
         CurvePoint nextPointOnPath = nextPoints.getLast();
         
-        double tollerance = .1d;
-        //tollerance = 10d;
-        //tollerance = 2d;
-        tollerance = length*2d;
-        //tollerance = .01d;
-        //tollerance = 0;
-        //tollerance = currentPosOnPath.distance(nextPointOnPath);
+        double tollerance = length*length;
         
         if (currentPosOnPath.distance(getPosition()) > tollerance) {
             double t = currentPosOnPath.t+(nextPointOnPath.t-currentPosOnPath.t)/2d;

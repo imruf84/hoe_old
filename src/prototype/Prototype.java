@@ -1,5 +1,6 @@
 package prototype;
 
+import hoe.Log;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.io.IOException;
@@ -8,6 +9,9 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
 import javafx.scene.Group;
@@ -37,6 +41,7 @@ public class Prototype {
     private static final Group EDGES_GROUP = new Group();
     private static JPanel buttonsPanel;
     private static ArrayList<Player> players = new ArrayList<Player>();
+    private static Thread thread = null;
 
     public static void main(String[] args) throws KeyManagementException, NoSuchAlgorithmException, IOException {
 
@@ -64,27 +69,60 @@ public class Prototype {
 
             scene.setOnKeyTyped((KeyEvent e) -> {
                 if (e.getCharacter().equals(" ")) {
-                    ObjectsPacker.packPlayers(players);
-                    /*for (Player p : players) {
-                        //p.doOneStep();
-                        p.update();
-                    }*/
+                    ObjectsPacker.packPlayers(players, true);
                     return;
                 }
-            });
+
+                if (e.getCharacter().equals("p")) {
+
+                    if (thread != null) {
+                        stopThread();
+                        return;
+                    }
+
+                    final long timeInterval = 100;
+                    Runnable runnable = () -> {
+                        while (thread != null) {
+                            ObjectsPacker.packPlayers(players, true);
+                            try {
+                                Thread.sleep(timeInterval);
+                            } catch (InterruptedException ex) {
+                                thread = null;
+                            }
+                        }
+                    };
+                    thread = new Thread(runnable);
+                    thread.start();
+
+                    return;
+                }
+
+                if (e.getCharacter().equals("r")) {
+                    stopThread();
+
+                    PLAYER_NODES_GROUP.getChildren().clear();
+                    players.clear();
+                    updateScene();
+                }
+            }
+            );
 
             updateScene();
 
             SceneGestures sceneGestures = new SceneGestures(CANVAS);
+
             scene.addEventFilter(MouseEvent.MOUSE_PRESSED, sceneGestures.getOnMousePressedEventHandler());
             scene.addEventFilter(MouseEvent.MOUSE_DRAGGED, sceneGestures.getOnMouseDraggedEventHandler());
             scene.addEventFilter(ScrollEvent.ANY, sceneGestures.getOnScrollEventHandler());
 
-            CANVAS.setTranslateX((fxPanel.getWidth() - CANVAS.getBoundsInLocal().getWidth()) / 2);
-            CANVAS.setTranslateY((fxPanel.getHeight() - CANVAS.getBoundsInLocal().getHeight()) / 2);
+            CANVAS.setTranslateX(
+                    (fxPanel.getWidth() - CANVAS.getBoundsInLocal().getWidth()) / 2);
+            CANVAS.setTranslateY(
+                    (fxPanel.getHeight() - CANVAS.getBoundsInLocal().getHeight()) / 2);
 
             // TEST
-            CANVAS.setScale(4);
+            CANVAS.setScale(
+                    4);
             CANVAS.setTranslateX(CANVAS.getTranslateX() + 300);
             CANVAS.setTranslateY(CANVAS.getTranslateY() + 300);
 
@@ -92,8 +130,20 @@ public class Prototype {
 
             frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
 
-        });
+        }
+        );
 
+    }
+
+    public static void stopThread() {
+        if (thread != null) {
+            thread.interrupt();
+            try {
+                thread.join();
+            } catch (InterruptedException ex) {
+                Log.error(ex);
+            }
+        }
     }
 
     public static long combinations(int n, int k) {
@@ -111,6 +161,13 @@ public class Prototype {
         return ret;
     }
 
+    private static int rnd(int a, int b) {
+        if (a == b) {
+            return a;
+        }
+        return ThreadLocalRandom.current().nextInt(Math.min(a, b), Math.max(a, b));
+    }
+
     private static void updateScene() {
 
         Line xAxis = new Line(0, 0, 100, 0);
@@ -118,44 +175,22 @@ public class Prototype {
         Line yAxis = new Line(0, 0, 0, 100);
         yAxis.setStroke(Color.BLUE);
         //EDGES_GROUP.getChildren().addAll(xAxis, yAxis);
-/*
-        VPlayer player = new VPlayer("P1", new Vector3D(-50, 0, 0), VPlayer.SHAPE_SIZE, NODE_GESTURES);
-        player.addNavigationPoint(new Vector3D(10, -30, 0));
-        player.addNavigationPoint(new Vector3D(100, 0, 0));
-        player.addNavigationPoint(new Vector3D(100, 100, 0));
-        player.addNavigationPoint(new Vector3D(30, 10, 0));
-        PLAYER_NODES_GROUP.getChildren().add(player.getContainer());
-        players.add(player);
-        
-        player = new VPlayer("P2", new Vector3D(-20, 10, 0), VPlayer.SHAPE_SIZE, NODE_GESTURES);
-        player.addNavigationPoint(new Vector3D(20, -50, 0));
-        player.addNavigationPoint(new Vector3D(80, 50, 0));
-        player.addNavigationPoint(new Vector3D(80, 100, 0));
-        PLAYER_NODES_GROUP.getChildren().add(player.getContainer());
-        players.add(player);
-        
-        player = new VPlayer("P3", new Vector3D(0, -50, 0), VPlayer.SHAPE_SIZE, NODE_GESTURES);
-        PLAYER_NODES_GROUP.getChildren().add(player.getContainer());
-        players.add(player);
-        
-        player = new VPlayer("P4", new Vector3D(0,70, 20), VPlayer.SHAPE_SIZE, NODE_GESTURES);
-        PLAYER_NODES_GROUP.getChildren().add(player.getContainer());
-        players.add(player);
-        
-        player = new VPlayer("P5", new Vector3D(0, 20, -50), VPlayer.SHAPE_SIZE, NODE_GESTURES);
-        PLAYER_NODES_GROUP.getChildren().add(player.getContainer());
-        players.add(player);
-*/
 
-        Random rnd = new Random();
-        int range = 100;
-        int range2 = 50;
+        int rangePlayer[] = {-70, 70, 90, 100};
+        int rangeNavPoint[][] = {
+            //{-100, 100, 0, 40},
+            {-80, 80, -60, -50},
+            {-90, 90, -145, -140},};
+
         int np = 10;
-        int nn =2;
+        int nn[] = {1, rangeNavPoint.length+1};
+        int maxStep[] = {2, 4};
         for (int i = 0; i < np; i++) {
-            VPlayer player = new VPlayer("P"+i, new Vector3D(range/2-rnd.nextInt(range), range/2-rnd.nextInt(range), 0), VPlayer.SHAPE_SIZE/2+rnd.nextInt((int) (VPlayer.SHAPE_SIZE/2)), NODE_GESTURES);
-            for (int j =0; j<rnd.nextInt(nn)+1;j++){
-                player.addNavigationPoint(new Vector3D(range2/2-rnd.nextInt(range), range2/2-rnd.nextInt(range), 0));
+            VPlayer player = new VPlayer("P" + i, new Vector3D(rnd(rangePlayer[0], rangePlayer[1]), rnd(rangePlayer[2], rangePlayer[3]), 0), rnd((int) VPlayer.SHAPE_SIZE / 2, (int) VPlayer.SHAPE_SIZE), rnd(maxStep[0], maxStep[1]), NODE_GESTURES);
+            int n = rnd(nn[0], nn[1]);
+            for (int j = 0; j < n; j++) {
+                int k = j + 1 == n ? rangeNavPoint.length - 1 : j;
+                player.addNavigationPoint(new Vector3D(ThreadLocalRandom.current().nextInt(rangeNavPoint[k][0], rangeNavPoint[k][1]), ThreadLocalRandom.current().nextInt(rangeNavPoint[k][2], rangeNavPoint[k][3]), 0));
             }
             PLAYER_NODES_GROUP.getChildren().add(player.getContainer());
             players.add(player);
