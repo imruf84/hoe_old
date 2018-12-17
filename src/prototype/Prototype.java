@@ -8,6 +8,7 @@ import java.math.BigInteger;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.logging.Level;
@@ -40,7 +41,7 @@ public class Prototype {
     private static final Group PLAYER_NODES_GROUP = new Group();
     private static final Group EDGES_GROUP = new Group();
     private static JPanel buttonsPanel;
-    private static ArrayList<Player> players = new ArrayList<Player>();
+    private static final ArrayList<Player> players = new ArrayList<Player>();
     private static Thread thread = null;
 
     public static void main(String[] args) throws KeyManagementException, NoSuchAlgorithmException, IOException {
@@ -69,7 +70,57 @@ public class Prototype {
 
             scene.setOnKeyTyped((KeyEvent e) -> {
                 if (e.getCharacter().equals(" ")) {
-                    ObjectsPacker.packPlayers(players, true);
+                    /*for (int i = 0; i < players.size()-1; i++) {
+                        for (int j = i+1; j < players.size(); j++) {
+                            System.out.println(i+","+j);
+                        }
+                    }*/
+
+                    ArrayList<ArrayList<Player>> clusters = new ArrayList<>();
+
+                    for (Player p : players) {
+                        ArrayList<Player> cluster = new ArrayList<>();
+                        cluster.add(p);
+                        clusters.add(cluster);
+                    }
+
+                    for (int i = 0; i < clusters.size() - 1; i++) {
+                        ArrayList<Player> ci = clusters.get(i);
+                        boolean b = false;
+                        for (int j = i + 1; j < clusters.size(); j++) {
+                            ArrayList<Player> cj = clusters.get(j);
+                            for (Player pi : ci) {
+                                for (Player pj : cj) {
+                                    if (pi.getPosition().distance(pj.getPosition()) <= pi.getRadius() + pj.getRadius() + pi.getMaxStep() + pj.getMaxStep()) {
+                                        ci.addAll(cj);
+                                        clusters.remove(j);
+                                        b = true;
+                                        break;
+                                    }
+                                }
+                                if (b) {
+                                    break;
+                                }
+                            }
+                            if (b) {
+                                i--;
+                                break;
+                            }
+                        }
+                    }
+
+                    for (ArrayList<Player> cluster2 : clusters) {
+                        Color c = VPlayer.getRandomColor();
+                        for (Player player2 : cluster2) {
+                            ((VPlayer) player2).setStrokeColor(c);
+                        }
+                        
+                        ObjectsPacker.packPlayers(cluster2, true);
+                    }
+                    
+//                    System.out.println("----");
+
+                    //ObjectsPacker.packPlayers(players, true);
                     return;
                 }
 
@@ -176,14 +227,14 @@ public class Prototype {
         yAxis.setStroke(Color.BLUE);
         //EDGES_GROUP.getChildren().addAll(xAxis, yAxis);
 
-        int rangePlayer[] = {-70, 70, 90, 100};
+        int rangePlayer[] = {-150, 150, 90, 150};
         int rangeNavPoint[][] = {
             //{-100, 100, 0, 40},
-            {-80, 80, -60, -50},
-            {-90, 90, -145, -140},};
+            //{-130, 130, -60, -50},
+            {-290, 290, -145, -140},};
 
-        int np = 10;
-        int nn[] = {1, rangeNavPoint.length+1};
+        int np = 30;
+        int nn[] = {1, rangeNavPoint.length + 1};
         int maxStep[] = {2, 4};
         for (int i = 0; i < np; i++) {
             VPlayer player = new VPlayer("P" + i, new Vector3D(rnd(rangePlayer[0], rangePlayer[1]), rnd(rangePlayer[2], rangePlayer[3]), 0), rnd((int) VPlayer.SHAPE_SIZE / 2, (int) VPlayer.SHAPE_SIZE), rnd(maxStep[0], maxStep[1]), NODE_GESTURES);

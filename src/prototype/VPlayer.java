@@ -1,6 +1,7 @@
 package prototype;
 
 import java.util.ArrayList;
+import java.util.Random;
 import javafx.application.Platform;
 import javafx.scene.Group;
 import javafx.scene.Node;
@@ -36,6 +37,11 @@ public class VPlayer extends Player {
 
         init(nodeGestures);
     }
+    
+    public static Color getRandomColor() {
+        Random rnd = new Random();
+        return new Color(rnd.nextFloat(),rnd.nextFloat(),rnd.nextFloat(),1f);
+    }
 
     public Group getContainer() {
         return container;
@@ -69,6 +75,14 @@ public class VPlayer extends Player {
         for (int i = 0; i < n; i++) {
             pathPoints.get(i).setVisible(false);
         }
+    }
+    
+    public void setStrokeColor(Color c) {
+        shape.setStroke(c);
+    }
+    
+    public void setStrokeColor() {
+        shape.setStroke(Color.BLACK);
     }
 
     private void init(NodeGestures nodeGestures) {
@@ -106,7 +120,13 @@ public class VPlayer extends Player {
         Line l2 = new Line(0,-crossSize,0,crossSize);
         l2.setStrokeWidth(.3d);
 
-        getPane().getChildren().addAll(l1,l2,shape, label);
+        Circle shape2 = new Circle(getRadius()+getMaxStep());
+        shape2.setFill(null);
+        shape2.setStrokeWidth(.2d);
+        shape2.setStrokeLineCap(StrokeLineCap.ROUND);
+        shape2.setStroke(Color.BLACK);
+        
+        getPane().getChildren().addAll(l1,l2,shape, shape2, label);
         //getPane().setMouseTransparent(true);
         getContainer().getChildren().addAll(pathGroup, getPane(), pathPointsGroup);
         pathPointsGroup.toFront();
