@@ -1,6 +1,7 @@
 package hoe.editor;
 
 import com.jogamp.opengl.GL2;
+import com.jogamp.opengl.util.gl2.GLUT;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLEventListener;
@@ -17,11 +18,18 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import java.util.Arrays;
 import javax.swing.SwingUtilities;
 
 public class Editor implements GLEventListener, MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
 
     private final GLU glu = new GLU();
+    private final GLUT glut = new GLUT();
+
+    int viewport[] = new int[4];
+    double modelview[] = new double[16];
+    double projection[] = new double[16];
+
     private final double rotate[] = new double[]{0, 0};
     private final double dRotate[] = new double[]{0, 0};
     private final double translate[] = new double[]{0, 0};
@@ -59,6 +67,12 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
         rotate[0] = Math.min(Math.max(-30, rotate[0]), 30);
         gl.glRotated(rotate[0], 1, 0, 0);
         gl.glRotated(rotate[1], 0, 0, 1);
+        
+        getMatrices(gl);
+
+        // Render scene.
+        gl.glMatrixMode(GL2.GL_MODELVIEW);
+        gl.glLoadIdentity();
 
         gl.glUseProgram(prog);
         int col = gl.glGetUniformLocation(prog, "col");
@@ -68,9 +82,6 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
         }
         gl.glUniform4f(col, colR, 0, 1, 1);
 
-        // Render scene.
-        gl.glMatrixMode(GL2.GL_MODELVIEW);
-        gl.glLoadIdentity();
         gl.glBegin(GL2.GL_TRIANGLES);
 
         gl.glTexCoord2f(1, 0);
@@ -86,6 +97,11 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
         gl.glVertex3f(0.0f, 1.0f, 0.0f);
 
         gl.glEnd();
+
+        gl.glPushMatrix();
+        gl.glRotated(90, -1, 0, 0);
+        glut.glutSolidTeapot(1);
+        gl.glPopMatrix();
 
         gl.glFlush();
 
@@ -118,6 +134,12 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
         gl.glValidateProgram(prog);
     }
 
+    private void getMatrices(GL2 gl) {
+        gl.glGetDoublev(GL2.GL_MODELVIEW_MATRIX, modelview, 0);
+        gl.glGetDoublev(GL2.GL_PROJECTION_MATRIX, projection, 0);
+        gl.glGetIntegerv(GL2.GL_VIEWPORT, viewport, 0);
+    }
+
     @Override
     public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
 
@@ -136,6 +158,8 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
             aspect = 1 / aspect;
             gl.glOrtho(-1 / lZoom, 1 / lZoom, -1 / lZoom * aspect, 1 / lZoom * aspect, -1000, 1000);
         }
+        
+        getMatrices(gl);
     }
 
     public void show() {
@@ -170,7 +194,19 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
 
     @Override
     public void mouseClicked(MouseEvent e) {
-        //System.out.println("Mouse Clicked");
+        if (SwingUtilities.isLeftMouseButton(e)) {
+
+            float winX, winY, winZ;
+            double worldX, worldY, worldZ;
+
+            winX = (float) e.getX();
+            winY = (float) viewport[3] - (float) e.getY();
+            winZ = 0;
+
+            //get the world coordinates from the screen coordinates
+            //gluUnProject( winX, winY, winZ, modelview, projection, viewport, &amp;worldX, &amp;worldY, &amp;worldZ);
+            //System.out.println("mouse click: screen=("+winX+","+winY+") world="+worldX+","+worldY+")");*/
+        }
     }
 
     @Override
@@ -193,12 +229,12 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
     @Override
     public void mouseDragged(MouseEvent e) {
 
-        if (SwingUtilities.isMiddleMouseButton(e)) {
-            int x = e.getX();
-            int y = e.getY();
+        if (SwingUtilities.isRightMouseButton(e)) {
+            int screenX = e.getX();
+            int screenY = e.getY();
 
-            System.out.println("x = " + x);
-            System.out.println("y = " + y);
+            System.out.println("x = " + screenX);
+            System.out.println("y = " + screenY);
         }
     }
 
@@ -208,6 +244,7 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
 
     @Override
     public void mouseWheelMoved(MouseWheelEvent e) {
+        zoom -= e.getPreciseWheelRotation();
     }
 
     @Override

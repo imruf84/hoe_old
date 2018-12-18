@@ -26,8 +26,8 @@ public class HexaCellVisual extends StackPane {
     }
 
     private void init(NodeGestures nodeGestures) {
-        addEventFilter(MouseEvent.MOUSE_PRESSED, nodeGestures.getOnMousePressedEventHandler());
-        addEventFilter(MouseEvent.MOUSE_DRAGGED, nodeGestures.getOnMouseDraggedEventHandler());
+//        addEventFilter(MouseEvent.MOUSE_PRESSED, nodeGestures.getOnMousePressedEventHandler());
+//        addEventFilter(MouseEvent.MOUSE_DRAGGED, nodeGestures.getOnMouseDraggedEventHandler());
 
         hexagon = new Polygon(new Hexagon(getHexaCell().getSide()).getPoints());
         hexagon.setFill(Color.RED);

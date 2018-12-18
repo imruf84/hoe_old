@@ -1,5 +1,10 @@
 package prototype;
 
+public class Prototype {
+    
+}
+
+/*
 import hoe.Log;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
@@ -8,11 +13,9 @@ import java.math.BigInteger;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.Random;
+import java.util.Calendar;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.concurrent.atomic.AtomicBoolean;
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
 import javafx.scene.Group;
@@ -43,13 +46,15 @@ public class Prototype {
     private static JPanel buttonsPanel;
     private static final ArrayList<Player> players = new ArrayList<Player>();
     private static Thread thread = null;
+    private static final JFrame frame = new JFrame("Prototype");
+    private static final JFXPanel fxPanel = new JFXPanel();
+    private static final AtomicBoolean isUpdating = new AtomicBoolean(false);
+    private static Scene scene = null;
 
-    public static void main(String[] args) throws KeyManagementException, NoSuchAlgorithmException, IOException {
+    public static void main_(String[] args) throws KeyManagementException, NoSuchAlgorithmException, IOException {
 
         setLookAndFeel();
-        JFrame frame = new JFrame("Prototype");
         frame.setLayout(new BorderLayout());
-        final JFXPanel fxPanel = new JFXPanel();
         frame.add(fxPanel, BorderLayout.CENTER);
 
         buttonsPanel = new JPanel(new FlowLayout());
@@ -64,92 +69,66 @@ public class Prototype {
             CANVAS.getChildren().add(EDGES_GROUP);
             CANVAS.getChildren().add(PLAYER_NODES_GROUP);
 
-            Scene scene = new Scene(group, Screen.getPrimary().getVisualBounds().getWidth() - 100, Screen.getPrimary().getVisualBounds().getHeight() - 100);
+            scene = new Scene(group, Screen.getPrimary().getVisualBounds().getWidth() - 100, Screen.getPrimary().getVisualBounds().getHeight() - 100);
             frame.setSize((int) scene.getWidth(), (int) scene.getHeight());
             frame.setLocationRelativeTo(null);
 
             scene.setOnKeyTyped((KeyEvent e) -> {
                 if (e.getCharacter().equals(" ")) {
-                    /*for (int i = 0; i < players.size()-1; i++) {
-                        for (int j = i+1; j < players.size(); j++) {
-                            System.out.println(i+","+j);
-                        }
-                    }*/
+                    stopTimer();
 
-                    ArrayList<ArrayList<Player>> clusters = new ArrayList<>();
+                    updatePlayerPositions();
 
-                    for (Player p : players) {
-                        ArrayList<Player> cluster = new ArrayList<>();
-                        cluster.add(p);
-                        clusters.add(cluster);
-                    }
-
-                    for (int i = 0; i < clusters.size() - 1; i++) {
-                        ArrayList<Player> ci = clusters.get(i);
-                        boolean b = false;
-                        for (int j = i + 1; j < clusters.size(); j++) {
-                            ArrayList<Player> cj = clusters.get(j);
-                            for (Player pi : ci) {
-                                for (Player pj : cj) {
-                                    if (pi.getPosition().distance(pj.getPosition()) <= pi.getRadius() + pj.getRadius() + pi.getMaxStep() + pj.getMaxStep()) {
-                                        ci.addAll(cj);
-                                        clusters.remove(j);
-                                        b = true;
-                                        break;
-                                    }
-                                }
-                                if (b) {
-                                    break;
-                                }
-                            }
-                            if (b) {
-                                i--;
-                                break;
-                            }
-                        }
-                    }
-
-                    for (ArrayList<Player> cluster2 : clusters) {
-                        Color c = VPlayer.getRandomColor();
-                        for (Player player2 : cluster2) {
-                            ((VPlayer) player2).setStrokeColor(c);
-                        }
-                        
-                        ObjectsPacker.packPlayers(cluster2, true);
-                    }
-                    
-//                    System.out.println("----");
-
-                    //ObjectsPacker.packPlayers(players, true);
                     return;
                 }
 
+                if (e.getCharacter().equals("h")) {
+                    for (Player p : players) {
+                        VPlayer vp = (VPlayer) p;
+                        vp.pathPointsGroup.setVisible(false);
+                        vp.pathGroup.setVisible(false);
+                    }
+                }
+                
+                if (e.getCharacter().equals("s")) {
+                    for (Player p : players) {
+                        VPlayer vp = (VPlayer) p;
+                        vp.pathPointsGroup.setVisible(!false);
+                        vp.pathGroup.setVisible(!false);
+                    }
+                }
+                
                 if (e.getCharacter().equals("p")) {
 
                     if (thread != null) {
-                        stopThread();
+                        stopTimer();
                         return;
                     }
 
-                    final long timeInterval = 100;
-                    Runnable runnable = () -> {
+                    thread = new Thread(() -> {
+                        Runnable updater = () -> {
+                            updatePlayerPositions();
+                        };
+
                         while (thread != null) {
-                            ObjectsPacker.packPlayers(players, true);
                             try {
-                                Thread.sleep(timeInterval);
+                                Thread.sleep(100);
                             } catch (InterruptedException ex) {
-                                thread = null;
                             }
+
+                            if (!isUpdating.get())
+                            Platform.runLater(updater);
                         }
-                    };
-                    thread = new Thread(runnable);
+                    });
+
+                    thread.setDaemon(true);
                     thread.start();
 
                     return;
                 }
 
                 if (e.getCharacter().equals("r")) {
-                    stopThread();
+                    stopTimer();
 
                     PLAYER_NODES_GROUP.getChildren().clear();
                     players.clear();
@@ -186,30 +165,41 @@ public class Prototype {
 
     }
 
-    public static void stopThread() {
-        if (thread != null) {
-            thread.interrupt();
-            try {
-                thread.join();
-            } catch (InterruptedException ex) {
-                Log.error(ex);
+    private static void stopTimer() {
+
+        if (thread == null) {
+            return;
+        }
+        thread.interrupt();
+        thread = null;
+    }
+
+    public static void updatePlayerPositions() {
+
+        if (isUpdating.get()) {
+            return;
+        }
+
+        long time = Calendar.getInstance().getTimeInMillis();
+        
+        String title=frame.getTitle();
+        frame.setTitle(title+" - calculating...");
+        isUpdating.set(true);
+
+        ObjectsPacker.packPlayerClusters(ObjectsPacker.clusterize(players), true, 3);
+
+        for (ArrayList<Player> cluster2 : ObjectsPacker.clusterize(players)) {
+            Color c = cluster2.size() == 1 ? Color.BLACK : VPlayer.getRandomColor();
+            for (Player player2 : cluster2) {
+                ((VPlayer) player2).setStrokeColor(c);
             }
         }
-    }
 
-    public static long combinations(int n, int k) {
-        BigInteger factorialN = factorial(n);
-        BigInteger factorialK = factorial(k);
-        BigInteger factorialNMinusK = factorial(n - k);
-        return factorialN.divide(factorialK.multiply(factorialNMinusK)).longValue();
-    }
+        isUpdating.set(false);
+        frame.setTitle(title);
+        
+        System.out.println(Log.formatInterval(Calendar.getInstance().getTimeInMillis()-time));
 
-    private static BigInteger factorial(int n) {
-        BigInteger ret = BigInteger.ONE;
-        for (int i = 1; i <= n; ++i) {
-            ret = ret.multiply(BigInteger.valueOf(i));
-        }
-        return ret;
     }
 
     private static int rnd(int a, int b) {
@@ -227,17 +217,18 @@ public class Prototype {
         yAxis.setStroke(Color.BLUE);
         //EDGES_GROUP.getChildren().addAll(xAxis, yAxis);
 
-        int rangePlayer[] = {-150, 150, 90, 150};
+        int rangePlayer[] = {-300, 300, 90, 150};
         int rangeNavPoint[][] = {
-            //{-100, 100, 0, 40},
-            //{-130, 130, -60, -50},
-            {-290, 290, -145, -140},};
+            //{-200, 200, 0, 40},
+            //{-130, 130, -80, -30},
+            {-290, 290, -200, -150},};
 
-        int np = 30;
+        int np = 100;
         int nn[] = {1, rangeNavPoint.length + 1};
         int maxStep[] = {2, 4};
+        double playerScale = 1.d;
         for (int i = 0; i < np; i++) {
-            VPlayer player = new VPlayer("P" + i, new Vector3D(rnd(rangePlayer[0], rangePlayer[1]), rnd(rangePlayer[2], rangePlayer[3]), 0), rnd((int) VPlayer.SHAPE_SIZE / 2, (int) VPlayer.SHAPE_SIZE), rnd(maxStep[0], maxStep[1]), NODE_GESTURES);
+            VPlayer player = new VPlayer("P" + i, new Vector3D(rnd(rangePlayer[0], rangePlayer[1]), rnd(rangePlayer[2], rangePlayer[3]), 0), rnd((int) VPlayer.SHAPE_SIZE / 2, (int) VPlayer.SHAPE_SIZE) * playerScale, rnd(maxStep[0], maxStep[1]), NODE_GESTURES);
             int n = rnd(nn[0], nn[1]);
             for (int j = 0; j < n; j++) {
                 int k = j + 1 == n ? rangeNavPoint.length - 1 : j;
@@ -264,3 +255,4 @@ public class Prototype {
     }
 
 }
+*/

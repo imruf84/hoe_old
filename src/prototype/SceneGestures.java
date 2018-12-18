@@ -1,5 +1,10 @@
 package prototype;
 
+class SceneGestures {
+    
+}
+
+/*
 import javafx.event.EventHandler;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
@@ -65,9 +70,6 @@ class SceneGestures {
         }
     };
 
-    /**
-     * Mouse wheel handler: zoom to pivot point
-     */
     private final EventHandler<ScrollEvent> onScrollEventHandler = new EventHandler<ScrollEvent>() {
 
         @Override
@@ -115,3 +117,4 @@ class SceneGestures {
         return value;
     }
 }
+*/

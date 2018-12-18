@@ -5,24 +5,22 @@ import hoe.editor.Editor;
 import hoe.servers.ContentServer;
 import hoe.servers.RedirectServer;
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.DataOutputStream;
-import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.Socket;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Calendar;
 import java.util.Properties;
-import nlopt.CobylaExitStatus;
-import nlopt.CobylaTest;
+import java.util.concurrent.ThreadLocalRandom;
+import nlopt.ObjectsPacker;
+import physics.Vector3D;
+import prototype.Player;
 
 /**
  * BUGFIX: Safari (on iOS) has some issues to show redirected images, so it
@@ -34,25 +32,59 @@ public class HandfulOfEarth {
     public static String[] printArray(double[] d) {
         DecimalFormat df = new DecimalFormat("#.########");
         String s[] = new String[d.length];
-        for (int i=0; i<d.length;i++) {
-            s[i]=df.format(d[i]);
+        for (int i = 0; i < d.length; i++) {
+            s[i] = df.format(d[i]);
         }
-        
+
         return s;
     }
-    
+
     // http://www.ai7.uni-bayreuth.de/test_problem_coll.pdf
-    public static void main__(String[] args) throws Exception {
-        CobylaTest t = new CobylaTest();
-        t.test01FindMinimum();
-        //double[] r = t.test09FindMinimum();
-        //System.out.println(Arrays.toString(printArray(r)));
+    private static int rnd(int a, int b) {
+        if (a == b) {
+            return a;
+        }
+        return ThreadLocalRandom.current().nextInt(Math.min(a, b), Math.max(a, b));
     }
-    
+
+    public static void main__(String[] args) {
+
+        Log.showDebugMessages=true;
+        
+        int cores = Math.max(1,Runtime.getRuntime().availableProcessors()-1);
+        cores = Integer.parseInt(args[0]);
+        System.out.println("Number of cores in using:"+cores);
+        
+        ArrayList<Player> players = new ArrayList<>();
+
+        int rangePlayer[] = {-300, 300, 90, 150};
+        int rangeNavPoint[][] = {
+            //{-200, 200, 0, 40},
+            //{-130, 130, -80, -30},
+            {-290, 290, -200, -150},};
+
+        int SHAPE_SIZE = 10;
+        int np = 100;
+        int nn[] = {1, rangeNavPoint.length + 1};
+        int maxStep[] = {2, 4};
+        double playerScale = 1.d;
+        for (int i = 0; i < np; i++) {
+            Player player = new Player("P" + i, new Vector3D(rnd(rangePlayer[0], rangePlayer[1]), rnd(rangePlayer[2], rangePlayer[3]), 0), rnd((int) SHAPE_SIZE / 2, (int) SHAPE_SIZE) * playerScale, rnd(maxStep[0], maxStep[1]));
+            int n = rnd(nn[0], nn[1]);
+            for (int j = 0; j < n; j++) {
+                int k = j + 1 == n ? rangeNavPoint.length - 1 : j;
+                player.addNavigationPoint(new Vector3D(ThreadLocalRandom.current().nextInt(rangeNavPoint[k][0], rangeNavPoint[k][1]), ThreadLocalRandom.current().nextInt(rangeNavPoint[k][2], rangeNavPoint[k][3]), 0));
+            }
+            players.add(player);
+        }
+
+        ObjectsPacker.packPlayerClusters(ObjectsPacker.clusterize(players), true, cores);
+    }
+
     public static void main_(String[] args) throws Exception {
         try {
             String data = "test data";
-            
+
             //URL url = new URL("http://192.168.0.25:8090/calc");
             URL url = new URL("http://127.0.0.1:8090/calc");
             String encoding = Base64.getEncoder().encodeToString(("admin:admin").getBytes(StandardCharsets.UTF_8));
@@ -63,7 +95,7 @@ public class HandfulOfEarth {
             connection.setRequestProperty("Authorization", "Basic " + encoding);
             connection.getOutputStream().write(data.getBytes(StandardCharsets.UTF_8));
             InputStream content = (InputStream) connection.getInputStream();
-            BufferedReader in= new BufferedReader(new InputStreamReader(content));
+            BufferedReader in = new BufferedReader(new InputStreamReader(content));
             String line;
             while ((line = in.readLine()) != null) {
                 System.out.println(line);
@@ -73,7 +105,7 @@ public class HandfulOfEarth {
         }
     }
 
-    public static void main___(String[] args) throws Exception {
+    public static void main(String[] args) throws Exception {
 
         Properties prop = new Properties();
         prop.load(new BufferedReader(new FileReader(args[0])));
@@ -130,8 +162,8 @@ public class HandfulOfEarth {
             }
         }
 
-        boolean runEditor = false;
-        if (runEditor) {
+        propKey = "runeditor";
+        if (prop.containsKey(propKey) && prop.getProperty(propKey).toLowerCase().equals("true")) {
             Editor editor = new Editor();
             editor.show();
         }

@@ -1,5 +1,10 @@
 package prototype;
 
+class PannableCanvas{
+    
+}
+
+/*
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.scene.canvas.Canvas;
@@ -24,9 +29,6 @@ class PannableCanvas extends Pane {
         //setStyle("-fx-background-color: lightgrey; -fx-border-color: blue;");
     }
 
-    /**
-     * Add a grid to the canvas, send it to back
-     */
     public void addGrid() {
 
         double w = getBoundsInLocal().getWidth();
@@ -68,3 +70,4 @@ class PannableCanvas extends Pane {
         setTranslateY(getTranslateY() - y);
     }
 }
+*/

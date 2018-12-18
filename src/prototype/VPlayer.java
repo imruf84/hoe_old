@@ -1,5 +1,10 @@
 package prototype;
 
+public class VPlayer{
+    
+}
+
+/*
 import java.util.ArrayList;
 import java.util.Random;
 import javafx.application.Platform;
@@ -22,8 +27,8 @@ public class VPlayer extends Player {
 
     private final Group container = new Group();
     private final Group pane = new Group();
-    private final Group pathGroup = new Group();
-    private final Group pathPointsGroup = new Group();
+    public final Group pathGroup = new Group();
+    public final Group pathPointsGroup = new Group();
     private final ArrayList<Node> pathPoints = new ArrayList<>();
     private final NodeGestures NODE_GESTURES;
 
@@ -95,10 +100,6 @@ public class VPlayer extends Player {
                 Vector3D newPos = new Vector3D(node.getTranslateX(), node.getTranslateY(), 0);
                 getPosition().set(newPos);
                 recalculatePath(newPos);
-                /*Vector3D lp = getPath().getPoints().get(0);
-                lp.set(node.getTranslateX(), node.getTranslateY(), 0);
-                getPosition().t = 0;
-                updatePath();*/
             }
         });
 
@@ -202,3 +203,4 @@ public class VPlayer extends Player {
     }
 
 }
+*/

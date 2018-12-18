@@ -1,6 +1,10 @@
 package prototype;
 
-import javafx.event.EventHandler;
+public class NodeGestures {
+    
+}
+
+/*import javafx.event.EventHandler;
 import javafx.scene.input.MouseEvent;
 
 public class NodeGestures {
@@ -62,3 +66,4 @@ public class NodeGestures {
         }
     };
 }
+*/
