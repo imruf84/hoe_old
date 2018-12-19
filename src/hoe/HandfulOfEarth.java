@@ -53,7 +53,7 @@ public class HandfulOfEarth {
         
         int cores = Math.max(1,Runtime.getRuntime().availableProcessors()-1);
         cores = Integer.parseInt(args[0]);
-        System.out.println("Number of cores in using:"+cores);
+        System.out.println("Number of cores in using: "+cores);
         
         ArrayList<Player> players = new ArrayList<>();
 

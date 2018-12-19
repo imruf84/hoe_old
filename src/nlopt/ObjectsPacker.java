@@ -26,6 +26,13 @@ public class ObjectsPacker {
         return factorialN.divide(factorialK.multiply(factorialNMinusK)).longValue();
     }
 
+    public static ArrayList<PackerData> packPlayerClusters(ArrayList<ArrayList<Player>> clusters, boolean updatePlayers) {
+        
+        int cores = Runtime.getRuntime().availableProcessors();
+        
+        return packPlayerClusters(clusters, updatePlayers, cores);
+    }
+    
     public static ArrayList<PackerData> packPlayerClusters(ArrayList<ArrayList<Player>> clusters, boolean updatePlayers, int threadsCount) {
 
         long time = Calendar.getInstance().getTimeInMillis();

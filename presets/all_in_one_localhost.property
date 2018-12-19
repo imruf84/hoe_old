@@ -5,18 +5,18 @@ secretkey=abcd1234
 
 runeditor=true
 
-startdbserver=true
+startdbserver=truea
 dbserverwebport=8082
 dbservertcpport=9092
 
-startredirectserver=true
+startredirectserver=truea
 redirectserverport=8084
 
-startgameserver=true
+startgameserver=truea
 gameserverport=80
 redirectserverurl=http://127.0.0.1:8084
 userdbip=127.0.0.1:9092
 scenedbip=127.0.0.1:9092
 
-startcontentserver=true
+startcontentserver=truea
 contentserverport=8085

@@ -18,8 +18,9 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
-import java.util.Arrays;
 import javax.swing.SwingUtilities;
+import org.joml.Matrix4d;
+import org.joml.Vector3d;
 
 public class Editor implements GLEventListener, MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
 
@@ -27,8 +28,8 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
     private final GLUT glut = new GLUT();
 
     int viewport[] = new int[4];
-    double modelview[] = new double[16];
     double projection[] = new double[16];
+    double panUnits[] = {1, 1};
 
     private final double rotate[] = new double[]{0, 0};
     private final double dRotate[] = new double[]{0, 0};
@@ -55,7 +56,8 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
         gl.glMatrixMode(GL2.GL_PROJECTION);
         gl.glPushMatrix();
 
-        glu.gluLookAt(0, 1, 1, 0, 0, 0, 0, 1, 0);
+        glu.gluLookAt(0, 1, 1, 0, 0, 0, 0, 0, 1);
+        gl.glRotated(180, 0, 0, 1);
         zoom += dZoom;
         zoom = Math.min(Math.max(1, zoom), 10);
         gl.glScaled(1 / zoom, 1 / zoom, 1 / zoom);
@@ -64,10 +66,11 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
         gl.glTranslated(translate[0], translate[1], 0);
         rotate[0] += dRotate[0];
         rotate[1] += dRotate[1];
-        rotate[0] = Math.min(Math.max(-30, rotate[0]), 30);
+        //rotate[0] = Math.min(Math.max(-30, rotate[0]), 30);
+        rotate[0] = Math.min(Math.max(-90 - 45, rotate[0]), 90 - 45);
         gl.glRotated(rotate[0], 1, 0, 0);
         gl.glRotated(rotate[1], 0, 0, 1);
-        
+
         getMatrices(gl);
 
         // Render scene.
@@ -98,9 +101,39 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
 
         gl.glEnd();
 
+        // origo
+        gl.glUniform4f(col, 1, 1, 1, 1);
         gl.glPushMatrix();
-        gl.glRotated(90, -1, 0, 0);
-        glut.glutSolidTeapot(1);
+        gl.glTranslated(0, 0, 0);
+        glut.glutSolidSphere(.02, 10, 10);
+        gl.glPopMatrix();
+
+        // x axis
+        gl.glUniform4f(col, 1, 0, 0, 1);
+        gl.glPushMatrix();
+        gl.glTranslated(1, 0, 0);
+        glut.glutSolidSphere(.02, 10, 10);
+        gl.glPopMatrix();
+
+        // y axis
+        gl.glUniform4f(col, 0, 1, 0, 1);
+        gl.glPushMatrix();
+        gl.glTranslated(0, 1, 0);
+        glut.glutSolidSphere(.02, 10, 10);
+        gl.glPopMatrix();
+
+        // z axis
+        gl.glUniform4f(col, 0, 0, 1, 1);
+        gl.glPushMatrix();
+        gl.glTranslated(0, 0, 1);
+        glut.glutSolidSphere(.02, 10, 10);
+        gl.glPopMatrix();
+
+        gl.glPushMatrix();
+        gl.glRotated(90, 1, 0, 0);
+        gl.glTranslated(0, .5, -2);
+        gl.glUniform4f(col, 1, 1, 1, 1);
+        glut.glutWireTeapot(.5);
         gl.glPopMatrix();
 
         gl.glFlush();
@@ -135,7 +168,6 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
     }
 
     private void getMatrices(GL2 gl) {
-        gl.glGetDoublev(GL2.GL_MODELVIEW_MATRIX, modelview, 0);
         gl.glGetDoublev(GL2.GL_PROJECTION_MATRIX, projection, 0);
         gl.glGetIntegerv(GL2.GL_VIEWPORT, viewport, 0);
     }
@@ -158,7 +190,7 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
             aspect = 1 / aspect;
             gl.glOrtho(-1 / lZoom, 1 / lZoom, -1 / lZoom * aspect, 1 / lZoom * aspect, -1000, 1000);
         }
-        
+
         getMatrices(gl);
     }
 
@@ -194,28 +226,19 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
 
     @Override
     public void mouseClicked(MouseEvent e) {
-        if (SwingUtilities.isLeftMouseButton(e)) {
-
-            float winX, winY, winZ;
-            double worldX, worldY, worldZ;
-
-            winX = (float) e.getX();
-            winY = (float) viewport[3] - (float) e.getY();
-            winZ = 0;
-
-            //get the world coordinates from the screen coordinates
-            //gluUnProject( winX, winY, winZ, modelview, projection, viewport, &amp;worldX, &amp;worldY, &amp;worldZ);
-            //System.out.println("mouse click: screen=("+winX+","+winY+") world="+worldX+","+worldY+")");*/
-        }
     }
 
     @Override
     public void mousePressed(MouseEvent e) {
         //System.out.println("Mouse Pressed");
+
+        prev = new int[]{e.getX(), e.getY()};
+
     }
 
     @Override
     public void mouseReleased(MouseEvent e) {
+        prev = null;
     }
 
     @Override
@@ -226,15 +249,43 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
     public void mouseExited(MouseEvent e) {
     }
 
+    int prev[] = {0, 0};
+
     @Override
     public void mouseDragged(MouseEvent e) {
 
-        if (SwingUtilities.isRightMouseButton(e)) {
-            int screenX = e.getX();
-            int screenY = e.getY();
+        if (prev == null) {
+            return;
+        }
 
-            System.out.println("x = " + screenX);
-            System.out.println("y = " + screenY);
+        int x = e.getX();
+        int y = e.getY();
+
+        int px = prev[0];
+        int py = prev[1];
+
+        prev[0] = x;
+        prev[1] = y;
+
+        int dx = x - px;
+        int dy = y - py;
+
+        if (SwingUtilities.isMiddleMouseButton(e) || (e.isShiftDown() && SwingUtilities.isRightMouseButton(e))) {
+
+            Matrix4d m = new Matrix4d(projection[0], projection[1], projection[2], projection[3], projection[4], projection[5], projection[6], projection[7], projection[8], projection[9], projection[10], projection[11], projection[12], projection[13], projection[14], projection[15]);
+            Vector3d p0 = m.unproject(0, 0, 0, viewport, new Vector3d());
+            Vector3d p1 = m.unproject(1, 0, 0, viewport, new Vector3d());
+            Vector3d p2 = m.unproject(0, 1 / Math.sin(Math.PI / 4d), 0, viewport, new Vector3d());
+
+            translate[0] += dx * new Vector3d(p0).sub(p1).length();
+            translate[1] -= dy * new Vector3d(p0).sub(p2).length();
+            return;
+        }
+        
+        if (SwingUtilities.isRightMouseButton(e)) {
+            rotate[1] += dx * .3d;
+            rotate[0] += dy * .3d;
+
         }
     }
 
