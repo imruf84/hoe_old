@@ -11,6 +11,8 @@ import com.jogamp.opengl.glu.GLU;
 import javax.swing.JFrame;
 
 import com.jogamp.opengl.util.FPSAnimator;
+import hoe.Log;
+import java.awt.EventQueue;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -18,9 +20,19 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.LinkedList;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicBoolean;
 import javax.swing.SwingUtilities;
+import nlopt.ObjectsPacker;
 import org.joml.Matrix4d;
 import org.joml.Vector3d;
+import physics.Vector3D;
+import prototype.Player;
+import prototype.TimeElapseMeter;
+import prototype.VPlayer2;
 
 public class Editor implements GLEventListener, MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
 
@@ -31,7 +43,7 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
     double projection[] = new double[16];
     double panUnits[] = {1, 1};
 
-    private final double rotate[] = new double[]{0, 0};
+    private final double rotate[] = new double[]{100, 0};
     private final double dRotate[] = new double[]{0, 0};
     private final double translate[] = new double[]{0, 0};
     private final double dTranslate[] = new double[]{0, 0};
@@ -40,6 +52,13 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
     private int prog;
     private float colR = 0;
     private float dColR = 0.004f;
+
+    private final LinkedList<String> logMessages = new LinkedList<>();
+
+    private final ArrayList<VPlayer2> players = new ArrayList<>();
+    private final JFrame frame = new JFrame("Editor");
+    private final AtomicBoolean isUpdating = new AtomicBoolean(false);
+    private Thread thread = null;
 
     @Override
     public void display(GLAutoDrawable drawable) {
@@ -59,7 +78,7 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
         glu.gluLookAt(0, 1, 1, 0, 0, 0, 0, 0, 1);
         gl.glRotated(180, 0, 0, 1);
         zoom += dZoom;
-        zoom = Math.min(Math.max(1, zoom), 10);
+        zoom = Math.min(Math.max(1, zoom), 100);
         gl.glScaled(1 / zoom, 1 / zoom, 1 / zoom);
         translate[0] += dTranslate[0];
         translate[1] += dTranslate[1];
@@ -84,7 +103,7 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
             dColR = -dColR;
         }
         gl.glUniform4f(col, colR, 0, 1, 1);
-
+        /*
         gl.glBegin(GL2.GL_TRIANGLES);
 
         gl.glTexCoord2f(1, 0);
@@ -93,52 +112,51 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
 
         gl.glTexCoord2f(0, 1);
         gl.glColor3f(0.0f, 1.0f, 0.0f);
-        gl.glVertex3f(1.0f, 0.0f, 0.0f);
+        gl.glVertex3f(100.0f, 0.0f, 0.0f);
 
         gl.glTexCoord2f(0, 0);
         gl.glColor3f(0.0f, 0.0f, 1.0f);
-        gl.glVertex3f(0.0f, 1.0f, 0.0f);
+        gl.glVertex3f(0.0f, 100.0f, 0.0f);
 
         gl.glEnd();
+         */
 
-        // origo
+        // Rendering players.
+        for (VPlayer2 p : players) {
+            p.render(gl, glut, prog);
+        }
+
+        // Rendering 3D labels.
+        gl.glPushMatrix();
+        gl.glLoadIdentity();
         gl.glUniform4f(col, 1, 1, 1, 1);
-        gl.glPushMatrix();
-        gl.glTranslated(0, 0, 0);
-        glut.glutSolidSphere(.02, 10, 10);
+        gl.glRasterPos2i(0, 0);
+        glut.glutBitmapString(GLUT.BITMAP_8_BY_13, "ORIGO");
         gl.glPopMatrix();
 
-        // x axis
-        gl.glUniform4f(col, 1, 0, 0, 1);
-        gl.glPushMatrix();
-        gl.glTranslated(1, 0, 0);
-        glut.glutSolidSphere(.02, 10, 10);
-        gl.glPopMatrix();
+        // Rendering axises.
+        gl.glUseProgram(0);
+        gl.glDisable(GL2.GL_LIGHTING);
+        gl.glDisable(GL2.GL_DEPTH_TEST);
+        gl.glBegin(GL2.GL_LINES);
+        gl.glColor3f(1.0f, 0.0f, 0.0f);
+        gl.glVertex3f(0, 0, 0);
+        gl.glVertex3f(100, 0, 0);
+        gl.glColor3f(0.0f, 1.0f, 0.0f);
+        gl.glVertex3f(0, 0, 0);
+        gl.glVertex3f(0, 100, 0);
+        gl.glColor3f(0.0f, 0.0f, 1.0f);
+        gl.glVertex3f(0, 0, 0);
+        gl.glVertex3f(0, 0, 100);
+        gl.glEnd();
+        gl.glEnable(GL2.GL_DEPTH_TEST);
+        gl.glEnable(GL2.GL_LIGHTING);
 
-        // y axis
-        gl.glUniform4f(col, 0, 1, 0, 1);
-        gl.glPushMatrix();
-        gl.glTranslated(0, 1, 0);
-        glut.glutSolidSphere(.02, 10, 10);
-        gl.glPopMatrix();
-
-        // z axis
-        gl.glUniform4f(col, 0, 0, 1, 1);
-        gl.glPushMatrix();
-        gl.glTranslated(0, 0, 1);
-        glut.glutSolidSphere(.02, 10, 10);
-        gl.glPopMatrix();
-
-        gl.glPushMatrix();
-        gl.glRotated(90, 1, 0, 0);
-        gl.glTranslated(0, .5, -2);
-        gl.glUniform4f(col, 1, 1, 1, 1);
-        glut.glutWireTeapot(.5);
-        gl.glPopMatrix();
-
-        gl.glFlush();
+        // Rendering log messages.
+        renderLogMessages(gl);
 
         // End rendering.
+        gl.glFlush();
         gl.glMatrixMode(GL2.GL_PROJECTION);
         gl.glPopMatrix();
     }
@@ -165,6 +183,77 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
         gl.glAttachShader(prog, fs2);
         gl.glLinkProgram(prog);
         gl.glValidateProgram(prog);
+
+        // Adding random players.
+        addRandomPlayers();
+    }
+
+    private void appendLogMessage(String s) {
+        SwingUtilities.invokeLater(() -> {
+            logMessages.add(s);
+            if (logMessages.size() > 10) {
+                logMessages.pop();
+            }
+        });
+    }
+
+    private void renderLogMessages(GL2 gl) {
+        gl.glPushMatrix();
+        gl.glLoadIdentity();
+        gl.glMatrixMode(GL2.GL_PROJECTION);
+        gl.glPushMatrix();
+        gl.glLoadIdentity();
+        glu.gluOrtho2D(0, viewport[2], 0, viewport[3]);
+        gl.glScalef(0, -1, 0);
+        gl.glTranslatef(0, -viewport[3], 0);
+
+        gl.glUseProgram(0);
+        gl.glDisable(GL2.GL_LIGHTING);
+        gl.glColor3f(1.0f, 1.0f, 0.0f);
+
+        float y = 12f;
+
+        for (String s : logMessages) {
+            gl.glRasterPos2f(10f, y);
+            glut.glutBitmapString(GLUT.BITMAP_8_BY_13, s);
+            y += 14f;
+        }
+
+        gl.glEnable(GL2.GL_LIGHTING);
+        gl.glPopMatrix();
+        gl.glMatrixMode(GL2.GL_MODELVIEW);
+        gl.glPopMatrix();
+    }
+
+    private void addRandomPlayers() {
+        players.clear();
+
+        int rangePlayer[] = {-500, 500, -50, 50};
+        double rangeNavPoint[][] = {
+            {-600, 600, 250, 270},
+            {-500, 500, 500, 550},};
+
+        int np = 80;
+        int nn[] = {1, rangeNavPoint.length + 1};
+        double maxStep[] = {5, 10};
+        double playerSize = 10;
+        double playerScale = 1;
+        for (int i = 0; i < np; i++) {
+            VPlayer2 player = new VPlayer2("P" + i, new Vector3D(rnd(rangePlayer[0], rangePlayer[1]), rnd(rangePlayer[2], rangePlayer[3]), 0), rnd(playerSize / 2, playerSize) * playerScale, rnd(maxStep[0], maxStep[1]));
+            int n = (int) rnd(nn[0], nn[1]);
+            for (int j = 0; j < n; j++) {
+                int k = j + 1 == n ? rangeNavPoint.length - 1 : j;
+                player.addNavigationPoint(new Vector3D(rnd(rangeNavPoint[k][0], rangeNavPoint[k][1]), rnd(rangeNavPoint[k][2], rangeNavPoint[k][3]), 0));
+            }
+            players.add(player);
+        }
+    }
+
+    private static double rnd(double a, double b) {
+        if (a == b) {
+            return a;
+        }
+        return ThreadLocalRandom.current().nextDouble(Math.min(a, b), Math.max(a, b));
     }
 
     private void getMatrices(GL2 gl) {
@@ -185,10 +274,10 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
         double lZoom = 1;
         float aspect = (float) width / (float) height;
         if (width > height) {
-            gl.glOrtho(-1 / lZoom * aspect, 1 / lZoom * aspect, -1 / lZoom, 1 / lZoom, -1000, 1000);
+            gl.glOrtho(-100 / lZoom * aspect, 100 / lZoom * aspect, -100 / lZoom, 100 / lZoom, -1000, 1000);
         } else {
             aspect = 1 / aspect;
-            gl.glOrtho(-1 / lZoom, 1 / lZoom, -1 / lZoom * aspect, 1 / lZoom * aspect, -1000, 1000);
+            gl.glOrtho(-100 / lZoom, 100 / lZoom, -100 / lZoom * aspect, 100 / lZoom * aspect, -1000, 1000);
         }
 
         getMatrices(gl);
@@ -210,7 +299,7 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
         glcanvas.addKeyListener(render);
         glcanvas.setSize(800, 800);
 
-        final JFrame frame = new JFrame("OGL");
+        //frame = new JFrame("Editor");
         frame.getContentPane().add(glcanvas);
         frame.setSize(frame.getContentPane().getPreferredSize());
         frame.setLocationRelativeTo(null);
@@ -270,7 +359,8 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
         int dx = x - px;
         int dy = y - py;
 
-        if (SwingUtilities.isMiddleMouseButton(e) || (e.isShiftDown() && SwingUtilities.isRightMouseButton(e))) {
+        // Pan camera.
+        if ((SwingUtilities.isMiddleMouseButton(e) && !e.isShiftDown()) || (e.isShiftDown() && SwingUtilities.isRightMouseButton(e))) {
 
             Matrix4d m = new Matrix4d(projection[0], projection[1], projection[2], projection[3], projection[4], projection[5], projection[6], projection[7], projection[8], projection[9], projection[10], projection[11], projection[12], projection[13], projection[14], projection[15]);
             Vector3d p0 = m.unproject(0, 0, 0, viewport, new Vector3d());
@@ -281,8 +371,9 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
             translate[1] -= dy * new Vector3d(p0).sub(p2).length();
             return;
         }
-        
-        if (SwingUtilities.isRightMouseButton(e)) {
+
+        // Rotate camera.
+        if (SwingUtilities.isRightMouseButton(e) || (e.isShiftDown() && SwingUtilities.isMiddleMouseButton(e))) {
             rotate[1] += dx * .3d;
             rotate[0] += dy * .3d;
 
@@ -295,11 +386,89 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
 
     @Override
     public void mouseWheelMoved(MouseWheelEvent e) {
-        zoom -= e.getPreciseWheelRotation();
+        zoom += e.getPreciseWheelRotation();
     }
 
     @Override
     public void keyTyped(KeyEvent e) {
+        switch (e.getKeyChar()) {
+            case ' ':
+                stopTimer();
+                updatePlayerPositions();
+                break;
+            case 'r':
+            case 'R':
+                stopTimer();
+                addRandomPlayers();
+                break;
+            case 'p':
+            case 'P':
+                if (thread != null) {
+                    stopTimer();
+                    return;
+                }
+
+                thread = new Thread(() -> {
+                    Runnable updater = () -> {
+                        updatePlayerPositions();
+                    };
+
+                    while (thread != null) {
+                        try {
+                            Thread.sleep(100);
+                        } catch (InterruptedException ex) {
+                        }
+
+                        if (!isUpdating.get()) //Platform.runLater(updater);
+                        {
+                            updater.run();
+                        }
+                    }
+                });
+
+                thread.setDaemon(true);
+                thread.start();
+                break;
+        }
+    }
+
+    private void stopTimer() {
+
+        if (thread == null) {
+            return;
+        }
+        thread.interrupt();
+        thread = null;
+    }
+
+    public void updatePlayerPositions() {
+
+        if (isUpdating.get()) {
+            return;
+        }
+
+        TimeElapseMeter time = new TimeElapseMeter(true);
+
+        appendLogMessage("Calculating...");
+        isUpdating.set(true);
+
+        ArrayList<Player> pal = new ArrayList<>();
+        for (Player p : players) {
+            pal.add(p);
+        }
+        ObjectsPacker.packPlayerClusters(ObjectsPacker.clusterize(pal), true, () -> {
+            for (ArrayList<Player> cluster2 : ObjectsPacker.clusterize(pal)) {
+                float c[] = cluster2.size() == 1 ? new float[]{1, 1, 1, 1} : VPlayer2.getRandomColor();
+                for (Player player2 : cluster2) {
+                    ((VPlayer2) player2).setFillColor(c);
+                }
+            }
+
+            isUpdating.set(false);
+
+            appendLogMessage("Finished in " + time.stopAndGet());
+        });
+
     }
 
     @Override

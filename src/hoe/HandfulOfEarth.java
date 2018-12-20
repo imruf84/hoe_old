@@ -15,7 +15,6 @@ import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Base64;
-import java.util.Calendar;
 import java.util.Properties;
 import java.util.concurrent.ThreadLocalRandom;
 import nlopt.ObjectsPacker;
@@ -49,12 +48,8 @@ public class HandfulOfEarth {
 
     public static void main__(String[] args) {
 
-        Log.showDebugMessages=true;
-        
-        int cores = Math.max(1,Runtime.getRuntime().availableProcessors()-1);
-        cores = Integer.parseInt(args[0]);
-        System.out.println("Number of cores in using: "+cores);
-        
+        Log.showDebugMessages = true;
+
         ArrayList<Player> players = new ArrayList<>();
 
         int rangePlayer[] = {-300, 300, 90, 150};
@@ -78,7 +73,9 @@ public class HandfulOfEarth {
             players.add(player);
         }
 
-        ObjectsPacker.packPlayerClusters(ObjectsPacker.clusterize(players), true, cores);
+        ObjectsPacker.packPlayerClusters(ObjectsPacker.clusterize(players), true, () -> {
+            Log.info("finished");
+        });
     }
 
     public static void main_(String[] args) throws Exception {

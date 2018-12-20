@@ -26,14 +26,14 @@ public class ObjectsPacker {
         return factorialN.divide(factorialK.multiply(factorialNMinusK)).longValue();
     }
 
-    public static ArrayList<PackerData> packPlayerClusters(ArrayList<ArrayList<Player>> clusters, boolean updatePlayers) {
-        
+    public static ArrayList<PackerData> packPlayerClusters(ArrayList<ArrayList<Player>> clusters, boolean updatePlayers, Runnable callback) {
+
         int cores = Runtime.getRuntime().availableProcessors();
-        
-        return packPlayerClusters(clusters, updatePlayers, cores);
+
+        return packPlayerClusters(clusters, updatePlayers, cores, callback);
     }
-    
-    public static ArrayList<PackerData> packPlayerClusters(ArrayList<ArrayList<Player>> clusters, boolean updatePlayers, int threadsCount) {
+
+    public static ArrayList<PackerData> packPlayerClusters(ArrayList<ArrayList<Player>> clusters, boolean updatePlayers, int threadsCount, Runnable callback) {
 
         long time = Calendar.getInstance().getTimeInMillis();
 
@@ -45,6 +45,7 @@ public class ObjectsPacker {
 
         AtomicInteger ai = new AtomicInteger(0);
         Thread t[] = new Thread[lThreadsCount];
+        AtomicInteger counter = new AtomicInteger(lThreadsCount);
         for (int i = 0; i < lThreadsCount; i++) {
             t[i] = new Thread(() -> {
                 while (true) {
@@ -59,6 +60,9 @@ public class ObjectsPacker {
                     synchronized (clusters) {
                         if (index >= size) {
                             Log.debug(Thread.currentThread().getName() + " has been finished.");
+                            if (callback != null && counter.addAndGet(-1) == 0) {
+                                callback.run();
+                            }
                             return;
                         }
                         cluster = clusters.get(index);
@@ -74,13 +78,13 @@ public class ObjectsPacker {
             });
             t[i].start();
         }
-        for (Thread ti : t) {
+        /*for (Thread ti : t) {
             try {
                 ti.join();
             } catch (InterruptedException ex) {
                 Log.error(ex);
             }
-        }
+        }*/
 
         Log.debug("Packer has been finished in " + Log.formatInterval(Calendar.getInstance().getTimeInMillis() - time));
 

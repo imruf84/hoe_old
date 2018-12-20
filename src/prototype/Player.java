@@ -6,7 +6,7 @@ import physics.Vector3D;
 public class Player {
 
     public static final double STEPS_UNIT_LENGTH = 2d;
-    
+
     private final String name;
     private final CurvePoint position;
     private final Curve path = new Curve();
@@ -40,41 +40,40 @@ public class Player {
     public CurvePoint getPosition() {
         return position;
     }
-    
+
     protected void recalculatePath(Vector3D newPos) {
-        
+
         // Remove the control points behind the player.
         int n = (int) Math.floor(getPosition().t);
         for (int i = 0; i < n; i++) {
             removeNavigationPoint(0);
         }
-        
+
         Vector3D lp = getPath().getPoints().get(0);
         lp.set(newPos);
         getPosition().t = 0;
-        //getPosition().set(newPos);
     }
-    
+
     public void update() {
     }
-    
+
     public CurvePoint getNextPosition() {
-        
+
         CurvePoint currentPosOnPath = getPath().pointAt(getPosition().t);
-        
+
         double length = getMaxStep();
-        
+
         LinkedList<CurvePoint> nextPoints = getPath().generatePathPointsByLength(getPosition().t, length, 2);
         CurvePoint nextPointOnPath = nextPoints.getLast();
-        
-        double tollerance = length*length;
-        
+
+        double tollerance = length * length;
+
         if (currentPosOnPath.distance(getPosition()) > tollerance) {
-            double t = currentPosOnPath.t+(nextPointOnPath.t-currentPosOnPath.t)/2d;
+            double t = currentPosOnPath.t + (nextPointOnPath.t - currentPosOnPath.t) / 2d;
             return getPath().pointAt(t);
             //return currentPosOnPath;
         }
-        
+
         return nextPointOnPath;
     }
 
@@ -82,7 +81,7 @@ public class Player {
         getPosition().set(nextPos == null ? getNextPosition() : nextPos);
         update();
     }
-    
+
     public void removeNavigationPoint(int i) {
         getPath().getPoints().remove(i);
     }
@@ -90,7 +89,7 @@ public class Player {
     private void addNavigationPoint() {
         getPath().appendPoint(new Vector3D(getPosition()));
     }
-    
+
     public void addNavigationPoint(Vector3D p) {
 
         Curve c = getPath();
