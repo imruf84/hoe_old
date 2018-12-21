@@ -11,8 +11,6 @@ import com.jogamp.opengl.glu.GLU;
 import javax.swing.JFrame;
 
 import com.jogamp.opengl.util.FPSAnimator;
-import hoe.Log;
-import java.awt.EventQueue;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -21,7 +19,6 @@ import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -43,7 +40,8 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
     double projection[] = new double[16];
     double panUnits[] = {1, 1};
 
-    private final double rotate[] = new double[]{100, 0};
+    //private final double rotate[] = new double[]{100, 0};//full top view
+    private final double rotate[] = new double[]{0, 0};
     private final double dRotate[] = new double[]{0, 0};
     private final double translate[] = new double[]{0, 0};
     private final double dTranslate[] = new double[]{0, 0};
@@ -56,7 +54,7 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
     private final LinkedList<String> logMessages = new LinkedList<>();
 
     private final ArrayList<VPlayer2> players = new ArrayList<>();
-    private final JFrame frame = new JFrame("Editor");
+    private JFrame frame = null;
     private final AtomicBoolean isUpdating = new AtomicBoolean(false);
     private Thread thread = null;
 
@@ -64,6 +62,8 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
     public void display(GLAutoDrawable drawable) {
 
         final GL2 gl = drawable.getGL().getGL2();
+        
+        GLQueue.getInstance().execute(gl);
 
         gl.glShadeModel(GL2.GL_SMOOTH);
         gl.glClearColor(0f, 0f, 0f, 0f);
@@ -103,34 +103,20 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
             dColR = -dColR;
         }
         gl.glUniform4f(col, colR, 0, 1, 1);
-        /*
-        gl.glBegin(GL2.GL_TRIANGLES);
-
-        gl.glTexCoord2f(1, 0);
-        gl.glColor3f(1.0f, 0.0f, 0.0f);
-        gl.glVertex3f(0.0f, 0.0f, 0.0f);
-
-        gl.glTexCoord2f(0, 1);
-        gl.glColor3f(0.0f, 1.0f, 0.0f);
-        gl.glVertex3f(100.0f, 0.0f, 0.0f);
-
-        gl.glTexCoord2f(0, 0);
-        gl.glColor3f(0.0f, 0.0f, 1.0f);
-        gl.glVertex3f(0.0f, 100.0f, 0.0f);
-
-        gl.glEnd();
-         */
-
+        
         // Rendering players.
         for (VPlayer2 p : players) {
             p.render(gl, glut, prog);
+        }
+        for (VPlayer2 p : players) {
+            p.renderPath(gl, glut, prog);
         }
 
         // Rendering 3D labels.
         gl.glPushMatrix();
         gl.glLoadIdentity();
         gl.glUniform4f(col, 1, 1, 1, 1);
-        gl.glRasterPos2i(0, 0);
+        gl.glRasterPos2f(0, 0);
         glut.glutBitmapString(GLUT.BITMAP_8_BY_13, "ORIGO");
         gl.glPopMatrix();
 
@@ -141,13 +127,13 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
         gl.glBegin(GL2.GL_LINES);
         gl.glColor3f(1.0f, 0.0f, 0.0f);
         gl.glVertex3f(0, 0, 0);
-        gl.glVertex3f(100, 0, 0);
+        gl.glVertex3f(10, 0, 0);
         gl.glColor3f(0.0f, 1.0f, 0.0f);
         gl.glVertex3f(0, 0, 0);
-        gl.glVertex3f(0, 100, 0);
+        gl.glVertex3f(0, 10, 0);
         gl.glColor3f(0.0f, 0.0f, 1.0f);
         gl.glVertex3f(0, 0, 0);
-        gl.glVertex3f(0, 0, 100);
+        gl.glVertex3f(0, 0, 10);
         gl.glEnd();
         gl.glEnable(GL2.GL_DEPTH_TEST);
         gl.glEnable(GL2.GL_LIGHTING);
@@ -228,15 +214,15 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
     private void addRandomPlayers() {
         players.clear();
 
-        int rangePlayer[] = {-500, 500, -50, 50};
+        int rangePlayer[] = {-50, 50, -5, 5};
         double rangeNavPoint[][] = {
-            {-600, 600, 250, 270},
-            {-500, 500, 500, 550},};
+            {-60, 60, 25, 27},
+            {-50, 50, 50, 55},};
 
-        int np = 80;
+        int np = 2;
         int nn[] = {1, rangeNavPoint.length + 1};
-        double maxStep[] = {5, 10};
-        double playerSize = 10;
+        double maxStep[] = {.5, 1};
+        double playerSize = 5;
         double playerScale = 1;
         for (int i = 0; i < np; i++) {
             VPlayer2 player = new VPlayer2("P" + i, new Vector3D(rnd(rangePlayer[0], rangePlayer[1]), rnd(rangePlayer[2], rangePlayer[3]), 0), rnd(playerSize / 2, playerSize) * playerScale, rnd(maxStep[0], maxStep[1]));
@@ -274,10 +260,10 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
         double lZoom = 1;
         float aspect = (float) width / (float) height;
         if (width > height) {
-            gl.glOrtho(-100 / lZoom * aspect, 100 / lZoom * aspect, -100 / lZoom, 100 / lZoom, -1000, 1000);
+            gl.glOrtho(-10 / lZoom * aspect, 10 / lZoom * aspect, -10 / lZoom, 10 / lZoom, -100, 100);
         } else {
             aspect = 1 / aspect;
-            gl.glOrtho(-100 / lZoom, 100 / lZoom, -100 / lZoom * aspect, 100 / lZoom * aspect, -1000, 1000);
+            gl.glOrtho(-10 / lZoom, 10 / lZoom, -10 / lZoom * aspect, 10 / lZoom * aspect, -100, 100);
         }
 
         getMatrices(gl);
@@ -299,14 +285,14 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
         glcanvas.addKeyListener(render);
         glcanvas.setSize(800, 800);
 
-        //frame = new JFrame("Editor");
+        frame = new JFrame("Editor");
         frame.getContentPane().add(glcanvas);
         frame.setSize(frame.getContentPane().getPreferredSize());
         frame.setLocationRelativeTo(null);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
         frame.setVisible(true);
-        final FPSAnimator animator = new FPSAnimator(glcanvas, 60, true);
+        final FPSAnimator animator = new FPSAnimator(glcanvas, 30, true);
 
         animator.start();
 
@@ -323,6 +309,11 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
 
         prev = new int[]{e.getX(), e.getY()};
 
+        
+        
+        GLQueue.getInstance().add((GL2 gl) -> {
+            
+        });
     }
 
     @Override
@@ -458,7 +449,7 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
         }
         ObjectsPacker.packPlayerClusters(ObjectsPacker.clusterize(pal), true, () -> {
             for (ArrayList<Player> cluster2 : ObjectsPacker.clusterize(pal)) {
-                float c[] = cluster2.size() == 1 ? new float[]{1, 1, 1, 1} : VPlayer2.getRandomColor();
+                float c[] = cluster2.size() == 1 ? new float[]{1, 1, 1, 1} : VPlayer2.getRandomLightColor();
                 for (Player player2 : cluster2) {
                     ((VPlayer2) player2).setFillColor(c);
                 }

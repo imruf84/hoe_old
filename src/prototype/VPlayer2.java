@@ -19,6 +19,11 @@ public class VPlayer2 extends Player {
         Random rnd = new Random();
         return new float[]{rnd.nextFloat(), rnd.nextFloat(), rnd.nextFloat(), 1f};
     }
+    
+    public static float[] getRandomLightColor() {
+        Random rnd = new Random();
+        return new float[]{.66f+rnd.nextFloat()/3f, .66f+rnd.nextFloat()/3f, .66f+rnd.nextFloat()/3f, 1f};
+    }
 
     public void setFillColor(float[] c) {
         this.color = c;
@@ -42,37 +47,41 @@ public class VPlayer2 extends Player {
         updatePath();
 
     }
-
-    public void render(GL2 gl, GLUT glut, int prog) {
-
+    
+    public void renderPath(GL2 gl, GLUT glut, int prog) {
         int col = gl.glGetUniformLocation(prog, "col");
 
         gl.glPushMatrix();
         CurvePoint p = getPosition();
         gl.glTranslated(p.x, p.y, p.z);
-        double h = 0;
-
-        gl.glUniform4f(col, 1, 1, 1, 1);
-        glut.glutSolidCylinder(getRadius(), h, 16, 1);
-
-        gl.glUniform4f(col, color[0], color[1], color[2], color[3]);
-        glut.glutWireCylinder(getRadius() + getMaxStep(), h / 2, 16, 1);
+        double h = getRadius()*4;
 
         gl.glDisable(GL2.GL_DEPTH_TEST);
-        gl.glTranslated(0, 0, h * 1.01);
+        
+        // Main collision circle.
+        gl.glUniform4f(col, 1,0,0,1);
+        glut.glutWireCylinder(getRadius(), 0, 16, 1);
+        
+        
+        //gl.glTranslated(0, 0, h * 1.01);
 
-        gl.glUniform4f(col, 0, 0, 0, 1);
+        // Cross.
+        gl.glUniform4f(col, 1, 0, 0, 1);
         gl.glBegin(GL2.GL_LINES);
-        gl.glVertex2f((float) -getRadius() / 2, 0);
-        gl.glVertex2f((float) getRadius() / 2, 0);
-        gl.glVertex2f(0, (float) -getRadius() / 2);
-        gl.glVertex2f(0, (float) getRadius() / 2);
+        gl.glVertex2f(0, 0);
+        gl.glVertex2f((float) getRadius(), 0);
+        gl.glEnd();
+        
+        gl.glUniform4f(col, 0, 1, 0, 1);
+        gl.glBegin(GL2.GL_LINES);
+        gl.glVertex2f(0,0);
+        gl.glVertex2f(0, (float) getRadius());
         gl.glEnd();
 
         gl.glPopMatrix();
 
+        // Path points.
         gl.glPushMatrix();
-
         gl.glUniform4f(col, 1, 0, 0, 1);
         gl.glPointSize(2);
         gl.glBegin(GL2.GL_POINTS);
@@ -80,9 +89,88 @@ public class VPlayer2 extends Player {
             gl.glVertex2f((float) cp.x, (float) cp.y);
         }
         gl.glEnd();
+        
+        // Navigation points.
+        gl.glPushMatrix();
+        gl.glUniform4f(col, 0.1f, 0.1f, 1, 1);
+        gl.glPointSize(10);
+        gl.glBegin(GL2.GL_POINTS);
+        for (Vector3D cp : getPath().getPoints()) {
+            gl.glVertex2f((float) cp.x, (float) cp.y);
+        }
+        gl.glEnd();
 
         gl.glEnable(GL2.GL_DEPTH_TEST);
 
+        gl.glPopMatrix();
+        gl.glPopMatrix();
+    }
+    
+    public void render(GL2 gl, GLUT glut, int prog) {
+
+        int col = gl.glGetUniformLocation(prog, "col");
+
+        gl.glPushMatrix();
+        CurvePoint p = getPosition();
+        gl.glTranslated(p.x, p.y, p.z);
+        double h = getRadius()*4;
+
+        // Player.
+        gl.glPushMatrix();
+        gl.glRotated(90, 0, 0, 1);
+        //gl.glUniform4f(col, 0, 0, 0, 1);
+        //glut.glutSolidCylinder(getRadius()*.99, h*.99, 12, 1);
+        gl.glUniform4f(col, 1, 1, 1, 1);
+        glut.glutWireCylinder(getRadius(), h, 3, 1);
+        gl.glPopMatrix();
+
+        // Max steps area.
+        gl.glUniform4f(col, color[0], color[1], color[2], color[3]);
+        glut.glutWireCylinder(getRadius() + getMaxStep(), 0, 16, 1);
+
+//        gl.glDisable(GL2.GL_DEPTH_TEST);
+        
+        // Main collision circle.
+        //gl.glUniform4f(col, 1,0,0,1);
+        //glut.glutWireCylinder(getRadius(), 0, 16, 1);
+        
+        
+        //gl.glTranslated(0, 0, h * 1.01);
+/*
+        // Cross.
+        gl.glUniform4f(col, 1, 0, 0, 1);
+        gl.glBegin(GL2.GL_LINES);
+        gl.glVertex2f((float) -getRadius(), 0);
+        gl.glVertex2f((float) getRadius(), 0);
+        gl.glVertex2f(0, (float) -getRadius());
+        gl.glVertex2f(0, (float) getRadius());
+        gl.glEnd();
+
+        gl.glPopMatrix();
+
+        // Path points.
+        gl.glPushMatrix();
+        gl.glUniform4f(col, 1, 0, 0, 1);
+        gl.glPointSize(2);
+        gl.glBegin(GL2.GL_POINTS);
+        for (CurvePoint cp : pathPoints) {
+            gl.glVertex2f((float) cp.x, (float) cp.y);
+        }
+        gl.glEnd();
+        
+        // Navigation points.
+        gl.glPushMatrix();
+        gl.glUniform4f(col, 0.1f, 0.1f, 1, 1);
+        gl.glPointSize(10);
+        gl.glBegin(GL2.GL_POINTS);
+        for (Vector3D cp : getPath().getPoints()) {
+            gl.glVertex2f((float) cp.x, (float) cp.y);
+        }
+        gl.glEnd();
+
+//        gl.glEnable(GL2.GL_DEPTH_TEST);
+*/
+        gl.glPopMatrix();
         gl.glPopMatrix();
 
     }

@@ -20,6 +20,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import nlopt.ObjectsPacker;
 import physics.Vector3D;
 import prototype.Player;
+import prototype.TimeElapseMeter;
 
 /**
  * BUGFIX: Safari (on iOS) has some issues to show redirected images, so it
@@ -46,7 +47,32 @@ public class HandfulOfEarth {
         return ThreadLocalRandom.current().nextInt(Math.min(a, b), Math.max(a, b));
     }
 
-    public static void main__(String[] args) {
+    public static int counter(int i, int n) {
+        if (i==0) return 0;
+        
+        int r = 0;
+        
+        for (int j = 0;j<i;j++){
+            r+=n-j-1;
+        }
+        
+        return r;
+    }
+    
+    public static void main___(String[] args) {
+        int n = 5;
+        int c = 0;
+        for (int i = 0; i < n - 1; i++) {
+            //System.out.println(i + " " + n + " " + c);
+            System.out.println(i + " " + c+" "+counter(i, n));
+            for (int j = i + 1; j < n; j++) {
+                //System.out.println(i + " " + j + " " + c);
+                c++;
+            }
+        }
+    }
+
+    public static void main____(String[] args) {
 
         Log.showDebugMessages = true;
 
@@ -59,7 +85,7 @@ public class HandfulOfEarth {
             {-290, 290, -200, -150},};
 
         int SHAPE_SIZE = 10;
-        int np = 100;
+        int np = 50;
         int nn[] = {1, rangeNavPoint.length + 1};
         int maxStep[] = {2, 4};
         double playerScale = 1.d;
@@ -73,9 +99,20 @@ public class HandfulOfEarth {
             players.add(player);
         }
 
-        ObjectsPacker.packPlayerClusters(ObjectsPacker.clusterize(players), true, () -> {
+        /*ObjectsPacker.packPlayerClusters(ObjectsPacker.clusterize(players), true, () -> {
             Log.info("finished");
-        });
+        });*/
+        
+        ArrayList<Player> players2 = new ArrayList<>();
+        players2.addAll(players);
+        
+        TimeElapseMeter tem = new TimeElapseMeter(true);
+        ObjectsPacker.packPlayers(players, true);
+        System.out.println(tem.stopAndGet());
+        
+        tem = new TimeElapseMeter(true);
+        ObjectsPacker.packPlayers2(players2, true);
+        System.out.println(tem.stopAndGet());
     }
 
     public static void main_(String[] args) throws Exception {

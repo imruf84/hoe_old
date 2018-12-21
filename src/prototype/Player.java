@@ -9,6 +9,8 @@ public class Player {
 
     private final String name;
     private final CurvePoint position;
+    private final CurvePoint previousPosition;
+    private double orientation = 0;
     private final Curve path = new Curve();
     private final double radius;
     private final double maxStep;
@@ -17,6 +19,7 @@ public class Player {
         this.name = name;
         this.radius = radius;
         this.position = new CurvePoint(position, 0);
+        this.previousPosition = new CurvePoint(position, 0);
         this.maxStep = maxStep;
         addNavigationPoint();
     }
@@ -39,6 +42,20 @@ public class Player {
 
     public CurvePoint getPosition() {
         return position;
+    }
+    
+    public CurvePoint getPreviousPosition() {
+        return previousPosition;
+    }
+    
+    public void setPosition(CurvePoint p) {
+        getPreviousPosition().set(getPosition());
+        getPosition().set(p);
+        updateOrientation();
+    }
+    
+    protected void updateOrientation() {
+        
     }
 
     protected void recalculatePath(Vector3D newPos) {
@@ -71,14 +88,13 @@ public class Player {
         if (currentPosOnPath.distance(getPosition()) > tollerance) {
             double t = currentPosOnPath.t + (nextPointOnPath.t - currentPosOnPath.t) / 2d;
             return getPath().pointAt(t);
-            //return currentPosOnPath;
         }
 
         return nextPointOnPath;
     }
 
     public void doOneStep(CurvePoint nextPos) {
-        getPosition().set(nextPos == null ? getNextPosition() : nextPos);
+        setPosition(nextPos == null ? getNextPosition() : nextPos);
         update();
     }
 

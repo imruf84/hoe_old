@@ -11,6 +11,11 @@ import prototype.Player;
 
 public class ObjectsPacker {
 
+    private static final double RHO_BEGIN = 0.5;
+    private static final double RHO_END = 1.0e-3;
+    private static final int PRINT_ITERATION_RESULTS = 0;
+    private static final int MAX_ITERATIONS = 3500;
+
     private static BigInteger factorial(int n) {
         BigInteger ret = BigInteger.ONE;
         for (int i = 1; i <= n; ++i) {
@@ -78,13 +83,6 @@ public class ObjectsPacker {
             });
             t[i].start();
         }
-        /*for (Thread ti : t) {
-            try {
-                ti.join();
-            } catch (InterruptedException ex) {
-                Log.error(ex);
-            }
-        }*/
 
         Log.debug("Packer has been finished in " + Log.formatInterval(Calendar.getInstance().getTimeInMillis() - time));
 
@@ -102,13 +100,6 @@ public class ObjectsPacker {
             pd.radius = p.getRadius();
             pd.maxStep = p.getMaxStep();
             pd.immovable = false;
-            //pd.immovable = pd.previousPosition.equals(pd.nextPosition);
-            //pd.immovable = pd.previousPosition.distance(pd.nextPosition)<.1d;
-            /*switch (p.getName()) {
-                case "P3":
-                    pd.immovable = true;
-                    break;
-            }*/
             data.add(pd);
         }
 
@@ -121,12 +112,8 @@ public class ObjectsPacker {
             for (int i = 0; i < data.size(); i++) {
                 PackerData pd = data.get(i);
                 dSum += Math.sqrt(Math.pow(pd.nextPosition.x - x[i * dimension + 0], 2d) + Math.pow(pd.nextPosition.y - x[i * dimension + 1], 2d));
-                //dSum += pd.radius + Math.sqrt(Math.pow(pd.nextPosition.x - x[i * dimension + 0], 2d) + Math.pow(pd.nextPosition.y - x[i * dimension + 1], 2d));
 
-                //c[cCounter++] = Math.sqrt(Math.pow(pd.previousPosition.x - pd.nextPosition.x, 2d) + Math.pow(pd.previousPosition.y - pd.nextPosition.y, 2d)) - Math.sqrt(Math.pow(pd.previousPosition.x - x[i * dimension], 2d) + Math.pow(pd.previousPosition.y - x[i * dimension + 1], 2d));
                 c[cCounter] = Math.min(pd.maxStep, Math.sqrt(Math.pow(pd.previousPosition.x - pd.nextPosition.x, 2d) + Math.pow(pd.previousPosition.y - pd.nextPosition.y, 2d))) - Math.sqrt(Math.pow(pd.previousPosition.x - x[i * dimension + 0], 2d) + Math.pow(pd.previousPosition.y - x[i * dimension + 1], 2d));
-                //c[cCounter] = Math.max(Math.min(maxSpeed, c[cCounter]), minSpeed);
-                //c[cCounter] = pd.radius - c[cCounter];
                 cCounter++;
 
                 if (pd.immovable) {
@@ -161,39 +148,150 @@ public class ObjectsPacker {
             x[i * dimension + 1] = pd.nextPosition.y;
         }
 
-        double rhobeg = 0.5;
-        double rhoend = 1.0e-6;
-        int iprint = 0;
-        int maxfun = 3500;
-        //maxfun = 1000;
-        //maxfun = 500;
-
         if (data.size() > 1) {
-
-            CobylaExitStatus result = Cobyla.FindMinimum(calcfc, x.length, (int) combinations(data.size(), 2) + data.size(), x, rhobeg, rhoend, iprint, maxfun);
-            //System.out.println(result.equals(CobylaExitStatus.Normal));
+            CobylaExitStatus result = Cobyla.FindMinimum(calcfc, x.length, (int) combinations(data.size(), 2) + data.size(), x, RHO_BEGIN, RHO_END, PRINT_ITERATION_RESULTS, MAX_ITERATIONS);
         } else {
-            CobylaExitStatus result = Cobyla.FindMinimum(calcfc, x.length, (int) data.size(), x, rhobeg, rhoend, iprint, maxfun);
+            CobylaExitStatus result = Cobyla.FindMinimum(calcfc, x.length, (int) data.size(), x, RHO_BEGIN, RHO_END, PRINT_ITERATION_RESULTS, MAX_ITERATIONS);
         }
         if (updatePlayers) {
             for (int i = 0; i < players.size(); i++) {
                 PackerData pd = data.get(i);
                 Player player = players.get(i);
-                /*player.getPosition().t = pd.nextPosition.t;
-            player.getPosition().x = x[i*dimension+0];
-            player.getPosition().y = x[i*dimension+1];
-            player.update();*/
 
                 player.doOneStep(new CurvePoint(new Vector3D(x[i * dimension + 0], x[i * dimension + 1], 0d), pd.nextPosition.t));
-                /*
-                double d = Vector3D.distance(pd.previousPosition, player.getPosition());
-                if (d>player.getMaxStep()+.01d) {
-                    System.out.println(player.getMaxStep()+" "+d);
-                }*/
             }
         }
 
         return data;
+    }
+
+    public static ArrayList<PackerData> packPlayers2(ArrayList<Player> players, boolean updatePlayers) {
+
+        int cores = Runtime.getRuntime().availableProcessors();
+
+        ArrayList<PackerData> data = new ArrayList<>();
+
+        for (Player p : players) {
+            PackerData pd = new PackerData();
+            pd.previousPosition = new CurvePoint(p.getPosition());
+            pd.nextPosition = new CurvePoint(p.getNextPosition());
+            pd.radius = p.getRadius();
+            pd.maxStep = p.getMaxStep();
+            pd.immovable = false;
+            data.add(pd);
+        }
+
+        final int dimension = 2;
+
+        Calcfc calcfc = (int n, int m, double[] x, double[] c) -> {
+            int cCounter = 0;
+
+            double dSum = 0;
+            for (int i = 0; i < data.size(); i++) {
+                PackerData pd = data.get(i);
+                dSum += Math.sqrt(Math.pow(pd.nextPosition.x - x[i * dimension + 0], 2d) + Math.pow(pd.nextPosition.y - x[i * dimension + 1], 2d));
+
+                c[cCounter] = Math.min(pd.maxStep, Math.sqrt(Math.pow(pd.previousPosition.x - pd.nextPosition.x, 2d) + Math.pow(pd.previousPosition.y - pd.nextPosition.y, 2d))) - Math.sqrt(Math.pow(pd.previousPosition.x - x[i * dimension + 0], 2d) + Math.pow(pd.previousPosition.y - x[i * dimension + 1], 2d));
+                cCounter++;
+
+                if (pd.immovable) {
+                    x[i * dimension + 0] = pd.nextPosition.x;
+                    x[i * dimension + 1] = pd.nextPosition.y;
+                }
+            }
+
+            // Checking collisions.
+            if (data.size() > 1) {
+
+                AtomicInteger ai = new AtomicInteger();
+                Thread t[] = new Thread[cores];
+
+                //for (int i = 0; i < data.size() - 1; i++) {
+                for (int ti = 0; ti < cores; ti++) {
+
+                    t[ti] = new Thread(() -> {
+
+                        while (true) {
+
+                            int i = ai.getAndAdd(1);
+
+                            if (i >= data.size() - 1) {
+                                //System.out.println(Thread.currentThread().getName() + " finished.");
+                                return;
+                            }
+
+                            int cCounter2 = counter(i, data.size());
+
+                            //System.out.println(Thread.currentThread().getName() + " i=" + i);
+                            PackerData pdi = data.get(i);
+                            for (int j = i + 1; j < data.size(); j++) {
+                                PackerData pdj = data.get(j);
+
+                                if (pdi.immovable && pdj.immovable) {
+                                    cCounter2++;
+                                    continue;
+                                }
+
+                                c[cCounter2++] = Math.sqrt(Math.pow(x[i * dimension] - x[j * dimension], 2d) + Math.pow(x[i * dimension + 1] - x[j * dimension + 1], 2d)) - pdi.radius - pdj.radius;
+                            }
+                        }
+                    });
+
+                    t[ti].start();
+                }
+
+                for (Thread tt : t) {
+                    try {
+                        tt.join();
+                    } catch (InterruptedException ex) {
+
+                    }
+                }
+
+                //System.out.println("-----------");
+            }
+
+            return dSum;
+        };
+
+        int xn = data.size() * dimension;
+        double[] x = new double[xn];
+        for (int i = 0; i < data.size(); i++) {
+            PackerData pd = data.get(i);
+            x[i * dimension + 0] = pd.nextPosition.x;
+            x[i * dimension + 1] = pd.nextPosition.y;
+        }
+
+        int nc = data.size();
+        nc += (data.size() > 1 ? combinations(data.size(), 2) : 0);
+        System.out.println("nc=" + nc);
+
+        CobylaExitStatus result = Cobyla.FindMinimum(calcfc, x.length, nc, x, RHO_BEGIN, RHO_END, PRINT_ITERATION_RESULTS, MAX_ITERATIONS);
+
+        if (updatePlayers) {
+            for (int i = 0; i < players.size(); i++) {
+                PackerData pd = data.get(i);
+                Player player = players.get(i);
+
+                player.doOneStep(new CurvePoint(new Vector3D(x[i * dimension + 0], x[i * dimension + 1], 0d), pd.nextPosition.t));
+            }
+        }
+
+        return data;
+    }
+
+    private static int counter(int i, int n) {
+        if (i == 0) {
+            return 0;
+        }
+
+        int r = 0;
+
+        for (int j = 0; j < i; j++) {
+            r += n - j - 1;
+        }
+
+        return r;
     }
 
     public static ArrayList<ArrayList<Player>> clusterize(ArrayList<Player> players) {
