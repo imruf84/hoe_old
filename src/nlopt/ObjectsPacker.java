@@ -96,7 +96,7 @@ public class ObjectsPacker {
         for (Player p : players) {
             PackerData pd = new PackerData();
             pd.previousPosition = new CurvePoint(p.getPosition());
-            pd.nextPosition = new CurvePoint(p.getNextPosition());
+            pd.nextPosition = new CurvePoint(p.getNextPositionOnPath());
             pd.radius = p.getRadius();
             pd.maxStep = p.getMaxStep();
             pd.immovable = false;
@@ -158,7 +158,9 @@ public class ObjectsPacker {
                 PackerData pd = data.get(i);
                 Player player = players.get(i);
 
-                player.doOneStep(new CurvePoint(new Vector3D(x[i * dimension + 0], x[i * dimension + 1], 0d), pd.nextPosition.t));
+                //player.doOneStep(new CurvePoint(new Vector3D(x[i * dimension + 0], x[i * dimension + 1], 0d), pd.nextPosition.t));
+                player.setNextPosition(new CurvePoint(new Vector3D(x[i * dimension + 0], x[i * dimension + 1], 0d), pd.nextPosition.t));
+                player.doOneStep(1);
             }
         }
 
@@ -174,7 +176,7 @@ public class ObjectsPacker {
         for (Player p : players) {
             PackerData pd = new PackerData();
             pd.previousPosition = new CurvePoint(p.getPosition());
-            pd.nextPosition = new CurvePoint(p.getNextPosition());
+            pd.nextPosition = new CurvePoint(p.getNextPositionOnPath());
             pd.radius = p.getRadius();
             pd.maxStep = p.getMaxStep();
             pd.immovable = false;
@@ -273,7 +275,9 @@ public class ObjectsPacker {
                 PackerData pd = data.get(i);
                 Player player = players.get(i);
 
-                player.doOneStep(new CurvePoint(new Vector3D(x[i * dimension + 0], x[i * dimension + 1], 0d), pd.nextPosition.t));
+                //player.doOneStep(new CurvePoint(new Vector3D(x[i * dimension + 0], x[i * dimension + 1], 0d), pd.nextPosition.t));
+                player.setNextPosition(new CurvePoint(new Vector3D(x[i * dimension + 0], x[i * dimension + 1], 0d), pd.nextPosition.t));
+                player.doOneStep(1);
             }
         }
 

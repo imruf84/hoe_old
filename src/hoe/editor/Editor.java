@@ -219,7 +219,7 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
             {-60, 60, 25, 27},
             {-50, 50, 50, 55},};
 
-        int np = 2;
+        int np = 4;
         int nn[] = {1, rangeNavPoint.length + 1};
         double maxStep[] = {.5, 1};
         double playerSize = 5;
@@ -233,6 +233,16 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
             }
             players.add(player);
         }
+        
+        /*
+        VPlayer2 p = new VPlayer2("a", new Vector3D(), 10, 3);
+        p.addNavigationPoint(new Vector3D(0, 0, 0));
+        p.addNavigationPoint(new Vector3D(0, 100, 0));
+        p.addNavigationPoint(new Vector3D(100, 100, 0));
+        p.addNavigationPoint(new Vector3D(100, 0, 0));
+        p.addNavigationPoint(new Vector3D(0, 0, 0));
+        p.addNavigationPoint(new Vector3D(0, 100, 0));
+        players.add(p);*/
     }
 
     private static double rnd(double a, double b) {
@@ -464,9 +474,9 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
 
     @Override
     public void keyPressed(KeyEvent e) {
-        double z = .04;
+        double z = .1;
         double r = 2;
-        double t = .04;
+        double t = 2;
         boolean isRotate = e.isShiftDown();
         boolean isZoom = e.isControlDown();
         switch (e.getKeyCode()) {

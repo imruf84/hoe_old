@@ -65,6 +65,9 @@ public class VPlayer2 extends Player {
         
         //gl.glTranslated(0, 0, h * 1.01);
 
+        gl.glRotated(90, 0, 0, 1);
+        gl.glRotated(getOrientation(), 0, 0, 1);
+        
         // Cross.
         gl.glUniform4f(col, 1, 0, 0, 1);
         gl.glBegin(GL2.GL_LINES);
@@ -118,6 +121,7 @@ public class VPlayer2 extends Player {
         // Player.
         gl.glPushMatrix();
         gl.glRotated(90, 0, 0, 1);
+        gl.glRotated(getOrientation(), 0, 0, 1);
         //gl.glUniform4f(col, 0, 0, 0, 1);
         //glut.glutSolidCylinder(getRadius()*.99, h*.99, 12, 1);
         gl.glUniform4f(col, 1, 1, 1, 1);
