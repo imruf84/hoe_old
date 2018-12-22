@@ -68,18 +68,13 @@ public class VPlayer2 extends Player {
         gl.glRotated(90, 0, 0, 1);
         gl.glRotated(getOrientation(), 0, 0, 1);
         
-        // Cross.
-        gl.glUniform4f(col, 1, 0, 0, 1);
+        // Direction.
+        gl.glUniform4f(col, 1, 1, 0, 1);
         gl.glBegin(GL2.GL_LINES);
         gl.glVertex2f(0, 0);
         gl.glVertex2f((float) getRadius(), 0);
         gl.glEnd();
         
-        gl.glUniform4f(col, 0, 1, 0, 1);
-        gl.glBegin(GL2.GL_LINES);
-        gl.glVertex2f(0,0);
-        gl.glVertex2f(0, (float) getRadius());
-        gl.glEnd();
 
         gl.glPopMatrix();
 

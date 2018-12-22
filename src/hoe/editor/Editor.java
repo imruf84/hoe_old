@@ -40,12 +40,12 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
     double projection[] = new double[16];
     double panUnits[] = {1, 1};
 
-    //private final double rotate[] = new double[]{100, 0};//full top view
-    private final double rotate[] = new double[]{0, 0};
+    private final double rotate[] = new double[]{100, 0};//full top view
+    //private final double rotate[] = new double[]{0, 0};
     private final double dRotate[] = new double[]{0, 0};
-    private final double translate[] = new double[]{0, 0};
+    private final double translate[] = new double[]{0, -35};
     private final double dTranslate[] = new double[]{0, 0};
-    private double zoom = 5;
+    private double zoom = 4;
     private double dZoom = 0;
     private int prog;
     private float colR = 0;
@@ -57,12 +57,13 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
     private JFrame frame = null;
     private final AtomicBoolean isUpdating = new AtomicBoolean(false);
     private Thread thread = null;
+    private long delay=(long) (250*TimeUtils.getDeltaTime());
 
     @Override
     public void display(GLAutoDrawable drawable) {
 
         final GL2 gl = drawable.getGL().getGL2();
-        
+
         GLQueue.getInstance().execute(gl);
 
         gl.glShadeModel(GL2.GL_SMOOTH);
@@ -103,7 +104,7 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
             dColR = -dColR;
         }
         gl.glUniform4f(col, colR, 0, 1, 1);
-        
+
         // Rendering players.
         for (VPlayer2 p : players) {
             p.render(gl, glut, prog);
@@ -221,7 +222,7 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
 
         int np = 4;
         int nn[] = {1, rangeNavPoint.length + 1};
-        double maxStep[] = {.5, 1};
+        double maxStep[] = {1, 3};
         double playerSize = 5;
         double playerScale = 1;
         for (int i = 0; i < np; i++) {
@@ -233,16 +234,15 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
             }
             players.add(player);
         }
-        
-        /*
-        VPlayer2 p = new VPlayer2("a", new Vector3D(), 10, 3);
-        p.addNavigationPoint(new Vector3D(0, 0, 0));
-        p.addNavigationPoint(new Vector3D(0, 100, 0));
-        p.addNavigationPoint(new Vector3D(100, 100, 0));
-        p.addNavigationPoint(new Vector3D(100, 0, 0));
-        p.addNavigationPoint(new Vector3D(0, 0, 0));
-        p.addNavigationPoint(new Vector3D(0, 100, 0));
-        players.add(p);*/
+
+        VPlayer2 p = new VPlayer2("a", new Vector3D(), 4, 3);
+        //p.addNavigationPoint(new Vector3D(10, 0, 0));
+        p.addNavigationPoint(new Vector3D(0, 40, 0));
+        p.addNavigationPoint(new Vector3D(10, 40, 0));
+        p.addNavigationPoint(new Vector3D(10, -20, 0));
+        //p.addNavigationPoint(new Vector3D(0, 0, 0));
+        //p.addNavigationPoint(new Vector3D(0, 100, 0));
+        //players.add(p);
     }
 
     private static double rnd(double a, double b) {
@@ -319,10 +319,8 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
 
         prev = new int[]{e.getX(), e.getY()};
 
-        
-        
         GLQueue.getInstance().add((GL2 gl) -> {
-            
+
         });
     }
 
@@ -397,10 +395,18 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
                 stopTimer();
                 updatePlayerPositions();
                 break;
+            case 'i':
+            case 'I':
+                stopTimer();
+                for (Player p:players){
+                    p.initPosition();
+                }
+                break;
             case 'r':
             case 'R':
                 stopTimer();
                 addRandomPlayers();
+                TimeUtils.timeUnitLeft=0;
                 break;
             case 'p':
             case 'P':
@@ -416,7 +422,7 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
 
                     while (thread != null) {
                         try {
-                            Thread.sleep(100);
+                            Thread.sleep(delay);
                         } catch (InterruptedException ex) {
                         }
 
@@ -442,6 +448,24 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
         thread = null;
     }
 
+    protected void interpolatePlayerPositions() {
+        
+        double dt = TimeUtils.getDeltaTime();
+        
+        //appendLogMessage("Interpolating...");
+        for (Player p : players) {
+            p.doOneStep(TimeUtils.timeUnitLeft, true);
+        }
+        //appendLogMessage("Done");
+        
+        TimeUtils.timeUnitLeft += dt;
+        if (TimeUtils.timeUnitLeft>=TimeUtils.timeUnit){
+            TimeUtils.timeUnitLeft = 0;
+        }
+        
+        isUpdating.set(false);
+    }
+
     public void updatePlayerPositions() {
 
         if (isUpdating.get()) {
@@ -450,25 +474,39 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
 
         TimeElapseMeter time = new TimeElapseMeter(true);
 
-        appendLogMessage("Calculating...");
         isUpdating.set(true);
 
-        ArrayList<Player> pal = new ArrayList<>();
-        for (Player p : players) {
-            pal.add(p);
-        }
-        ObjectsPacker.packPlayerClusters(ObjectsPacker.clusterize(pal), true, () -> {
-            for (ArrayList<Player> cluster2 : ObjectsPacker.clusterize(pal)) {
-                float c[] = cluster2.size() == 1 ? new float[]{1, 1, 1, 1} : VPlayer2.getRandomLightColor();
-                for (Player player2 : cluster2) {
-                    ((VPlayer2) player2).setFillColor(c);
-                }
+        if (TimeUtils.timeUnitLeft == 0) {
+
+            appendLogMessage("Calculating...");
+            ArrayList<Player> pal = new ArrayList<>();
+            for (Player p : players) {
+                pal.add(p);
+
+                p.doOneStep(1, false);
             }
+            ObjectsPacker.packPlayerClusters(ObjectsPacker.clusterize(pal), true, () -> {
+                for (ArrayList<Player> cluster2 : ObjectsPacker.clusterize(pal)) {
+                    float c[] = cluster2.size() == 1 ? new float[]{1, 1, 1, 1} : VPlayer2.getRandomLightColor();
+                    for (Player player2 : cluster2) {
+                        ((VPlayer2) player2).setFillColor(c);
+                    }
+                }
 
+                /*for (Player p : players) {
+                    p.doOneStep(1, true);
+                }*/
+                
+                appendLogMessage("Finished in " + time.stopAndGet());
+
+                interpolatePlayerPositions();
+                
+                isUpdating.set(false);
+            });
+        } else {
+            interpolatePlayerPositions();
             isUpdating.set(false);
-
-            appendLogMessage("Finished in " + time.stopAndGet());
-        });
+        }
 
     }
 

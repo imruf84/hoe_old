@@ -160,7 +160,8 @@ public class ObjectsPacker {
 
                 //player.doOneStep(new CurvePoint(new Vector3D(x[i * dimension + 0], x[i * dimension + 1], 0d), pd.nextPosition.t));
                 player.setNextPosition(new CurvePoint(new Vector3D(x[i * dimension + 0], x[i * dimension + 1], 0d), pd.nextPosition.t));
-                player.doOneStep(1);
+                //player.doOneStep(0);
+                //player.doOneStep(.5);
             }
         }
 
@@ -277,7 +278,7 @@ public class ObjectsPacker {
 
                 //player.doOneStep(new CurvePoint(new Vector3D(x[i * dimension + 0], x[i * dimension + 1], 0d), pd.nextPosition.t));
                 player.setNextPosition(new CurvePoint(new Vector3D(x[i * dimension + 0], x[i * dimension + 1], 0d), pd.nextPosition.t));
-                player.doOneStep(1);
+                player.doOneStep(1,true);
             }
         }
 
