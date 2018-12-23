@@ -90,13 +90,28 @@ public class VPlayer2 extends Player {
         
         // Navigation points.
         gl.glPushMatrix();
-        gl.glUniform4f(col, 0.1f, 0.1f, 1, 1);
+        gl.glUniform4f(col, 0, 0, 1, 1);
         gl.glPointSize(10);
         gl.glBegin(GL2.GL_POINTS);
         for (Vector3D cp : getPath().getPoints()) {
             gl.glVertex2f((float) cp.x, (float) cp.y);
         }
         gl.glEnd();
+        
+        // Next point.
+        gl.glPushMatrix();
+        gl.glUniform4f(col, 0, 1, 0, 1);
+        gl.glPointSize(6);
+        gl.glBegin(GL2.GL_POINTS);
+        CurvePoint currentPosOnPath = getPath().pointAt(getPosition().t);
+        gl.glVertex2f((float) currentPosOnPath.x, (float) currentPosOnPath.y);
+        gl.glEnd();
+        // Next path point-current path point line
+        gl.glBegin(GL2.GL_LINES);
+        gl.glVertex2f((float) currentPosOnPath.x, (float) currentPosOnPath.y);
+        gl.glVertex2f((float) getPosition().x, (float) getPosition().y);
+        gl.glEnd();
+        
 
         gl.glEnable(GL2.GL_DEPTH_TEST);
 

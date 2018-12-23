@@ -220,7 +220,7 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
             {-60, 60, 25, 27},
             {-50, 50, 50, 55},};
 
-        int np = 4;
+        int np = 10;
         int nn[] = {1, rangeNavPoint.length + 1};
         double maxStep[] = {1, 3};
         double playerSize = 5;
@@ -235,14 +235,17 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
             players.add(player);
         }
 
-        VPlayer2 p = new VPlayer2("a", new Vector3D(), 4, 3);
-        //p.addNavigationPoint(new Vector3D(10, 0, 0));
-        p.addNavigationPoint(new Vector3D(0, 40, 0));
-        p.addNavigationPoint(new Vector3D(10, 40, 0));
-        p.addNavigationPoint(new Vector3D(10, -20, 0));
-        //p.addNavigationPoint(new Vector3D(0, 0, 0));
-        //p.addNavigationPoint(new Vector3D(0, 100, 0));
-        //players.add(p);
+        /*VPlayer2 p = new VPlayer2("a", new Vector3D(-30,0,0), 4, 3);
+        p.addNavigationPoint(new Vector3D(30,0,0));
+        players.add(p);
+        
+        p = new VPlayer2("b", new Vector3D(30,0,0), 7, 3);
+        p.addNavigationPoint(new Vector3D(-30,0,0));
+        players.add(p);
+        
+        p = new VPlayer2("c", new Vector3D(0,0,0), 2, 3);
+        p.addNavigationPoint(new Vector3D(0,0,0));
+        players.add(p);*/
     }
 
     private static double rnd(double a, double b) {
@@ -475,7 +478,12 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
         TimeElapseMeter time = new TimeElapseMeter(true);
 
         isUpdating.set(true);
-
+/*        
+        for (Player p:players){
+            System.out.println(p.getName()+"\t"+p.getOrientation()+"\t"+p.getOrientationTo()+"\t"+p.getOrientationLeft());
+        }
+        System.out.println("----");
+*/
         if (TimeUtils.timeUnitLeft == 0) {
 
             appendLogMessage("Calculating...");

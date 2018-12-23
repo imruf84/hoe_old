@@ -18,6 +18,7 @@ public class Player {
     private final Curve path = new Curve();
     private final double radius;
     private final double maxStep;
+    public double step;
     double maxOrientationSpeed = 30;
     double minOrientationSpeed = 15;
 
@@ -29,6 +30,10 @@ public class Player {
         this.nextPosition = new CurvePoint(position, 0);
         this.maxStep = maxStep;
         addNavigationPoint();
+    }
+
+    public double getOrientationTo() {
+        return orientationTo;
     }
 
     public double getMaxOrientationSpeed() {
@@ -86,6 +91,9 @@ public class Player {
 
         CurvePoint prev = getPosition();
         CurvePoint next = getNextPosition();
+        
+        //CurvePoint prev = getPreviousPosition();
+        //CurvePoint next = getNextPosition();
 
         //CurvePoint next = getNextPositionOnPath();
         if (isLastNavigationPointReached()) {
@@ -96,12 +104,23 @@ public class Player {
         if (getPreviousPosition().equals(next)) {
             return;
         }
-        Vector3D direction = Vector3D.subtract(next, prev);
-        orientationTo = (-90 + Math.atan2(direction.y, direction.x) * 180 / Math.PI);
+        //Vector3D direction = Vector3D.subtract(next, prev);
+        //orientationTo = (-90 + Math.atan2(direction.y, direction.x) * 180 / Math.PI);
+        orientationTo = calculateOrientation(prev, next);
     }
 
-    protected double getOrientationLeft() {
-        return (orientationTo - orientation + 540) % 360 - 180;
+    public static double calculateOrientation(Vector3D prev, Vector3D next) {
+        Vector3D direction = Vector3D.subtract(next, prev);
+        return (-90 + Math.atan2(direction.y, direction.x) * 180 / Math.PI);
+    }
+
+    public static double calculateOrientationDifference(double o1, double o2) {
+        return (o1 - o2 + 540) % 360 - 180;
+    }
+
+    public double getOrientationLeft() {
+        //return (orientationTo - orientation + 540) % 360 - 180;
+        return calculateOrientationDifference(orientationTo, orientation);
     }
 
     protected void updateOrientation() {
@@ -166,27 +185,70 @@ public class Player {
         update();
     }
 
+    public double calculateStep() {
+        return calculateStepByOrientation(getPreviousPosition(), getPosition(), maxStep, getOrientation());
+    }
+
+    public static double calculateStepByOrientation(Vector3D prev, Vector3D current, double maxStep, double orientation) {
+        double dOrientation = Math.abs(Player.calculateOrientationDifference(Player.calculateOrientation(prev, current), orientation));
+        //double dOrientation = (Player.calculateOrientationDifference(Player.calculateOrientation(prev, current),orientation));
+
+        return maxStep * (1d - (dOrientation / 180d) * 1d);
+    }
+
     public CurvePoint getNextPositionOnPath() {
 
-        CurvePoint currentPosOnPath = getPath().pointAt(getPosition().t);
+        //CurvePoint currentPosOnPath = getPath().pointAt(getPosition().t);
+        //double length = getMaxStep();
+        //double length = calculateStep();
+        step = calculateStep();
 
-        double length = getMaxStep();
+        CurvePoint nextPointOnPath = getPath().generatePathPointsByLength(getPosition().t, 0, 2).getLast();
+        double dNext = nextPointOnPath.distance(getPosition());
 
-        LinkedList<CurvePoint> nextPoints = getPath().generatePathPointsByLength(getPosition().t, length, 2);
+        if (dNext > step) {
+
+            for (int i = 0; i < 10; i++) {
+                CurvePoint nextNextPointOnPath = getPath().generatePathPointsByLength(nextPointOnPath.t, Math.min(getRadius() / dNext, step), 2).getLast();
+                double dNextNext = nextPointOnPath.distance(nextNextPointOnPath);
+                if (dNextNext <= dNext) {
+                    nextPointOnPath.set(nextNextPointOnPath);
+                    dNext = dNextNext;
+                } else {
+                    break;
+                }
+            }
+        } else {
+            nextPointOnPath = getPath().generatePathPointsByLength(getPosition().t, step, 2).getLast();
+        }
+
+        return nextPointOnPath;
+
+        //step = getMaxStep();
+/*
+        //LinkedList<CurvePoint> nextPoints = getPath().generatePathPointsByLength(getPosition().t, length, 2);
+        LinkedList<CurvePoint> nextPoints = getPath().generatePathPointsByLength(getPosition().t, step, 2);
         CurvePoint nextPointOnPath = nextPoints.getLast();
-
-        //double tollerance = length * length;
-        //double tollerance = length * getRadius();
-        //double tollerance = length*length + getRadius()*getRadius();
-        double tollerance = getRadius();
+        //double t = nextPointOnPath.getT();
+        //double tollerance = getRadius()*getRadius();
+        //double tollerance = getRadius()+step;
+        //double tollerance = step*step;
+        //double tollerance = getMaxStep()*getMaxStep();
+        //double tollerance = Math.pow(getRadius()*step,1);
+        double tollerance = Math.pow(step/getMaxStep(),1);
+        
+        
 
         double da = Math.abs(getOrientationLeft());
         double factor = 1;
         double d = currentPosOnPath.distance(getPosition());
+        //factor = Math.max(factor, d/(tollerance*tollerance));
+        //factor = Math.max(factor, d/(tollerance));
         factor = Math.max(factor, d/tollerance);
-        factor = Math.max(factor, Math.sqrt(da * da / getMaxOrientationSpeed()));
+        //factor = Math.max(factor, da / (getMaxOrientationSpeed()*getMaxOrientationSpeed()));
+        //factor = Math.max(factor, da / getMaxOrientationSpeed());
         double t = currentPosOnPath.t + (nextPointOnPath.t - currentPosOnPath.t) / factor;
-        return getPath().pointAt(t);
+        return getPath().pointAt(t);*/
     }
 
     public void doOneStep(double t, boolean updateOrientation) {

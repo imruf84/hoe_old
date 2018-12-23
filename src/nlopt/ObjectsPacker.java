@@ -97,8 +97,10 @@ public class ObjectsPacker {
             PackerData pd = new PackerData();
             pd.previousPosition = new CurvePoint(p.getPosition());
             pd.nextPosition = new CurvePoint(p.getNextPositionOnPath());
+            pd.orientation = p.getOrientation();
             pd.radius = p.getRadius();
             pd.maxStep = p.getMaxStep();
+            pd.step = p.step;
             pd.immovable = false;
             data.add(pd);
         }
@@ -110,10 +112,39 @@ public class ObjectsPacker {
 
             double dSum = 0;
             for (int i = 0; i < data.size(); i++) {
+                Vector3D currentPosition = new Vector3D(x[i * dimension + 0],x[i * dimension + 1],0);
                 PackerData pd = data.get(i);
-                dSum += Math.sqrt(Math.pow(pd.nextPosition.x - x[i * dimension + 0], 2d) + Math.pow(pd.nextPosition.y - x[i * dimension + 1], 2d));
+                //dSum += Math.sqrt(Math.pow(pd.nextPosition.x - currentPosition.x, 2d) + Math.pow(pd.nextPosition.y - currentPosition.y, 2d));
+                double sum = Math.sqrt(Math.pow(pd.nextPosition.x - currentPosition.x, 2d) + Math.pow(pd.nextPosition.y - currentPosition.y, 2d));
 
-                c[cCounter] = Math.min(pd.maxStep, Math.sqrt(Math.pow(pd.previousPosition.x - pd.nextPosition.x, 2d) + Math.pow(pd.previousPosition.y - pd.nextPosition.y, 2d))) - Math.sqrt(Math.pow(pd.previousPosition.x - x[i * dimension + 0], 2d) + Math.pow(pd.previousPosition.y - x[i * dimension + 1], 2d));
+                //double dOrientation = Math.abs(Player.calculateOrientationDifference(Player.calculateOrientation(currentPosition, pd.nextPosition),pd.orientation));
+                /*
+                double dOrientation = Math.abs(Player.calculateOrientationDifference(Player.calculateOrientation(pd.previousPosition, currentPosition),pd.orientation));
+                //dSum+=dOrientation*Math.PI/180d;
+                
+//                System.out.println(dOrientation);
+                
+                
+                
+                //if (dOrientation>90) maxStep/=2d;
+                maxStep *= 1d-(dOrientation/180d)*1d;
+                //maxStep *= (dOrientation/180d)*9d;
+//                dSum+=maxStep*1d-(dOrientation/180d)*.1d;
+                //dSum+=maxStep;
+                //dSum+=maxStep/pd.maxStep;
+                //dSum+=pd.maxStep/maxStep;
+                maxStep = Math.min(pd.maxStep, maxStep);
+                //maxStep = Math.max(pd.maxStep, maxStep);
+                
+                //dSum+=sum*(dOrientation/180d)*maxStep/pd.maxStep;
+                
+                //System.out.println(pd.maxStep+" "+maxStep);
+                */
+                //double maxStep = Player.calculateStepByOrientation(pd.previousPosition, currentPosition, pd.maxStep, pd.orientation);
+                double maxStep = pd.step;
+                //maxStep = Math.min(pd.maxStep, maxStep);
+//                System.out.println(maxStep+" "+pd.maxStep);                
+                c[cCounter] = Math.min(maxStep, Math.sqrt(Math.pow(pd.previousPosition.x - pd.nextPosition.x, 2d) + Math.pow(pd.previousPosition.y - pd.nextPosition.y, 2d))) - Math.sqrt(Math.pow(pd.previousPosition.x - currentPosition.x, 2d) + Math.pow(pd.previousPosition.y - currentPosition.y, 2d));
                 cCounter++;
 
                 if (pd.immovable) {
@@ -121,6 +152,7 @@ public class ObjectsPacker {
                     x[i * dimension + 1] = pd.nextPosition.y;
                 }
             }
+//            System.out.println("----");
             if (data.size() > 1) {
                 for (int i = 0; i < data.size() - 1; i++) {
                     PackerData pdi = data.get(i);
