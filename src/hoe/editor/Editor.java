@@ -43,9 +43,9 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
     private final double rotate[] = new double[]{100, 0};//full top view
     //private final double rotate[] = new double[]{0, 0};
     private final double dRotate[] = new double[]{0, 0};
-    private final double translate[] = new double[]{0, -35};
+    private final double translate[] = new double[]{0, 0};
     private final double dTranslate[] = new double[]{0, 0};
-    private double zoom = 4;
+    private double zoom = 5.5;
     private double dZoom = 0;
     private int prog;
     private float colR = 0;
@@ -215,13 +215,15 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
     private void addRandomPlayers() {
         players.clear();
 
-        int rangePlayer[] = {-50, 50, -5, 5};
+        //int rangePlayer[] = {-50, 50, -5, 5};
+        int rangePlayer[] = {-50, 50, -50, 50};
         double rangeNavPoint[][] = {
             {-60, 60, 25, 27},
             {-50, 50, 50, 55},};
 
         int np = 10;
-        int nn[] = {1, rangeNavPoint.length + 1};
+        //int nn[] = {1, rangeNavPoint.length + 1};
+        int nn[] = {1, 4};
         double maxStep[] = {1, 3};
         double playerSize = 5;
         double playerScale = 1;
@@ -230,22 +232,32 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
             int n = (int) rnd(nn[0], nn[1]);
             for (int j = 0; j < n; j++) {
                 int k = j + 1 == n ? rangeNavPoint.length - 1 : j;
-                player.addNavigationPoint(new Vector3D(rnd(rangeNavPoint[k][0], rangeNavPoint[k][1]), rnd(rangeNavPoint[k][2], rangeNavPoint[k][3]), 0));
+                //player.addNavigationPoint(new Vector3D(rnd(rangeNavPoint[k][0], rangeNavPoint[k][1]), rnd(rangeNavPoint[k][2], rangeNavPoint[k][3]), 0));
+                player.addNavigationPoint(new Vector3D(rnd(rangePlayer[0], rangePlayer[1]), rnd(rangePlayer[2], rangePlayer[3]), 0));
             }
+            player.initOrientation();
             players.add(player);
         }
-
-        /*VPlayer2 p = new VPlayer2("a", new Vector3D(-30,0,0), 4, 3);
-        p.addNavigationPoint(new Vector3D(30,0,0));
-        players.add(p);
+        /*
+        VPlayer2 player = new VPlayer2("P", new Vector3D(20,0, 0), 4, 3);
+        player.addNavigationPoint(new Vector3D(-10, 1, 0));
+        player.addNavigationPoint(new Vector3D(100, 4, 0));
+        player.initOrientation();
+        players.add(player);
         
-        p = new VPlayer2("b", new Vector3D(30,0,0), 7, 3);
-        p.addNavigationPoint(new Vector3D(-30,0,0));
-        players.add(p);
+        player = new VPlayer2("P", new Vector3D(0,0, 0), 5, 3);
+        player.addNavigationPoint(new Vector3D(-10, 0, 0));
+        player.addNavigationPoint(new Vector3D(60, 1, 0));
+        player.addNavigationPoint(new Vector3D(10, 4, 0));
+        player.initOrientation();
+        players.add(player);
         
-        p = new VPlayer2("c", new Vector3D(0,0,0), 2, 3);
-        p.addNavigationPoint(new Vector3D(0,0,0));
-        players.add(p);*/
+        player = new VPlayer2("P", new Vector3D(0,0, 0), 5, 3);
+        player.addNavigationPoint(new Vector3D(-10, 0, 0));
+        player.addNavigationPoint(new Vector3D(60, 1, 0));
+        player.addNavigationPoint(new Vector3D(10, 4, 0));
+        player.initOrientation();
+        players.add(player);*/
     }
 
     private static double rnd(double a, double b) {
@@ -490,8 +502,7 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
             ArrayList<Player> pal = new ArrayList<>();
             for (Player p : players) {
                 pal.add(p);
-
-                p.doOneStep(1, false);
+                //p.doOneStep(1, false);
             }
             ObjectsPacker.packPlayerClusters(ObjectsPacker.clusterize(pal), true, () -> {
                 for (ArrayList<Player> cluster2 : ObjectsPacker.clusterize(pal)) {
@@ -506,9 +517,7 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
                 }*/
                 
                 appendLogMessage("Finished in " + time.stopAndGet());
-
                 interpolatePlayerPositions();
-                
                 isUpdating.set(false);
             });
         } else {

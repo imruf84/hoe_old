@@ -142,8 +142,8 @@ public class ObjectsPacker {
                 */
                 //double maxStep = Player.calculateStepByOrientation(pd.previousPosition, currentPosition, pd.maxStep, pd.orientation);
                 double maxStep = pd.step;
-                //maxStep = Math.min(pd.maxStep, maxStep);
-//                System.out.println(maxStep+" "+pd.maxStep);                
+                maxStep = Math.min(pd.maxStep, maxStep);
+//System.out.println(maxStep+" "+pd.maxStep);
                 c[cCounter] = Math.min(maxStep, Math.sqrt(Math.pow(pd.previousPosition.x - pd.nextPosition.x, 2d) + Math.pow(pd.previousPosition.y - pd.nextPosition.y, 2d))) - Math.sqrt(Math.pow(pd.previousPosition.x - currentPosition.x, 2d) + Math.pow(pd.previousPosition.y - currentPosition.y, 2d));
                 cCounter++;
 
