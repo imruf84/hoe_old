@@ -1,5 +1,6 @@
 package hoe;
 
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
@@ -47,5 +48,15 @@ public class Log {
 
     public static void error(Exception e) {
         error("", e);
+    }
+
+    public static String[] printArray(double[] d) {
+        DecimalFormat df = new DecimalFormat("#.########");
+        String s[] = new String[d.length];
+        for (int i = 0; i < d.length; i++) {
+            s[i] = df.format(d[i]);
+        }
+
+        return s;
     }
 }

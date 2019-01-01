@@ -12,15 +12,8 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.text.DecimalFormat;
-import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Properties;
-import java.util.concurrent.ThreadLocalRandom;
-import nlopt.ObjectsPacker;
-import physics.Vector3D;
-import prototype.Player;
-import prototype.TimeElapseMeter;
 
 /**
  * BUGFIX: Safari (on iOS) has some issues to show redirected images, so it
@@ -28,92 +21,6 @@ import prototype.TimeElapseMeter;
  * https://support.securly.com/hc/en-us/articles/360000881087-How-to-resolve-the-too-many-redirects-error-on-Safari-
  */
 public class HandfulOfEarth {
-
-    public static String[] printArray(double[] d) {
-        DecimalFormat df = new DecimalFormat("#.########");
-        String s[] = new String[d.length];
-        for (int i = 0; i < d.length; i++) {
-            s[i] = df.format(d[i]);
-        }
-
-        return s;
-    }
-
-    // http://www.ai7.uni-bayreuth.de/test_problem_coll.pdf
-    private static int rnd(int a, int b) {
-        if (a == b) {
-            return a;
-        }
-        return ThreadLocalRandom.current().nextInt(Math.min(a, b), Math.max(a, b));
-    }
-
-    public static int counter(int i, int n) {
-        if (i==0) return 0;
-        
-        int r = 0;
-        
-        for (int j = 0;j<i;j++){
-            r+=n-j-1;
-        }
-        
-        return r;
-    }
-    
-    public static void main___(String[] args) {
-        int n = 5;
-        int c = 0;
-        for (int i = 0; i < n - 1; i++) {
-            //System.out.println(i + " " + n + " " + c);
-            System.out.println(i + " " + c+" "+counter(i, n));
-            for (int j = i + 1; j < n; j++) {
-                //System.out.println(i + " " + j + " " + c);
-                c++;
-            }
-        }
-    }
-
-    public static void main____(String[] args) {
-
-        Log.showDebugMessages = true;
-
-        ArrayList<Player> players = new ArrayList<>();
-
-        int rangePlayer[] = {-300, 300, 90, 150};
-        int rangeNavPoint[][] = {
-            //{-200, 200, 0, 40},
-            //{-130, 130, -80, -30},
-            {-290, 290, -200, -150},};
-
-        int SHAPE_SIZE = 10;
-        int np = 50;
-        int nn[] = {1, rangeNavPoint.length + 1};
-        int maxStep[] = {2, 4};
-        double playerScale = 1.d;
-        for (int i = 0; i < np; i++) {
-            Player player = new Player("P" + i, new Vector3D(rnd(rangePlayer[0], rangePlayer[1]), rnd(rangePlayer[2], rangePlayer[3]), 0), rnd((int) SHAPE_SIZE / 2, (int) SHAPE_SIZE) * playerScale, rnd(maxStep[0], maxStep[1]));
-            int n = rnd(nn[0], nn[1]);
-            for (int j = 0; j < n; j++) {
-                int k = j + 1 == n ? rangeNavPoint.length - 1 : j;
-                player.addNavigationPoint(new Vector3D(ThreadLocalRandom.current().nextInt(rangeNavPoint[k][0], rangeNavPoint[k][1]), ThreadLocalRandom.current().nextInt(rangeNavPoint[k][2], rangeNavPoint[k][3]), 0));
-            }
-            players.add(player);
-        }
-
-        /*ObjectsPacker.packPlayerClusters(ObjectsPacker.clusterize(players), true, () -> {
-            Log.info("finished");
-        });*/
-        
-        ArrayList<Player> players2 = new ArrayList<>();
-        players2.addAll(players);
-        
-        TimeElapseMeter tem = new TimeElapseMeter(true);
-        ObjectsPacker.packPlayers(players, true);
-        System.out.println(tem.stopAndGet());
-        
-        tem = new TimeElapseMeter(true);
-        ObjectsPacker.packPlayers2(players2, true);
-        System.out.println(tem.stopAndGet());
-    }
 
     public static void main_(String[] args) throws Exception {
         try {

@@ -13,7 +13,6 @@ public class HttpClient {
     private final String USER_AGENT = "Mozilla/5.0";
     private String response = null;
     private int responseCode = 0;
-    
 
     public int sendGetWithResponse(String url) throws MalformedURLException, IOException {
         return sendGet(url, true);
@@ -47,10 +46,10 @@ public class HttpClient {
         }
 
         responseCode = rc;
-        
+
         return rc;
     }
-    
+
     public boolean isOk() {
         return getResponseCode() == HttpStatus.OK_200;
     }

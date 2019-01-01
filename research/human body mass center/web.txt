@@ -1,0 +1,25 @@
+Magyar nyelvû prezi (egész jó):
+https://slideplayer.hu/slide/2162435/
+
+A Deep Learning Framework for Character Motion Synthesis and Editing:
+http://www.ipab.inf.ed.ac.uk/cgvu/motionsynthesis.pdf
+
+Dynamo: Dynamic, Data-driven Character Control with Adjustable Balance
+https://core.ac.uk/download/pdf/23799433.pdf
+
+Real-Time Physics-Based 3D Biped Character Animation Using an Inverted Pendulum Model
+http://graphics.csie.ncku.edu.tw/IPM/bare_jrnl0629_01.pdf
+
+Center of Mass (egyszerû, de könnyen használható képletek)
+https://www.d.umn.edu/~mlevy/CLASSES/ESAT3300/LABS/LAB8_COM/cm.htm
+
+Center of Mass: Tools and Techniques for Animating Natural Human Movement
+https://www.gamasutra.com/view/feature/4594/center_of_mass_tools_and_.php?print=1
+http://oregonstate.edu/instruct/exss323/CM_Lab/Center%20of%20Mass.htm
+
+DOUBLE INVERTED PENDULUM MODEL OF REACTIVE HUMAN STANCE CONTROL (ez tûnik a legjobbnak)
+https://pdfs.semanticscholar.org/a242/e0ad0d8587756786bc28f6c88f035453b6a1.pdf
+http://calab.hanyang.ac.kr/papers/TOG2017_finaldraft.pdf
+
+    Footsteps generation
+    https://projet.liris.cnrs.fr/m2disco/pub/Congres/2018-EG/issue2/pdf/v37i2pp287-296.pdf
