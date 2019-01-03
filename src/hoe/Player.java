@@ -1,9 +1,21 @@
 package hoe;
 
+import au.edu.federation.caliko.FabrikBone3D;
+import au.edu.federation.caliko.FabrikChain3D;
+import au.edu.federation.caliko.FabrikStructure3D;
+import au.edu.federation.utils.Vec3f;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import hoe.curves.Curve;
 import hoe.curves.CurvePoint;
 import hoe.editor.TimeUtils;
 import hoe.physics.Vector3D;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Player {
 
@@ -22,6 +34,8 @@ public class Player {
     public double step;
     double maxOrientationSpeed = 30;
     double minOrientationSpeed = 15;
+    
+    private final FabrikStructure3D skeleton = new FabrikStructure3D();
 
     public Player(String name, Vector3D position, double radius, double maxStep) {
         this.name = name;
@@ -31,6 +45,7 @@ public class Player {
         this.nextPosition = new CurvePoint(position, 0);
         this.maxStep = maxStep;
         addNavigationPoint();
+        initSkeleton();
     }
 
     public double getOrientationTo() {
@@ -252,4 +267,40 @@ public class Player {
         getPath().appendPoint(p);
     }
 
+    public FabrikStructure3D getSkeleton() {
+        return skeleton;
+    }
+    
+    private void addBone(FabrikChain3D chain, JsonObject bone) {
+        JsonArray headLocalJson = bone.get("head_local").getAsJsonArray();
+        JsonArray tailLocalJson = bone.get("head_local").getAsJsonArray();
+        Vec3f headLocal = new Vec3f(headLocalJson.get(0).getAsFloat(), headLocalJson.get(1).getAsFloat(), headLocalJson.get(2).getAsFloat());
+        Vec3f tailLocal = new Vec3f(tailLocalJson.get(0).getAsFloat(), tailLocalJson.get(1).getAsFloat(), tailLocalJson.get(2).getAsFloat());
+        FabrikBone3D b = new FabrikBone3D(headLocal, tailLocal, bone.get("name").getAsString());
+        chain.addConsecutiveBone(b);
+    }
+
+    private void initSkeleton() {
+
+        // http://www.andreasaristidou.com/FABRIK.html
+        
+        try {
+            
+            JsonParser parser = new JsonParser();
+            JsonObject json = parser.parse(new FileReader("C:/Users/igalambo/Desktop/bones.json")).getAsJsonObject();
+            
+            JsonArray bones = json.get("bones").getAsJsonArray();
+            
+            for (int i = 0; i < bones.size(); i++) {
+                FabrikChain3D chain = new FabrikChain3D();
+                getSkeleton().addChain(chain);
+                JsonObject bone = bones.get(i).getAsJsonObject();
+                System.out.println(bone.get("name"));
+            }
+            
+        } catch (FileNotFoundException ex) {
+            Log.error(ex);
+        }
+    }
+    
 }

@@ -2,6 +2,7 @@ package hoe;
 
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
@@ -57,6 +58,8 @@ public class Log {
             s[i] = df.format(d[i]);
         }
 
+        System.out.println(Arrays.toString(s));
+        
         return s;
     }
 }

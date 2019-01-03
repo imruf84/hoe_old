@@ -4,6 +4,22 @@ import hoe.servers.GameServer;
 import hoe.editor.Editor;
 import hoe.servers.ContentServer;
 import hoe.servers.RedirectServer;
+import hoe.skeleton.Joint;
+import hoe.skeleton.JointChain;
+import java.awt.BasicStroke;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.NoninvertibleTransformException;
+import java.awt.geom.Point2D;
+import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -13,7 +29,12 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.LinkedList;
 import java.util.Properties;
+import javax.swing.ImageIcon;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import org.joml.Vector3d;
 
 /**
  * BUGFIX: Safari (on iOS) has some issues to show redirected images, so it
@@ -22,7 +43,138 @@ import java.util.Properties;
  */
 public class HandfulOfEarth {
 
-    public static void main_(String[] args) throws Exception {
+    public static void main(String[] args) {
+
+        // http://joml-ci.github.io/JOML/
+        JointChain jc = new JointChain();
+        jc.setOffset(new Vector3d(1, -1, 0));
+
+        jc.appendJoint(new Joint(5, 90));
+        jc.appendJoint(new Joint(4, 0));
+        jc.appendJoint(new Joint(3, 0));
+
+        jc.updatePositions();
+        System.out.println(jc.getEndPosition());
+
+        JFrame frame = new JFrame();
+        frame.setLayout(new BorderLayout());
+
+        Dimension size = new Dimension(1200, 800);
+        BufferedImage image = new BufferedImage(size.width, size.height, BufferedImage.TYPE_INT_RGB);
+
+        double scale = 40d;
+
+        JLabel label = new JLabel(new ImageIcon(image));
+
+        Graphics2D g2d = (Graphics2D) image.getGraphics();
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        AffineTransform transform = new AffineTransform();
+        transform.setToIdentity();
+
+        transform.scale(1, -1);
+        transform.translate(size.width / 2, -size.height / 2);
+
+        Runnable render = () -> {
+
+            g2d.setTransform(new AffineTransform());
+            g2d.clearRect(0, 0, size.width, size.height);
+            g2d.setTransform(transform);
+
+            // chain
+            g2d.setStroke(new BasicStroke(2f));
+            g2d.setColor(Color.blue);
+            LinkedList<Vector3d> positions = jc.getPositions(true);
+            for (int i = 0; i < positions.size() - 1; i++) {
+                Vector3d p0 = positions.get(i);
+                Vector3d p1 = positions.get(i + 1);
+                g2d.drawLine((int) (p0.x * scale), (int) (p0.y * scale), (int) (p1.x * scale), (int) (p1.y * scale));
+            }
+
+            // target
+            Vector3d t = jc.getTarget();
+            g2d.setColor(Color.yellow);
+            int s = 4;
+            g2d.drawLine((int) (t.x * scale - s), (int) (t.y * scale), (int) (t.x * scale + s), (int) (t.y * scale));
+            g2d.drawLine((int) (t.x * scale), (int) (t.y * scale - s), (int) (t.x * scale), (int) (t.y * scale + s));
+            
+            // base
+            Vector3d b = jc.getOffset();
+            s*=4;
+            g2d.setColor(Color.pink);
+            g2d.drawLine((int) (b.x * scale - s), (int) (b.y * scale), (int) (b.x * scale + s), (int) (b.y * scale));
+
+            // Axises
+            g2d.setColor(Color.red);
+            g2d.drawLine(0, 0, 10, 0);
+            g2d.setColor(Color.green);
+            g2d.drawLine(0, 0, 0, 10);
+
+            label.updateUI();
+        };
+
+        render.run();
+
+        frame.getContentPane().add(label, BorderLayout.CENTER);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        label.addMouseListener(new MouseListener() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                Point2D p = new Point2D.Double(e.getX(), e.getY());
+
+                try {
+
+                    Point2D q = transform.inverseTransform(p, null);
+                    q.setLocation(q.getX() / scale, q.getY() / scale);
+
+                    jc.setTarget(new Vector3d(q.getX(), q.getY(), 0));
+                    jc.solveTarget();
+                    render.run();
+
+                } catch (NoninvertibleTransformException ex) {
+                }
+
+            }
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+            }
+        });
+        frame.addKeyListener(new KeyListener() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+            }
+
+            @Override
+            public void keyPressed(KeyEvent e) {
+            }
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+                switch (e.getKeyCode()) {
+                    case KeyEvent.VK_ESCAPE:
+                        System.exit(0);
+                }
+            }
+        });
+        frame.pack();
+        frame.setLocationRelativeTo(null);
+        frame.setVisible(true);
+
+    }
+
+    public static void main__(String[] args) throws Exception {
         try {
             String data = "test data";
 
@@ -46,7 +198,7 @@ public class HandfulOfEarth {
         }
     }
 
-    public static void main(String[] args) throws Exception {
+    public static void main_(String[] args) throws Exception {
 
         Properties prop = new Properties();
         prop.load(new BufferedReader(new FileReader(args[0])));

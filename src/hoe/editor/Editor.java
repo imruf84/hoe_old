@@ -1,9 +1,6 @@
 package hoe.editor;
 
 import hoe.Player;
-import au.edu.federation.caliko.FabrikBone2D;
-import au.edu.federation.caliko.FabrikChain2D;
-import au.edu.federation.utils.Vec2f;
 import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.util.gl2.GLUT;
 import com.jogamp.opengl.GLAutoDrawable;
@@ -46,7 +43,8 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
     private final double dRotate[] = new double[]{0, 0};
     private final double translate[] = new double[]{0, 0};
     private final double dTranslate[] = new double[]{0, 0};
-    private double zoom = 5.5;
+    //private double zoom = 5.5;
+    private double zoom = 3;
     private double dZoom = 0;
     private int prog;
     private float colR = 0;
@@ -215,24 +213,6 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
 
     private void addRandomPlayers() {
 
-        // pitch yaw calculation of bones
-        // https://github.com/FedUni/caliko/issues/15
-        // biped walking generation algorith
-        // http://ai.ustc.edu.cn/publication/BIPEDWALKING.pdf
-        Vec2f right = new Vec2f(1, 0);
-        Vec2f target = new Vec2f(15, 12);
-        float boneLenght = 10;
-
-        FabrikChain2D chain = new FabrikChain2D();
-        FabrikBone2D base = new FabrikBone2D(new Vec2f(), right, boneLenght);
-        chain.addBone(base);
-        chain.addConsecutiveBone(right, boneLenght);
-        chain.addConsecutiveBone(right, boneLenght);
-
-        System.out.println(chain.toString() + " " + chain.getBone(2));
-        chain.solveForTarget(target);
-        System.out.println(chain.toString() + " " + chain.getBone(2));
-
         players.clear();
 
         //int rangePlayer[] = {-50, 50, -5, 5};
@@ -259,6 +239,11 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
             player.initOrientation();
             players.add(player);
         }
+        
+        VPlayer player = new VPlayer("p", new Vector3D(), 5, 4);
+        player.addNavigationPoint(new Vector3D());
+        player.initOrientation();
+        //players.add(player);
 
     }
 
