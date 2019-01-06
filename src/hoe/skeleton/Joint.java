@@ -9,17 +9,40 @@ public class Joint {
     private double length;
     private Joint next = null;
     private Joint prev = null;
+    private double minAngle = -360;
+    private double maxAngle = 360;
     private final Vector3d tail = new Vector3d();
 
-    public Joint(double length, double angle) {
-        this(length, angle, null);
-    }
 
-    public Joint(double length, double angle, Joint parent) {
+    public Joint(double length, double angle, double minAngle, double maxAngle) {
+        this(length, angle);
+        setAngleLimits(minAngle, maxAngle);
+    }
+    
+    private void setAngleLimits(double min, double max) {
+        setMinAngle(Math.min(min, max));
+        setMaxAngle(Math.max(min, max));
+    }
+    
+    public Joint(double length, double angle) {
         this.length = length;
         this.angle = angle;
+    }
 
-        setParent(parent);
+    public double getMinAngle() {
+        return minAngle;
+    }
+
+    public final void setMinAngle(double minAngle) {
+        this.minAngle = minAngle;
+    }
+
+    public double getMaxAngle() {
+        return maxAngle;
+    }
+
+    public final void setMaxAngle(double maxAngle) {
+        this.maxAngle = maxAngle;
     }
 
     private void setParent(Joint parent) {
@@ -41,10 +64,6 @@ public class Joint {
 
     public double getLength() {
         return length;
-    }
-
-    public void setLength(double length) {
-        this.length = length;
     }
 
     public Joint getNext() {

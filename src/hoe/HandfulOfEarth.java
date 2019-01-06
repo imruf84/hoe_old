@@ -1,11 +1,16 @@
 package hoe;
 
+import au.edu.federation.caliko.FabrikBone2D;
+import au.edu.federation.caliko.FabrikChain2D;
+import au.edu.federation.caliko.FabrikStructure2D;
+import au.edu.federation.utils.Vec2f;
 import hoe.servers.GameServer;
 import hoe.editor.Editor;
 import hoe.servers.ContentServer;
 import hoe.servers.RedirectServer;
 import hoe.skeleton.Joint;
 import hoe.skeleton.JointChain;
+import hoe.skeleton.Skeleton;
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -16,6 +21,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
@@ -34,6 +40,7 @@ import java.util.Properties;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.SwingUtilities;
 import org.joml.Vector3d;
 
 /**
@@ -43,26 +50,93 @@ import org.joml.Vector3d;
  */
 public class HandfulOfEarth {
 
+    public static FabrikStructure2D cloneStructure(FabrikStructure2D src) {
+
+        FabrikStructure2D result = new FabrikStructure2D();
+
+        for (int i = 0; i < src.getNumChains(); i++) {
+            FabrikChain2D chain = src.getChain(i);
+
+            result.addChain(new FabrikChain2D(chain));
+        }
+
+        return result;
+    }
+
+    public static void copyBonePositions(FabrikStructure2D from, FabrikStructure2D to) {
+
+        for (int i = 0; i < from.getNumChains(); i++) {
+            FabrikChain2D chainFrom = from.getChain(i);
+            FabrikChain2D chainTo = to.getChain(i);
+
+            for (int j = 0; j < chainFrom.getNumBones(); j++) {
+                FabrikBone2D boneFrom = chainFrom.getBone(j);
+                FabrikBone2D boneTo = chainTo.getBone(j);
+                boneTo.setStartLocation(boneFrom.getStartLocation());
+                boneTo.setEndLocation(boneFrom.getEndLocation());
+            }
+        }
+
+    }
+    
+    public static void main___(String[] args) {
+        Vector3d A = new Vector3d(-1,2,4);
+        Vector3d B = new Vector3d(4,-5,-1);
+        Vector3d C = new Vector3d(5,4,6);
+        Vector3d P = new Vector3d();
+        
+        Vector3d AB=B.sub(A,new Vector3d());
+        Vector3d AC=C.sub(A,new Vector3d());
+        Vector3d n = AB.cross(AC).normalize();
+        double D = -n.dot(A);
+        double d = Math.abs(n.dot(P)+D);
+        
+        System.out.println(d);
+    }
+
     public static void main(String[] args) {
 
         // http://joml-ci.github.io/JOML/
-        JointChain jc = new JointChain();
+        /*JointChain jc = new JointChain();
         jc.setOffset(new Vector3d(1, -1, 0));
 
-        jc.appendJoint(new Joint(5, 90));
-        jc.appendJoint(new Joint(4, 0));
-        jc.appendJoint(new Joint(3, 0));
+        jc.appendJoint(new Joint(5, 90, 180, 90));
+        jc.appendJoint(new Joint(4, 0, 0, 90));
+        jc.appendJoint(new Joint(2, 0, 0, 60));
 
-        jc.updatePositions();
-        System.out.println(jc.getEndPosition());
+        jc.updatePositions();*/
+        
+        Skeleton skeleton = new Skeleton();
 
+        float restLength = 4;
+
+        FabrikStructure2D struct = new FabrikStructure2D();
+        FabrikChain2D chain1 = new FabrikChain2D();
+        chain1.setEmbeddedTargetMode(true);
+        chain1.setFixedBaseMode(false);
+        chain1.addBone(new FabrikBone2D(new Vec2f(-restLength / 2f, 0), new Vec2f(-1, 0).rotateRads((float) Math.toRadians(50)), 5));
+        chain1.addConsecutiveBone(new Vec2f(-1, 0).rotateRads((float) Math.toRadians(70)), 5);
+        struct.addChain(chain1);
+        chain1.updateEmbeddedTarget(chain1.getEffectorLocation());
+
+        FabrikChain2D chain2 = new FabrikChain2D();
+        chain2.setEmbeddedTargetMode(true);
+        chain2.setFixedBaseMode(false);
+        chain2.addBone(new FabrikBone2D(new Vec2f(restLength / 2f, 0), new Vec2f(1, 0), 5));
+        chain2.addConsecutiveBone(new Vec2f(1, 0), 5);
+        struct.addChain(chain2);
+        chain2.updateEmbeddedTarget(chain2.getEffectorLocation());
+
+        FabrikStructure2D structClone = cloneStructure(struct);
+
+        //struct.c
         JFrame frame = new JFrame();
         frame.setLayout(new BorderLayout());
 
         Dimension size = new Dimension(1200, 800);
         BufferedImage image = new BufferedImage(size.width, size.height, BufferedImage.TYPE_INT_RGB);
 
-        double scale = 40d;
+        double scale = 20d;
 
         JLabel label = new JLabel(new ImageIcon(image));
 
@@ -80,29 +154,19 @@ public class HandfulOfEarth {
             g2d.clearRect(0, 0, size.width, size.height);
             g2d.setTransform(transform);
 
-            // chain
-            g2d.setStroke(new BasicStroke(2f));
-            g2d.setColor(Color.blue);
-            LinkedList<Vector3d> positions = jc.getPositions(true);
-            for (int i = 0; i < positions.size() - 1; i++) {
-                Vector3d p0 = positions.get(i);
-                Vector3d p1 = positions.get(i + 1);
-                g2d.drawLine((int) (p0.x * scale), (int) (p0.y * scale), (int) (p1.x * scale), (int) (p1.y * scale));
-            }
+            skeleton.render(g2d, scale);
 
-            // target
-            Vector3d t = jc.getTarget();
-            g2d.setColor(Color.yellow);
-            int s = 4;
+            /*t = chain2.getLastTargetLocation();
+            s -= 3;
+            g2d.setColor(Color.orange);
             g2d.drawLine((int) (t.x * scale - s), (int) (t.y * scale), (int) (t.x * scale + s), (int) (t.y * scale));
-            g2d.drawLine((int) (t.x * scale), (int) (t.y * scale - s), (int) (t.x * scale), (int) (t.y * scale + s));
-            
+            g2d.drawLine((int) (t.x * scale), (int) (t.y * scale - s), (int) (t.x * scale), (int) (t.y * scale + s));*/
+
             // base
-            Vector3d b = jc.getOffset();
+            /*Vector3d b = jc.getOffset();
             s*=4;
             g2d.setColor(Color.pink);
-            g2d.drawLine((int) (b.x * scale - s), (int) (b.y * scale), (int) (b.x * scale + s), (int) (b.y * scale));
-
+            g2d.drawLine((int) (b.x * scale - s), (int) (b.y * scale), (int) (b.x * scale + s), (int) (b.y * scale));*/
             // Axises
             g2d.setColor(Color.red);
             g2d.drawLine(0, 0, 10, 0);
@@ -119,20 +183,52 @@ public class HandfulOfEarth {
         label.addMouseListener(new MouseListener() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                Point2D p = new Point2D.Double(e.getX(), e.getY());
+                /*Point2D p = new Point2D.Float(e.getX(), e.getY());
 
                 try {
 
                     Point2D q = transform.inverseTransform(p, null);
                     q.setLocation(q.getX() / scale, q.getY() / scale);
 
-                    jc.setTarget(new Vector3d(q.getX(), q.getY(), 0));
+                    if (SwingUtilities.isLeftMouseButton(e)) {
+                        chain1.updateEmbeddedTarget(new Vec2f((float) q.getX(), (float) q.getY()));
+                        jc.setTarget(new Vector3d(q.getX(), q.getY(), 0));
+                    }
+                    if (SwingUtilities.isRightMouseButton(e)) {
+                        chain2.updateEmbeddedTarget(new Vec2f((float) q.getX(), (float) q.getY()));
+                    }
+                    
                     jc.solveTarget();
+
+                    
+                    copyBonePositions(structClone, struct);
+
+                    chain1.setFixedBaseMode(!true);
+                    chain2.setFixedBaseMode(!true);
+                    struct.solveForTarget(new Vec2f());
+
+                    Vec2f v1 = new Vec2f(chain1.getBaseLocation());
+                    Vec2f v2 = new Vec2f(chain2.getBaseLocation());
+
+                    Vec2f delta = new Vec2f(v1).minus(v2);
+                    double deltalength = delta.length();
+
+                    double diff = (deltalength - restLength) / deltalength;
+                    delta = delta.times(.5f * (float) diff);
+
+                    chain1.setBaseLocation(v1.minus(delta));
+                    chain2.setBaseLocation(v2.plus(delta));
+                    chain1.setFixedBaseMode(true);
+                    chain2.setFixedBaseMode(true);
+
+                    struct.solveForTarget(new Vec2f());
+
+                    //System.out.println(v1+" "+v2+" "+v1.minus(v2).length());
+                    //}
                     render.run();
 
                 } catch (NoninvertibleTransformException ex) {
-                }
-
+                }*/
             }
 
             @Override
@@ -149,6 +245,38 @@ public class HandfulOfEarth {
 
             @Override
             public void mouseExited(MouseEvent e) {
+            }
+        });
+        
+        label.addMouseMotionListener(new MouseMotionListener() {
+            @Override
+            public void mouseDragged(MouseEvent e) {
+
+                Point2D p = new Point2D.Float(e.getX(), e.getY());
+
+                try {
+
+                    Point2D q = transform.inverseTransform(p, null);
+                    q.setLocation(q.getX() / scale, q.getY() / scale);
+
+                    if (SwingUtilities.isLeftMouseButton(e)) {
+                        skeleton.getLeftArm().setTarget(new Vector3d(q.getX(), q.getY(), 0));
+                    }
+                    
+                    if (SwingUtilities.isRightMouseButton(e)) {
+                        skeleton.getRightArm().setTarget(new Vector3d(q.getX(), q.getY(), 0));
+                    }
+
+                    skeleton.solveTarget();
+                    render.run();
+                } catch (NoninvertibleTransformException ex) {
+
+                }
+
+            }
+
+            @Override
+            public void mouseMoved(MouseEvent e) {
             }
         });
         frame.addKeyListener(new KeyListener() {
@@ -172,6 +300,10 @@ public class HandfulOfEarth {
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
 
+    }
+    
+    private void updateChainAndRender(MouseEvent e) {
+        
     }
 
     public static void main__(String[] args) throws Exception {

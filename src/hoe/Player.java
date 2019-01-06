@@ -5,7 +5,6 @@ import au.edu.federation.caliko.FabrikChain3D;
 import au.edu.federation.caliko.FabrikStructure3D;
 import au.edu.federation.utils.Vec3f;
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import hoe.curves.Curve;
@@ -14,8 +13,6 @@ import hoe.editor.TimeUtils;
 import hoe.physics.Vector3D;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class Player {
 
@@ -295,7 +292,7 @@ public class Player {
                 FabrikChain3D chain = new FabrikChain3D();
                 getSkeleton().addChain(chain);
                 JsonObject bone = bones.get(i).getAsJsonObject();
-                System.out.println(bone.get("name"));
+                //System.out.println(bone.get("name"));
             }
             
         } catch (FileNotFoundException ex) {
