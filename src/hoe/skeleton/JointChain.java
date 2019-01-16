@@ -1,10 +1,8 @@
 package hoe.skeleton;
 
-import hoe.Log;
 import hoe.nonlinear.Calcfc;
 import hoe.nonlinear.Cobyla;
 import hoe.nonlinear.CobylaExitStatus;
-import java.awt.event.MouseEvent;
 import java.util.LinkedList;
 import org.joml.Vector3d;
 
@@ -147,16 +145,16 @@ public class JointChain {
                 c[2 * i + 1] = calculateBoundsCondition(x[i], 0, diffl, diffh)[1];*/
                 
                 Joint j = getJoint(i);
-                /*double init = (j.getMaxAngle()+j.getMinAngle())/2d;
-                double diff = (j.getMaxAngle()-j.getMinAngle())/2d;
+                /*double init = (j.getMaxAngle1()+j.getMinAngle1())/2d;
+                double diff = (j.getMaxAngle1()-j.getMinAngle1())/2d;
                 c[2 * i + 0] = calculateBoundsCondition(x[i], init, diff, diff)[0];
                 c[2 * i + 1] = calculateBoundsCondition(x[i], init, diff, diff)[1];*/
 
-                /*c[2*i+0]=j.getMaxAngle()-x[i];
-                c[2*i+1]=x[i]-j.getMinAngle();*/
+                /*c[2*i+0]=j.getMaxAngle1()-x[i];
+                c[2*i+1]=x[i]-j.getMinAngle1();*/
                 
-                c[ci++]=j.getMaxAngle()-x[i];
-                c[ci++]=x[i]-j.getMinAngle();
+                c[ci++]=j.getMaxAngle1()-x[i];
+                c[ci++]=x[i]-j.getMinAngle1();
                 
                 //c[2*i+0]=30-x[i];
                 //c[2*i+1]=x[i]-(-30);

@@ -21,7 +21,7 @@ public class ContentServer extends AbstractServer {
     @Override
     public void start() throws Exception {
         super.start();
-        Log.info("Content server is listening at port " + getPort() + "...");
+        Log.info("Content server is listening on port " + getPort() + "...");
     }
 
 }

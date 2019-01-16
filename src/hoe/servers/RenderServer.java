@@ -21,7 +21,7 @@ public class RenderServer extends AbstractServer {
     @Override
     public void start() throws Exception {
         super.start();
-        Log.info("Render server is listening at port " + getPort() + "...");
+        Log.info("Render server is listening on port " + getPort() + "...");
     }
 
 }

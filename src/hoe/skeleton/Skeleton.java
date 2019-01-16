@@ -8,14 +8,15 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.util.ArrayList;
 import java.util.LinkedList;
+import org.joml.Intersectiond;
 import org.joml.Vector3d;
 
 public class Skeleton {
 
     private final JointChain leftArm = new JointChain();
     private final JointChain rightArm = new JointChain();
-    private final double dist;
-    private final int iterations = 20;
+    private double shouldersDistanceGoal;
+    private final int iterations = 5;
 
     public Skeleton() {
         leftArm.appendJoint(new Joint(5, 90 + 30));
@@ -30,14 +31,22 @@ public class Skeleton {
         updatePositions();
         rightArm.setTarget(rightArm.getEndPosition());
 
-        dist = getLeftArm().getJoint(0).getTail().distance(getRightArm().getJoint(0).getTail());
+        setShouldersDistanceGoal(getLeftArm().getJoint(0).getTail().distance(getRightArm().getJoint(0).getTail()));
     }
 
-    public JointChain getLeftArm() {
+    public double getShouldersDistanceGoal() {
+        return shouldersDistanceGoal;
+    }
+
+    public final void setShouldersDistanceGoal(double shouldersDistanceGoal) {
+        this.shouldersDistanceGoal = shouldersDistanceGoal;
+    }
+
+    public final JointChain getLeftArm() {
         return leftArm;
     }
 
-    public JointChain getRightArm() {
+    public final JointChain getRightArm() {
         return rightArm;
     }
 
@@ -75,9 +84,9 @@ public class Skeleton {
     }
 
     public void render(Graphics2D g2d, double scale) {
-        
+
         g2d.setStroke(new BasicStroke(2f));
-        
+
         // arms
         g2d.setColor(Color.green);
         LinkedList<Vector3d> positions = getLeftArm().getPositions(true);
@@ -86,7 +95,7 @@ public class Skeleton {
             Vector3d p1 = positions.get(i + 1);
             g2d.drawLine((int) (p0.x * scale), (int) (p0.y * scale), (int) (p1.x * scale), (int) (p1.y * scale));
         }
-        
+
         g2d.setColor(Color.blue);
         positions = getRightArm().getPositions(true);
         for (int i = 0; i < positions.size() - 1; i++) {
@@ -94,12 +103,12 @@ public class Skeleton {
             Vector3d p1 = positions.get(i + 1);
             g2d.drawLine((int) (p0.x * scale), (int) (p0.y * scale), (int) (p1.x * scale), (int) (p1.y * scale));
         }
-        
+
         // shoulders distance
         g2d.setColor(Color.orange);
         Vector3d p0 = getLeftShoulderPosition();
         Vector3d p1 = getRightShoulderPosition();
-            g2d.drawLine((int) (p0.x * scale), (int) (p0.y * scale), (int) (p1.x * scale), (int) (p1.y * scale));
+        g2d.drawLine((int) (p0.x * scale), (int) (p0.y * scale), (int) (p1.x * scale), (int) (p1.y * scale));
 
         // targets
         int s = 6;
@@ -114,6 +123,27 @@ public class Skeleton {
         g2d.drawLine((int) (t.x * scale), (int) (t.y * scale - s), (int) (t.x * scale), (int) (t.y * scale + s));
     }
 
+    public void solveDistanceConstraint(Vector3d v1, Vector3d v2, double d) {
+        Vector3d delta = v1.sub(v2, new Vector3d());
+        double deltalength = delta.length();
+
+        double diff = (deltalength - d) / deltalength;
+        delta = delta.mul(.5d * diff);
+
+        v1.sub(delta);
+        v2.add(delta);
+    }
+
+    public double distancePointAndPlane(Vector3d A, Vector3d B, Vector3d C, Vector3d P) {
+        Vector3d AB = B.sub(A, new Vector3d());
+        Vector3d AC = C.sub(A, new Vector3d());
+        Vector3d N = AB.cross(AC).normalize();
+        double D = -N.dot(A);
+        double d = Math.abs(N.dot(P) + D);
+
+        return d;
+    }
+
     public void solveTarget() {
 
         final double rhobeg = 0.5;
@@ -124,6 +154,8 @@ public class Skeleton {
         Calcfc calcfc = (int n, int m, double[] x, double[] c) -> {
 
             int xi = 0;
+
+            // update joints
             for (int i = 0; i < getLeftArm().size(); i++) {
                 getLeftArm().getJoint(i).setAngle(x[xi++]);
             }
@@ -132,57 +164,35 @@ public class Skeleton {
                 getRightArm().getJoint(i).setAngle(x[xi++]);
             }
 
+            getLeftArm().setOffset(new Vector3d(x[xi++], x[xi++], 0));
+            getRightArm().setOffset(new Vector3d(x[xi++], x[xi++], 0));
+
             updatePositions();
             int ci = 0;
-            /*for (int i = 0; i < getLeftArm().size(); i++) {
+            for (int i = 0; i < getLeftArm().size(); i++) {
                 
                 Joint j = getLeftArm().getJoint(i);
-                c[ci++]=j.getMaxAngle()-x[i];
-                c[ci++]=x[i]-j.getMinAngle();
-            }*/
+                c[ci++]=j.getMaxAngle1()-x[i];
+                c[ci++]=x[i]-j.getMinAngle1();
+            }
 
             double sum = 0;
 
             // fixed distance of shoulders
-            double sdc = c[ci++] = dist-getShouldersDistance();
+            double sdc = c[ci++] = shouldersDistanceGoal - getShouldersDistance();
             c[ci++] = -sdc;
-            
-            /*Vector3d v1 = new Vector3d(getLeftShoulderPosition());
-            Vector3d v2 = new Vector3d(getRightShoulderPosition());
 
-            Vector3d delta = v1.sub(v2, new Vector3d());
-            double deltalength = delta.length();
-
-            double diff = (deltalength - dist) / deltalength;
-            delta = delta.mul(.5d * diff);*/
-
+            //solveDistanceConstraint(getLeftShoulderPosition(), getRightShoulderPosition(), getShouldersDistanceGoal());
             // elbows coplanarity
             Vector3d leftElbowTarget = new Vector3d(-20, 0, 0);
             Vector3d rightElbowTarget = new Vector3d(20, 0, 0);
 
-            Vector3d A = getLeftShoulderPosition();
-            Vector3d B = leftElbowTarget;
-            Vector3d C = getLeftWristPosition();
-            Vector3d P = getLeftElbowPosition();
-
-            Vector3d AB = B.sub(A, new Vector3d());
-            Vector3d AC = C.sub(A, new Vector3d());
-            Vector3d N = AB.cross(AC).normalize();
-            double D = -N.dot(A);
-            double d = Math.abs(N.dot(P) + D);
+            //Intersectiond.distancePointPlane(...)
+            double d = distancePointAndPlane(getLeftShoulderPosition(), leftElbowTarget, getLeftWristPosition(), getLeftElbowPosition());
             c[ci++] = d;
             c[ci++] = -d;
 
-            A = getRightShoulderPosition();
-            B = rightElbowTarget;
-            C = getRightWristPosition();
-            P = getRightElbowPosition();
-
-            AB = B.sub(A, new Vector3d());
-            AC = C.sub(A, new Vector3d());
-            N = AB.cross(AC).normalize();
-            D = -N.dot(A);
-            d = Math.abs(N.dot(P) + D);
+            d = distancePointAndPlane(getRightShoulderPosition(), rightElbowTarget, getRightWristPosition(), getRightElbowPosition());
             c[ci++] = d;
             c[ci++] = -d;
 
@@ -203,6 +213,15 @@ public class Skeleton {
             d = seCsw.dot(setCsw);
             c[ci++] = d;
 
+            // root
+            d = c[ci++] = getLeftArm().getOffset().distance(getRightArm().getOffset());
+            c[ci++] = -d;
+
+            Vector3d v = getLeftArm().getOffset().add(getRightArm().getOffset(), new Vector3d()).mul(.5d);
+            //c[ci++] = v.y;
+            //c[ci++] = -v.y;
+
+            // objective function (minimize the distance from targets)
             sum += getLeftWristPosition().distanceSquared(getLeftArm().getTarget());
             sum += getRightWristPosition().distanceSquared(getRightArm().getTarget());
 
@@ -211,6 +230,7 @@ public class Skeleton {
 
         ArrayList<Double> X = new ArrayList<>();
 
+        // arms
         for (Joint j : getLeftArm().getJoints()) {
             X.add(j.getAngle());
         }
@@ -219,19 +239,25 @@ public class Skeleton {
             X.add(j.getAngle());
         }
 
+        // root
+        X.add(getLeftArm().getOffset().x);
+        X.add(getLeftArm().getOffset().y);
+        X.add(getRightArm().getOffset().x);
+        X.add(getRightArm().getOffset().y);
         double x[] = new double[X.size()];
         for (int i = 0; i < x.length; i++) {
             x[i] = X.get(i);
         }
 
         CobylaExitStatus result = null;
-        //int nc = X.size() * 2;
-        int nc = 8;
+        int nc = X.size() * 2+2+4;
+        //int nc = 8 + 2 + 4;
         for (int i = 0; i < iterations; i++) {
             result = Cobyla.FindMinimum(calcfc, x.length, nc, x, rhobeg, rhoend, iprint, maxfun);
         }
-        //System.out.println(result.toString());
 
+        //updatePositions();
+        //System.out.println(result.toString());
         //Log.printArray(x);
     }
 

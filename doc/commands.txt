@@ -18,3 +18,16 @@ wicd-curses
 
 banana pi m2 zero working image:
 https://github.com/avafinger/bananapi-zero-ubuntu-base-minimal
+
+nanopi working image:
+https://drive.google.com/drive/folders/133PDMXo7EU5AnVxeP-JAGLt_OqYd4aFE (eflasher 3.4)
+eflasher
+
+nanopi wifi setup:
+http://wiki.friendlyarm.com/wiki/index.php/Use_NetworkManager_to_configure_network_settings
+sudo nmcli dev
+sudo nmcli r wifi on
+sudo nmcli dev wifi
+sudo nmcli dev wifi connect "SSID" password "PASSWORD"
+vagy
+sudo nmtui

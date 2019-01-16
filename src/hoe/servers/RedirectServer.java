@@ -27,7 +27,7 @@ public class RedirectServer extends AbstractServer {
     @Override
     public void start() throws Exception {
         super.start();
-        Log.info("Redirect server is listening at port " + getPort() + "...");
+        Log.info("Redirect server is listening on port " + getPort() + "...");
     }
 
     public LinkedList<String> getClients() {

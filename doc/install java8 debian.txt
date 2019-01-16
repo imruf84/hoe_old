@@ -1,3 +1,12 @@
+FONTOS!!!!
+nanopi neo air-on nem lehet telepíteni, helyette ez kell:
+
+sudo apt-get install openjdk-8-jdk
+
+
+
+Oracle java 8:
+
 https://tecadmin.net/install-java-8-on-debian/
 
 nano /etc/apt/sources.list.d/java-8-debian.list
@@ -11,6 +20,8 @@ apt-key adv --keyserver keyserver.ubuntu.com --recv-keys EEA14886
 apt-get update
 
 apt-get install oracle-java8-installer
+
+sudo apt install software-properties-common
 
 add-apt-repository -r ppa:webupd8team/java
 apt-get install software-properties-common

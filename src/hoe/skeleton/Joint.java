@@ -5,44 +5,44 @@ import org.joml.Vector3d;
 
 public class Joint {
 
-    private double angle;
+    private double angle1;
     private double length;
     private Joint next = null;
     private Joint prev = null;
-    private double minAngle = -360;
-    private double maxAngle = 360;
+    private double minAngle1 = -360;
+    private double maxAngle1 = 360;
     private final Vector3d tail = new Vector3d();
 
 
-    public Joint(double length, double angle, double minAngle, double maxAngle) {
-        this(length, angle);
-        setAngleLimits(minAngle, maxAngle);
+    public Joint(double length, double angle1, double minAngle1, double maxAngle1) {
+        this(length, angle1);
+        setAngle1Limits(minAngle1, maxAngle1);
     }
     
-    private void setAngleLimits(double min, double max) {
-        setMinAngle(Math.min(min, max));
-        setMaxAngle(Math.max(min, max));
+    private void setAngle1Limits(double min, double max) {
+        setMinAngle1(Math.min(min, max));
+        setMaxAngle1(Math.max(min, max));
     }
     
     public Joint(double length, double angle) {
         this.length = length;
-        this.angle = angle;
+        this.angle1 = angle;
     }
 
-    public double getMinAngle() {
-        return minAngle;
+    public double getMinAngle1() {
+        return minAngle1;
     }
 
-    public final void setMinAngle(double minAngle) {
-        this.minAngle = minAngle;
+    public final void setMinAngle1(double minAngle) {
+        this.minAngle1 = minAngle;
     }
 
-    public double getMaxAngle() {
-        return maxAngle;
+    public double getMaxAngle1() {
+        return maxAngle1;
     }
 
-    public final void setMaxAngle(double maxAngle) {
-        this.maxAngle = maxAngle;
+    public final void setMaxAngle1(double maxAngle) {
+        this.maxAngle1 = maxAngle;
     }
 
     private void setParent(Joint parent) {
@@ -55,11 +55,11 @@ public class Joint {
     }
 
     public double getAngle() {
-        return angle;
+        return angle1;
     }
 
     public void setAngle(double angle) {
-        this.angle = angle;
+        this.angle1 = angle;
     }
 
     public double getLength() {

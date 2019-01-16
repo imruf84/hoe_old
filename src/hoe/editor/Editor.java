@@ -28,6 +28,8 @@ import hoe.nonlinear.ObjectsPacker;
 import org.joml.Matrix4d;
 import org.joml.Vector3d;
 import hoe.physics.Vector3D;
+import java.text.DecimalFormat;
+import org.joml.Intersectiond;
 
 public class Editor implements GLEventListener, MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
 
@@ -36,7 +38,10 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
 
     int viewport[] = new int[4];
     double projection[] = new double[16];
+    Matrix4d projMatrix = new Matrix4d();
     double panUnits[] = {1, 1};
+
+    private final ArrayList<Vector3d> points = new ArrayList<>();
 
     //private final double rotate[] = new double[]{100, 0};//full top view
     private final double rotate[] = new double[]{0, 0};
@@ -63,8 +68,6 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
 
         final GL2 gl = drawable.getGL().getGL2();
 
-        GLQueue.getInstance().execute(gl);
-
         gl.glShadeModel(GL2.GL_SMOOTH);
         gl.glClearColor(0f, 0f, 0f, 0f);
         gl.glClearDepth(1.0f);
@@ -90,11 +93,14 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
         gl.glRotated(rotate[0], 1, 0, 0);
         gl.glRotated(rotate[1], 0, 0, 1);
 
-        getMatrices(gl);
+        //getMatrices(gl);
 
         // Render scene.
         gl.glMatrixMode(GL2.GL_MODELVIEW);
         gl.glLoadIdentity();
+        
+        // Execute OGL specific events.
+        GLQueue.getInstance().execute(gl);
 
         gl.glUseProgram(prog);
         int col = gl.glGetUniformLocation(prog, "col");
@@ -137,6 +143,9 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
         gl.glEnd();
         gl.glEnable(GL2.GL_DEPTH_TEST);
         gl.glEnable(GL2.GL_LIGHTING);
+
+        // Rendering points.
+        renderPoints(gl);
 
         // Rendering log messages.
         renderLogMessages(gl);
@@ -211,6 +220,31 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
         gl.glPopMatrix();
     }
 
+    private void renderPoints(GL2 gl) {
+        gl.glPushMatrix();
+
+        gl.glUseProgram(0);
+        gl.glDisable(GL2.GL_LIGHTING);
+
+        gl.glPointSize(10);
+        int i = 0;
+        for (Vector3d p : points) {
+            gl.glColor3f(1.0f, 1.0f, 1.0f);
+            gl.glBegin(GL2.GL_POINTS);
+            gl.glVertex3f((float) p.x, (float) p.y, (float) p.z);
+            gl.glEnd();
+
+            gl.glPushMatrix();
+            gl.glLoadIdentity();
+            float s = (float) (zoom) * .1f;
+            gl.glColor3f(1f, .3882f, .0157f);
+            gl.glRasterPos3f((float) p.x + s, (float) p.y + s, (float) p.z + s);
+            glut.glutBitmapString(GLUT.BITMAP_8_BY_13, "" + i++);
+            gl.glPopMatrix();
+        }
+
+    }
+
     private void addRandomPlayers() {
 
         players.clear();
@@ -237,13 +271,18 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
             }
             player.setOrientation(rnd(0, 360));
             player.initOrientation();
-            players.add(player);
+            //players.add(player);
         }
-        
+
         VPlayer player = new VPlayer("p", new Vector3D(), 5, 4);
         player.addNavigationPoint(new Vector3D());
         player.initOrientation();
-        //players.add(player);
+        players.add(player);
+
+        // Add points.
+        points.add(new Vector3d(2, 0, 0));
+        points.add(new Vector3d(0, 2, 0));
+        points.add(new Vector3d(0, 0, 2));
 
     }
 
@@ -257,6 +296,7 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
     private void getMatrices(GL2 gl) {
         gl.glGetDoublev(GL2.GL_PROJECTION_MATRIX, projection, 0);
         gl.glGetIntegerv(GL2.GL_VIEWPORT, viewport, 0);
+        projMatrix.set(projection[0], projection[1], projection[2], projection[3], projection[4], projection[5], projection[6], projection[7], projection[8], projection[9], projection[10], projection[11], projection[12], projection[13], projection[14], projection[15]);
     }
 
     @Override
@@ -322,12 +362,27 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
         prev = new int[]{e.getX(), e.getY()};
 
         GLQueue.getInstance().add((GL2 gl) -> {
-
+            getMatrices(gl);
+            
+            Matrix4d m = new Matrix4d().rotate(Math.toRadians(180), 0, 0, 1).scale(1/zoom).translate(translate[0], translate[1], 0).rotate(Math.toRadians(rotate[0]), 1, 0, 0).rotate(Math.toRadians(rotate[1]), 0, 0, 1).invert();
+            Vector3d p = m.transformPosition(new Vector3d(0,1,1));
+            Vector3d o = m.transformPosition(new Vector3d(0,0,0));
+            Vector3d pp = projMatrix.invert().transformPosition(new Vector3d(0,0,0));
+            
+            DecimalFormat df = new DecimalFormat("#.######");
+            System.out.println(df.format(p.x)+","+df.format(p.y)+","+df.format(p.z));
+            System.out.println(df.format(pp.x)+","+df.format(pp.y)+","+df.format(pp.z));
+            System.out.println(df.format(p.x-o.x)+","+df.format(p.y-o.y)+","+df.format(p.z-o.z));
+            System.out.println("------------------");
+            
         });
     }
 
     @Override
     public void mouseReleased(MouseEvent e) {
+
+        //System.out.println(e.getPoint());
+
         prev = null;
     }
 
@@ -363,13 +418,16 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
         // Pan camera.
         if ((SwingUtilities.isMiddleMouseButton(e) && !e.isShiftDown()) || (e.isShiftDown() && SwingUtilities.isRightMouseButton(e))) {
 
-            Matrix4d m = new Matrix4d(projection[0], projection[1], projection[2], projection[3], projection[4], projection[5], projection[6], projection[7], projection[8], projection[9], projection[10], projection[11], projection[12], projection[13], projection[14], projection[15]);
-            Vector3d p0 = m.unproject(0, 0, 0, viewport, new Vector3d());
-            Vector3d p1 = m.unproject(1, 0, 0, viewport, new Vector3d());
-            Vector3d p2 = m.unproject(0, 1 / Math.sin(Math.PI / 4d), 0, viewport, new Vector3d());
+            GLQueue.getInstance().add((GL2 gl) -> {
+                getMatrices(gl);
+                Vector3d p0 = projMatrix.unproject(0, 0, 0, viewport, new Vector3d());
+                Vector3d p1 = projMatrix.unproject(1, 0, 0, viewport, new Vector3d());
+                Vector3d p2 = projMatrix.unproject(0, 1 / Math.sin(Math.PI / 4d), 0, viewport, new Vector3d());
 
-            translate[0] += dx * new Vector3d(p0).sub(p1).length();
-            translate[1] -= dy * new Vector3d(p0).sub(p2).length();
+                translate[0] += dx * new Vector3d(p0).sub(p1).length();
+                translate[1] -= dy * new Vector3d(p0).sub(p2).length();
+            });
+
             return;
         }
 
