@@ -25,32 +25,28 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.swing.SwingUtilities;
 import hoe.nonlinear.ObjectsPacker;
-import org.joml.Matrix4d;
 import org.joml.Vector3d;
 import hoe.physics.Vector3D;
+import hoe.renderer.Camera;
 import java.text.DecimalFormat;
 import org.joml.Intersectiond;
+import org.joml.Vector4d;
 
 public class Editor implements GLEventListener, MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
 
     private final GLU glu = new GLU();
     private final GLUT glut = new GLUT();
 
-    int viewport[] = new int[4];
-    double projection[] = new double[16];
-    Matrix4d projMatrix = new Matrix4d();
     double panUnits[] = {1, 1};
+
+    private final Camera camera = new Camera();
 
     private final ArrayList<Vector3d> points = new ArrayList<>();
 
-    //private final double rotate[] = new double[]{100, 0};//full top view
-    private final double rotate[] = new double[]{0, 0};
     private final double dRotate[] = new double[]{0, 0};
-    private final double translate[] = new double[]{0, 0};
     private final double dTranslate[] = new double[]{0, 0};
-    //private double zoom = 5.5;
-    private double zoom = 3;
     private double dZoom = 0;
+
     private int prog;
     private float colR = 0;
     private float dColR = 0.004f;
@@ -61,7 +57,12 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
     private JFrame frame = null;
     private final AtomicBoolean isUpdating = new AtomicBoolean(false);
     private Thread thread = null;
-    private long delay = (long) (250 * TimeUtils.getDeltaTime());
+    private final long delay = (long) (250 * TimeUtils.getDeltaTime());
+
+    public Editor() {
+        getCamera().setZoomLimits(1, 10);
+        getCamera().setZoom(3);
+    }
 
     @Override
     public void display(GLAutoDrawable drawable) {
@@ -76,29 +77,19 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
 
         // Transform camera.
         gl.glMatrixMode(GL2.GL_PROJECTION);
-        gl.glPushMatrix();
 
-        glu.gluLookAt(0, 1, 1, 0, 0, 0, 0, 0, 1);
-        gl.glRotated(180, 0, 0, 1);
-        zoom += dZoom;
-        zoom = Math.min(Math.max(1, zoom), 100);
-        gl.glScaled(1 / zoom, 1 / zoom, 1 / zoom);
-        translate[0] += dTranslate[0];
-        translate[1] += dTranslate[1];
-        gl.glTranslated(translate[0], translate[1], 0);
-        rotate[0] += dRotate[0];
-        rotate[1] += dRotate[1];
-        //rotate[0] = Math.min(Math.max(-30, rotate[0]), 30);
-        rotate[0] = Math.min(Math.max(-90 - 45, rotate[0]), 90 - 45);
-        gl.glRotated(rotate[0], 1, 0, 0);
-        gl.glRotated(rotate[1], 0, 0, 1);
-
-        //getMatrices(gl);
+        getCamera().setZoom(getCamera().getZoom() + dZoom);
+        getCamera().setTranslateX(getCamera().getTranslateX() + dTranslate[0]);
+        getCamera().setTranslateY(getCamera().getTranslateY() + dTranslate[1]);
+        getCamera().setRotateX(Math.min(Math.max(-90 - 45, getCamera().getRotateX() + dRotate[0]), 90 - 45));
+        getCamera().setRotateZ(getCamera().getRotateZ() + dRotate[1]);
+        getCamera().recalculate();
+        gl.glLoadMatrixd(getCamera().getProjectionArray(), 0);
 
         // Render scene.
         gl.glMatrixMode(GL2.GL_MODELVIEW);
         gl.glLoadIdentity();
-        
+
         // Execute OGL specific events.
         GLQueue.getInstance().execute(gl);
 
@@ -152,8 +143,7 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
 
         // End rendering.
         gl.glFlush();
-        gl.glMatrixMode(GL2.GL_PROJECTION);
-        gl.glPopMatrix();
+
     }
 
     @Override
@@ -192,15 +182,20 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
         });
     }
 
+    public final Camera getCamera() {
+        return camera;
+    }
+
     private void renderLogMessages(GL2 gl) {
         gl.glPushMatrix();
         gl.glLoadIdentity();
         gl.glMatrixMode(GL2.GL_PROJECTION);
         gl.glPushMatrix();
         gl.glLoadIdentity();
-        glu.gluOrtho2D(0, viewport[2], 0, viewport[3]);
+
+        glu.gluOrtho2D(0, getCamera().getViewportWidth(), 0, getCamera().getViewportHeight());
         gl.glScalef(0, -1, 0);
-        gl.glTranslatef(0, -viewport[3], 0);
+        gl.glTranslated(0, -getCamera().getViewportHeight(), 0);
 
         gl.glUseProgram(0);
         gl.glDisable(GL2.GL_LIGHTING);
@@ -236,7 +231,7 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
 
             gl.glPushMatrix();
             gl.glLoadIdentity();
-            float s = (float) (zoom) * .1f;
+            float s = (float) (getCamera().getZoom()) * .1f;
             gl.glColor3f(1f, .3882f, .0157f);
             gl.glRasterPos3f((float) p.x + s, (float) p.y + s, (float) p.z + s);
             glut.glutBitmapString(GLUT.BITMAP_8_BY_13, "" + i++);
@@ -279,6 +274,11 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
         player.initOrientation();
         players.add(player);
 
+        player = new VPlayer("q", new Vector3D(15, 0, 0), 5, 4);
+        player.addNavigationPoint(new Vector3D());
+        player.initOrientation();
+        players.add(player);
+
         // Add points.
         points.add(new Vector3d(2, 0, 0));
         points.add(new Vector3d(0, 2, 0));
@@ -293,12 +293,6 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
         return ThreadLocalRandom.current().nextDouble(Math.min(a, b), Math.max(a, b));
     }
 
-    private void getMatrices(GL2 gl) {
-        gl.glGetDoublev(GL2.GL_PROJECTION_MATRIX, projection, 0);
-        gl.glGetIntegerv(GL2.GL_VIEWPORT, viewport, 0);
-        projMatrix.set(projection[0], projection[1], projection[2], projection[3], projection[4], projection[5], projection[6], projection[7], projection[8], projection[9], projection[10], projection[11], projection[12], projection[13], projection[14], projection[15]);
-    }
-
     @Override
     public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
 
@@ -306,19 +300,7 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
         height = Math.max(height, 1);
 
         gl.glViewport(0, 0, width, height);
-        gl.glMatrixMode(GL2.GL_PROJECTION);
-        gl.glLoadIdentity();
-
-        double lZoom = 1;
-        float aspect = (float) width / (float) height;
-        if (width > height) {
-            gl.glOrtho(-10 / lZoom * aspect, 10 / lZoom * aspect, -10 / lZoom, 10 / lZoom, -100, 100);
-        } else {
-            aspect = 1 / aspect;
-            gl.glOrtho(-10 / lZoom, 10 / lZoom, -10 / lZoom * aspect, 10 / lZoom * aspect, -100, 100);
-        }
-
-        getMatrices(gl);
+        getCamera().setViewportSize(width, height);
     }
 
     public void show() {
@@ -342,7 +324,7 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
         frame.setSize(frame.getContentPane().getPreferredSize());
         frame.setLocationRelativeTo(null);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+        //frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
         frame.setVisible(true);
         final FPSAnimator animator = new FPSAnimator(glcanvas, 30, true);
 
@@ -357,32 +339,63 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
 
     @Override
     public void mousePressed(MouseEvent e) {
-        //System.out.println("Mouse Pressed");
 
+        // For camera pannign.
         prev = new int[]{e.getX(), e.getY()};
 
         GLQueue.getInstance().add((GL2 gl) -> {
-            getMatrices(gl);
-            
-            Matrix4d m = new Matrix4d().rotate(Math.toRadians(180), 0, 0, 1).scale(1/zoom).translate(translate[0], translate[1], 0).rotate(Math.toRadians(rotate[0]), 1, 0, 0).rotate(Math.toRadians(rotate[1]), 0, 0, 1).invert();
-            Vector3d p = m.transformPosition(new Vector3d(0,1,1));
-            Vector3d o = m.transformPosition(new Vector3d(0,0,0));
-            Vector3d pp = projMatrix.invert().transformPosition(new Vector3d(0,0,0));
-            
-            DecimalFormat df = new DecimalFormat("#.######");
-            System.out.println(df.format(p.x)+","+df.format(p.y)+","+df.format(p.z));
-            System.out.println(df.format(pp.x)+","+df.format(pp.y)+","+df.format(pp.z));
-            System.out.println(df.format(p.x-o.x)+","+df.format(p.y-o.y)+","+df.format(p.z-o.z));
-            System.out.println("------------------");
-            
         });
     }
 
     @Override
     public void mouseReleased(MouseEvent e) {
 
-        //System.out.println(e.getPoint());
+        Vector3d eye = getCamera().getEye();
+        Vector3d direction = getCamera().getDirection().mul(-1).normalize(new Vector3d());
+        Vector3d up = new Vector3d(0, 0, 1).normalize();
+        Vector3d horizontal = direction.cross(up, new Vector3d()).normalize();
+        horizontal.cross(direction, up).normalize();
 
+        /*Vector3d Px = horizontal.mul((double) e.getX() / getCamera().getViewportWidth(), new Vector3d()).mul(1);
+        Vector3d Py = up.mul((double) e.getY() / getCamera().getViewportHeight(), new Vector3d()).mul(1);
+        Vector3d from = Px.add(Py, new Vector3d());*/
+        
+        Vector4d ortho = getCamera().getOrtho();
+        
+        Vector3d point = new Vector3d((double) e.getX() / getCamera().getViewportWidth(),(double) e.getY() / getCamera().getViewportHeight(),0);
+        double fx = eye.x + (point.x - 0.5d) * ortho.z * up.x + (point.x - 0.5d) * ortho.y * horizontal.x;
+        double fy = eye.y + (point.y - 0.5d) * ortho.z * up.y + (point.y - 0.5d) * ortho.y * horizontal.y;
+        Vector3d from = new Vector3d(fx, fy, eye.z);
+
+        DecimalFormat df = new DecimalFormat("#.######");
+        System.out.println("eye: " + df.format(eye.x) + "," + df.format(eye.y) + "," + df.format(eye.z));
+        System.out.println("direction: " + df.format(direction.x) + "," + df.format(direction.y) + "," + df.format(direction.z));
+        System.out.println("horizontal: " + df.format(horizontal.x) + "," + df.format(horizontal.y) + "," + df.format(horizontal.z));
+        System.out.println("up: " + df.format(up.x) + "," + df.format(up.y) + "," + df.format(up.z));
+        System.out.println("from: " + df.format(from.x) + "," + df.format(from.y) + "," + df.format(from.z));
+        System.out.println("ortho: " + df.format(ortho.x) + "," + df.format(ortho.y) + "," + df.format(ortho.z) + "," + df.format(ortho.w));
+        System.out.println("point: " + df.format(point.x) + "," + df.format(point.y) + "," + df.format(point.z));
+        //Intersectiond.testRaySphere(eye, dir, new Vector3d(), .1d);
+
+        /*
+        direction.Normalise();
+        up.Normalise();
+        horizontal = vector3f::Cross(direction, up);
+        up = vector3f::Cross(horizontal, direction);
+         */
+ /*System.out.println(df.format(e.getPoint().x) + " | " + df.format(e.getPoint().y));
+        Vector3d mouse = getCamera().getProjectionMatrix().unproject(new Vector3d(e.getPoint().x, e.getPoint().y, 0), getCamera().getViewport(), new Vector3d());
+        System.out.println(df.format(mouse.x) + " | " + df.format(mouse.y) + " | " + df.format(mouse.z));p/
+
+        /*for (Vector3d p : points) {
+            Vector3d pp = getCamera().getProjectionMatrix().project(p, getCamera().getViewport(), new Vector3d());
+            System.out.println(df.format(p.x) + " | " + df.format(p.y) + " | " + df.format(p.z));
+            System.out.println(df.format(pp.x) + " | " + df.format(pp.y) + " | " + df.format(pp.z));
+
+        }*/
+        System.out.println("----");
+
+        // For camera pannign.
         prev = null;
     }
 
@@ -418,23 +431,21 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
         // Pan camera.
         if ((SwingUtilities.isMiddleMouseButton(e) && !e.isShiftDown()) || (e.isShiftDown() && SwingUtilities.isRightMouseButton(e))) {
 
-            GLQueue.getInstance().add((GL2 gl) -> {
-                getMatrices(gl);
-                Vector3d p0 = projMatrix.unproject(0, 0, 0, viewport, new Vector3d());
-                Vector3d p1 = projMatrix.unproject(1, 0, 0, viewport, new Vector3d());
-                Vector3d p2 = projMatrix.unproject(0, 1 / Math.sin(Math.PI / 4d), 0, viewport, new Vector3d());
+            Vector3d p0 = getCamera().getProjectionMatrix().unproject(0, 0, 0, getCamera().getViewport(), new Vector3d());
+            Vector3d p1 = getCamera().getProjectionMatrix().unproject(1, 0, 0, getCamera().getViewport(), new Vector3d());
+            Vector3d p2 = getCamera().getProjectionMatrix().unproject(0, 1 / Math.sin(Math.PI / 4d), 0, getCamera().getViewport(), new Vector3d());
 
-                translate[0] += dx * new Vector3d(p0).sub(p1).length();
-                translate[1] -= dy * new Vector3d(p0).sub(p2).length();
-            });
+            getCamera().setTranslateX(getCamera().getTranslateX() + dx * new Vector3d(p0).sub(p1).length());
+            getCamera().setTranslateY(getCamera().getTranslateY() - dy * new Vector3d(p0).sub(p2).length());
 
             return;
         }
 
         // Rotate camera.
         if (SwingUtilities.isRightMouseButton(e) || (e.isShiftDown() && SwingUtilities.isMiddleMouseButton(e))) {
-            rotate[1] += dx * .3d;
-            rotate[0] += dy * .3d;
+
+            getCamera().setRotateZ(getCamera().getRotateZ() + dx * .3d);
+            getCamera().setRotateX(getCamera().getRotateX() + dy * .3d);
 
         }
     }
@@ -445,7 +456,29 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
 
     @Override
     public void mouseWheelMoved(MouseWheelEvent e) {
-        zoom += e.getPreciseWheelRotation();
+
+        double direction = e.getPreciseWheelRotation() / Math.abs(e.getPreciseWheelRotation());
+
+        Vector3d p0 = getCamera().getProjectionMatrix().unproject(0, 0, 0, getCamera().getViewport(), new Vector3d());
+        Vector3d p1 = getCamera().getProjectionMatrix().unproject(1, 1, 0, getCamera().getViewport(), new Vector3d());
+
+        double dl = p0.distanceSquared(p1) / (Math.pow(getCamera().getViewportWidth(), 2) + Math.pow(getCamera().getViewportHeight(), 2));
+        double s = getCamera().getZoom() * 400;
+        double ds = (s * s * dl) / (s * dl + Math.sqrt(Math.pow(getCamera().getViewportWidth(), 2) + Math.pow(getCamera().getViewportHeight(), 2)));
+        //double ds = Math.min((s * s * dl) / (s * dl + getCamera().getViewportWidth()), (s * s * dl) / (s * dl + getCamera().getViewportHeight()));
+        //double ds = Math.min((s * dl + dl) / (s * dl + getCamera().getViewportWidth()), (s * dl + dl) / (s * dl + getCamera().getViewportHeight()));
+        //double ds = Math.min((s * dl) / (s * getCamera().getViewportWidth()), (s * dl) / (s * getCamera().getViewportHeight()));
+        //double ds = s*Math.min(dl / getCamera().getViewportWidth(), dl/ getCamera().getViewportHeight());
+
+        //getCamera().setZoom(getCamera().getZoom() + ds * direction);
+        getCamera().setZoom(getCamera().getZoom() + e.getPreciseWheelRotation());
+
+        //getCamera().setZoom(getCamera().getZoom()+direction*(1/Math.pow(dl,2)));
+        //getCamera().setZoom(getCamera().getZoom()+direction*dl*200);
+        //getCamera().setZoom(Math.min(100,Math.max(getCamera().getZoom(), 1)));
+        //System.out.println(dl + " " + ds);
+        //System.out.println(dl);
+        //System.out.println(getCamera().getZoom());
     }
 
     @Override

@@ -31,3 +31,13 @@ sudo nmcli dev wifi
 sudo nmcli dev wifi connect "SSID" password "PASSWORD"
 vagy
 sudo nmtui
+
+
+
+disable wifi power management:
+https://askubuntu.com/questions/85214/how-can-i-prevent-iwconfig-power-management-from-being-turned-on
+
+nano /etc/NetworkManager/conf.d/default-wifi-powersave-on.conf
+change 3 to 2
+(to check: Then run iwconfig and if it worked you should see Power Management:off)
+reboot

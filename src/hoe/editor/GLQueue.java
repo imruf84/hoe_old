@@ -3,6 +3,9 @@ package hoe.editor;
 import com.jogamp.opengl.GL2;
 import java.util.ArrayList;
 
+/**
+ * example: GLQueue.getInstance().add((GL2 gl) -> {});
+ */
 public class GLQueue {
 
     private static GLQueue instance = null;
