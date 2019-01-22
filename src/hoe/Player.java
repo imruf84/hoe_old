@@ -42,7 +42,7 @@ public class Player {
         this.nextPosition = new CurvePoint(position, 0);
         this.maxStep = maxStep;
         addNavigationPoint();
-        initSkeleton();
+//        initSkeleton();
     }
 
     public double getOrientationTo() {

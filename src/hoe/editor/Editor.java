@@ -30,6 +30,7 @@ import hoe.physics.Vector3D;
 import hoe.renderer.Camera;
 import java.text.DecimalFormat;
 import org.joml.Intersectiond;
+import org.joml.Rayd;
 import org.joml.Vector4d;
 
 public class Editor implements GLEventListener, MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
@@ -280,9 +281,9 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
         players.add(player);
 
         // Add points.
-        points.add(new Vector3d(2, 0, 0));
-        points.add(new Vector3d(0, 2, 0));
-        points.add(new Vector3d(0, 0, 2));
+        points.add(new Vector3d(5, 0, 0));
+        points.add(new Vector3d(0, 5, 0));
+        points.add(new Vector3d(0, 0, 5));
 
     }
 
@@ -356,16 +357,19 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
         Vector3d horizontal = direction.cross(up, new Vector3d()).normalize();
         horizontal.cross(direction, up).normalize();
 
-        /*Vector3d Px = horizontal.mul((double) e.getX() / getCamera().getViewportWidth(), new Vector3d()).mul(1);
-        Vector3d Py = up.mul((double) e.getY() / getCamera().getViewportHeight(), new Vector3d()).mul(1);
-        Vector3d from = Px.add(Py, new Vector3d());*/
-        
         Vector4d ortho = getCamera().getOrtho();
-        
-        Vector3d point = new Vector3d((double) e.getX() / getCamera().getViewportWidth(),(double) e.getY() / getCamera().getViewportHeight(),0);
-        double fx = eye.x + (point.x - 0.5d) * ortho.z * up.x + (point.x - 0.5d) * ortho.y * horizontal.x;
-        double fy = eye.y + (point.y - 0.5d) * ortho.z * up.y + (point.y - 0.5d) * ortho.y * horizontal.y;
-        Vector3d from = new Vector3d(fx, fy, eye.z);
+
+        Vector3d point = new Vector3d((double) e.getX() / getCamera().getViewportWidth(), (double) -e.getY() / getCamera().getViewportHeight(), 0).sub(new Vector3d(.5d, -.5d, 0d));
+
+        Vector3d from = new Vector3d().add(eye,new Vector3d())
+                .add(horizontal.mul(point.x * (ortho.y - ortho.x) * getCamera().getZoom(), new Vector3d()))
+                .add(up.mul(point.y * (ortho.w - ortho.z) * getCamera().getZoom(), new Vector3d()));
+
+        Vector3d to = from.add(direction, new Vector3d());
+        int i = 0;
+        for (Vector3d p : points) {
+            System.out.println((i++)+" "+Intersectiond.distancePointLine(p.x, p.y, p.z, from.x, from.y, from.z, to.x, to.y, to.z));
+        }
 
         DecimalFormat df = new DecimalFormat("#.######");
         System.out.println("eye: " + df.format(eye.x) + "," + df.format(eye.y) + "," + df.format(eye.z));
@@ -375,24 +379,6 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
         System.out.println("from: " + df.format(from.x) + "," + df.format(from.y) + "," + df.format(from.z));
         System.out.println("ortho: " + df.format(ortho.x) + "," + df.format(ortho.y) + "," + df.format(ortho.z) + "," + df.format(ortho.w));
         System.out.println("point: " + df.format(point.x) + "," + df.format(point.y) + "," + df.format(point.z));
-        //Intersectiond.testRaySphere(eye, dir, new Vector3d(), .1d);
-
-        /*
-        direction.Normalise();
-        up.Normalise();
-        horizontal = vector3f::Cross(direction, up);
-        up = vector3f::Cross(horizontal, direction);
-         */
- /*System.out.println(df.format(e.getPoint().x) + " | " + df.format(e.getPoint().y));
-        Vector3d mouse = getCamera().getProjectionMatrix().unproject(new Vector3d(e.getPoint().x, e.getPoint().y, 0), getCamera().getViewport(), new Vector3d());
-        System.out.println(df.format(mouse.x) + " | " + df.format(mouse.y) + " | " + df.format(mouse.z));p/
-
-        /*for (Vector3d p : points) {
-            Vector3d pp = getCamera().getProjectionMatrix().project(p, getCamera().getViewport(), new Vector3d());
-            System.out.println(df.format(p.x) + " | " + df.format(p.y) + " | " + df.format(p.z));
-            System.out.println(df.format(pp.x) + " | " + df.format(pp.y) + " | " + df.format(pp.z));
-
-        }*/
         System.out.println("----");
 
         // For camera pannign.
@@ -569,10 +555,10 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
 
         isUpdating.set(true);
         /*        
-        for (Player p:players){
-            System.out.println(p.getName()+"\t"+p.getOrientation()+"\t"+p.getOrientationTo()+"\t"+p.getOrientationLeft());
-        }
-        System.out.println("----");
+         for (Player p:players){
+         System.out.println(p.getName()+"\t"+p.getOrientation()+"\t"+p.getOrientationTo()+"\t"+p.getOrientationLeft());
+         }
+         System.out.println("----");
          */
         if (TimeUtils.timeUnitLeft == 0) {
 
@@ -591,8 +577,8 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
                 }
 
                 /*for (Player p : players) {
-                    p.doOneStep(1, true);
-                }*/
+                 p.doOneStep(1, true);
+                 }*/
                 appendLogMessage("Finished in " + time.stopAndGet());
                 interpolatePlayerPositions();
                 isUpdating.set(false);

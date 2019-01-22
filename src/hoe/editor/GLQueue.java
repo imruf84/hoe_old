@@ -9,7 +9,7 @@ import java.util.ArrayList;
 public class GLQueue {
 
     private static GLQueue instance = null;
-    private final ArrayList queue = new ArrayList(16);
+    private final ArrayList<GLAction> queue = new ArrayList<>(16);
 
     protected GLQueue() {
     }
@@ -29,11 +29,11 @@ public class GLQueue {
 
     public void execute(GL2 gl) {
         // make a copy of the queue to allow thread safe iteration
-        ArrayList temp = null;
+        ArrayList<GLAction> temp = null;
         synchronized (queue) {
             // Only make a copy, if the queue has entries
             if (!queue.isEmpty()) {
-                temp = new ArrayList(queue);
+                temp = new ArrayList<>(queue);
                 queue.clear();
             }
         }
