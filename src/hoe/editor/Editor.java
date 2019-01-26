@@ -12,6 +12,8 @@ import com.jogamp.opengl.glu.GLU;
 import javax.swing.JFrame;
 
 import com.jogamp.opengl.util.FPSAnimator;
+import hoe.math.Lined;
+import hoe.math.Rayd;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -28,10 +30,7 @@ import hoe.nonlinear.ObjectsPacker;
 import org.joml.Vector3d;
 import hoe.physics.Vector3D;
 import hoe.renderer.Camera;
-import java.text.DecimalFormat;
 import org.joml.Intersectiond;
-import org.joml.Rayd;
-import org.joml.Vector4d;
 
 public class Editor implements GLEventListener, MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
 
@@ -80,10 +79,9 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
         gl.glMatrixMode(GL2.GL_PROJECTION);
 
         getCamera().setZoom(getCamera().getZoom() + dZoom);
-        getCamera().setTranslateX(getCamera().getTranslateX() + dTranslate[0]);
-        getCamera().setTranslateY(getCamera().getTranslateY() + dTranslate[1]);
+        getCamera().dTranslate(dTranslate[0], dTranslate[1]);
         getCamera().setRotateX(Math.min(Math.max(-90 - 45, getCamera().getRotateX() + dRotate[0]), 90 - 45));
-        getCamera().setRotateZ(getCamera().getRotateZ() + dRotate[1]);
+        getCamera().dRotateZ(dRotate[1]);
         getCamera().recalculate();
         gl.glLoadMatrixd(getCamera().getProjectionArray(), 0);
 
@@ -282,8 +280,11 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
 
         // Add points.
         points.add(new Vector3d(5, 0, 0));
+        points.add(new Vector3d(-5, 0, 0));
         points.add(new Vector3d(0, 5, 0));
+        points.add(new Vector3d(0, -5, 0));
         points.add(new Vector3d(0, 0, 5));
+        points.add(new Vector3d(0, 0, -5));
 
     }
 
@@ -325,7 +326,7 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
         frame.setSize(frame.getContentPane().getPreferredSize());
         frame.setLocationRelativeTo(null);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        //frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+        frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
         frame.setVisible(true);
         final FPSAnimator animator = new FPSAnimator(glcanvas, 30, true);
 
@@ -351,35 +352,40 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
     @Override
     public void mouseReleased(MouseEvent e) {
 
-        Vector3d eye = getCamera().getEye();
-        Vector3d direction = getCamera().getDirection().mul(-1).normalize(new Vector3d());
-        Vector3d up = new Vector3d(0, 0, 1).normalize();
-        Vector3d horizontal = direction.cross(up, new Vector3d()).normalize();
-        horizontal.cross(direction, up).normalize();
-
-        Vector4d ortho = getCamera().getOrtho();
-
-        Vector3d point = new Vector3d((double) e.getX() / getCamera().getViewportWidth(), (double) -e.getY() / getCamera().getViewportHeight(), 0).sub(new Vector3d(.5d, -.5d, 0d));
-
-        Vector3d from = new Vector3d().add(eye,new Vector3d())
-                .add(horizontal.mul(point.x * (ortho.y - ortho.x) * getCamera().getZoom(), new Vector3d()))
-                .add(up.mul(point.y * (ortho.w - ortho.z) * getCamera().getZoom(), new Vector3d()));
-
-        Vector3d to = from.add(direction, new Vector3d());
+        Rayd ray = getCamera().calculateRay(e.getX(), e.getY());
+        Vector3d dest = Camera.getDestinationFromRay(ray);
+        Vector3d dir = ray.getDirection();
+        Lined line = ray.toLine();
+        double dMin = Double.POSITIVE_INFINITY;
+        int pIndex = -1;
         int i = 0;
         for (Vector3d p : points) {
-            System.out.println((i++)+" "+Intersectiond.distancePointLine(p.x, p.y, p.z, from.x, from.y, from.z, to.x, to.y, to.z));
+
+            i++;
+
+            // If not close enough to the view ray...
+            if (line.distance(p) > .08d * getCamera().getZoom()) {
+                continue;
+            }
+
+            // Compare the distance to the closest point to viewplane.
+            double d = getCamera().getProjectionMatrix().transformPosition(p, new Vector3d()).z;
+
+            // If the point is behind the near plane...
+            if (d < -1) {
+                continue;
+            }
+
+            if (d < dMin || pIndex < 0) {
+                pIndex = i - 1;
+                dMin = d;
+            }
         }
 
-        DecimalFormat df = new DecimalFormat("#.######");
-        System.out.println("eye: " + df.format(eye.x) + "," + df.format(eye.y) + "," + df.format(eye.z));
-        System.out.println("direction: " + df.format(direction.x) + "," + df.format(direction.y) + "," + df.format(direction.z));
-        System.out.println("horizontal: " + df.format(horizontal.x) + "," + df.format(horizontal.y) + "," + df.format(horizontal.z));
-        System.out.println("up: " + df.format(up.x) + "," + df.format(up.y) + "," + df.format(up.z));
-        System.out.println("from: " + df.format(from.x) + "," + df.format(from.y) + "," + df.format(from.z));
-        System.out.println("ortho: " + df.format(ortho.x) + "," + df.format(ortho.y) + "," + df.format(ortho.z) + "," + df.format(ortho.w));
-        System.out.println("point: " + df.format(point.x) + "," + df.format(point.y) + "," + df.format(point.z));
-        System.out.println("----");
+        //System.out.println(pIndex + ". " + dMin);
+        if (pIndex != -1) {
+            appendLogMessage(pIndex + ". is selected");
+        }
 
         // For camera pannign.
         prev = null;
@@ -421,8 +427,8 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
             Vector3d p1 = getCamera().getProjectionMatrix().unproject(1, 0, 0, getCamera().getViewport(), new Vector3d());
             Vector3d p2 = getCamera().getProjectionMatrix().unproject(0, 1 / Math.sin(Math.PI / 4d), 0, getCamera().getViewport(), new Vector3d());
 
-            getCamera().setTranslateX(getCamera().getTranslateX() + dx * new Vector3d(p0).sub(p1).length());
-            getCamera().setTranslateY(getCamera().getTranslateY() - dy * new Vector3d(p0).sub(p2).length());
+            getCamera().dTranslateX(dx * new Vector3d(p0).sub(p1).length());
+            getCamera().dTranslateY(-dy * new Vector3d(p0).sub(p2).length());
 
             return;
         }

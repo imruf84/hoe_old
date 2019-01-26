@@ -56,6 +56,9 @@ public class VPlayer extends Player {
     }
 
     public void renderPath(GL2 gl, GLUT glut, int prog) {
+        
+        gl.glUseProgram(prog);
+        
         int col = gl.glGetUniformLocation(prog, "col");
 
         gl.glPushMatrix();
@@ -132,30 +135,47 @@ public class VPlayer extends Player {
 
     public void render(GL2 gl, GLUT glut, int prog) {
 
-        int col = gl.glGetUniformLocation(prog, "col");
+        //int col = gl.glGetUniformLocation(prog, "col");
 
+        gl.glUseProgram(0);
+        
+        // Player.
+        gl.glEnable(GL2.GL_LIGHTING);
+        gl.glEnable(GL2.GL_NORMALIZE);
+        gl.glEnable(GL2.GL_DEPTH_TEST);
+        gl.glLightModelfv(GL2.GL_LIGHT_MODEL_AMBIENT, new float[]{.1f,.1f,.1f,0},0);
+        
+        gl.glEnable(GL2.GL_LIGHT0);
+        gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_DIFFUSE, new float[]{.4f,.4f,.4f},0);
+        gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_POSITION, new float[]{1000,1000,1000},0);
+        
+        gl.glEnable(GL2.GL_LIGHT1);
+        gl.glLightfv(GL2.GL_LIGHT1, GL2.GL_DIFFUSE, new float[]{.3f,.3f,.3f},0);
+        gl.glLightfv(GL2.GL_LIGHT1, GL2.GL_POSITION, new float[]{-1000,1000,1000},0);
+        
+        gl.glEnable(GL2.GL_LIGHT2);
+        gl.glLightfv(GL2.GL_LIGHT2, GL2.GL_DIFFUSE, new float[]{.1f,.1f,.1f},0);
+        gl.glLightfv(GL2.GL_LIGHT2, GL2.GL_POSITION, new float[]{0,-1000,10},0);
+        
+        gl.glMaterialfv(GL2.GL_FRONT_AND_BACK, GL2.GL_DIFFUSE, new float[]{0,0,1},0);
+        gl.glMaterialfv(GL2.GL_FRONT_AND_BACK, GL2.GL_SPECULAR, new float[]{1,1,1},0);
+        gl.glMaterialf(GL2.GL_FRONT_AND_BACK, GL2.GL_SHININESS, 100f);
+        
         gl.glPushMatrix();
         CurvePoint p = getPosition();
         gl.glTranslated(p.x, p.y, p.z);
-        double h = getRadius() * 4;
-
-        // Player.
-        gl.glPushMatrix();
-        //gl.glRotated(90, 0, 0, 1);
+        
         gl.glRotated(getOrientation(), 0, 0, 1);
-        //gl.glUniform4f(col, 0, 0, 0, 1);
-        //glut.glutSolidCylinder(getRadius()*.99, h*.99, 12, 1);
-        gl.glUniform4f(col, 1, 1, 1, 1);
-        glut.glutWireCylinder(getRadius(), h, 3, 1);
-        gl.glPopMatrix();
+        
+        glut.glutSolidTeapot(getRadius(),false);
 
         // Max steps area.
+/*        int col = gl.glGetUniformLocation(prog, "col");
         if (showMaxStepCircle) {
             gl.glUniform4f(col, color[0], color[1], color[2], color[3]);
             glut.glutWireCylinder(getRadius() + getMaxStep(), 0, 16, 1);
         }
-
-        gl.glPopMatrix();
+*/
         gl.glPopMatrix();
 
     }

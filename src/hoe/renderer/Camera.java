@@ -1,5 +1,6 @@
 package hoe.renderer;
 
+import hoe.math.Rayd;
 import org.joml.Matrix4d;
 import org.joml.Vector3d;
 import org.joml.Vector4d;
@@ -116,6 +117,19 @@ public class Camera {
     public void setZoomMax(double zoom) {
         this.zoomMax = zoom;
     }
+    
+    public void dRotateX(double a) {
+        setRotateX(getRotateX()+a);
+    }
+    
+    public void dRotateZ(double a) {
+        setRotateZ(getRotateZ()+a);
+    }
+    
+    public void dRotate(double ax, double az) {
+        dRotateX(ax);
+        dRotateZ(az);
+    }
 
     public void recalculate() {
         calculateProjectionMatrix(getViewportWidth(), getViewportHeight(), getTranslateX(), getTranslateY(), getRotateX(), getRotateZ(), getZoom(), getProjectionMatrix(), getOrtho());
@@ -150,9 +164,35 @@ public class Camera {
     public double[] getProjectionArray() {
         return projectionArray;
     }
-    
+
     public Vector4d getOrtho() {
         return ortho;
+    }
+
+    public Rayd calculateRay(double screenX, double screenY) {
+        Vector3d lEye = getEye();
+        Vector3d lDir = getDirection().mul(-1).normalize(new Vector3d());
+        Vector3d up = new Vector3d(0, 0, 1).normalize();
+        Vector3d horizontal = lDir.cross(up, new Vector3d()).normalize();
+        horizontal.cross(lDir, up).normalize();
+
+        Vector4d lOrtho = getOrtho();
+
+        Vector3d point = new Vector3d((double) screenX / getViewportWidth(), (double) -screenY / getViewportHeight(), 0).sub(new Vector3d(.5d, -.5d, 0d));
+
+        Vector3d from = new Vector3d().add(lEye, new Vector3d())
+                .add(horizontal.mul(point.x * (lOrtho.y - lOrtho.x) * getZoom(), new Vector3d()))
+                .add(up.mul(point.y * (lOrtho.w - lOrtho.z) * getZoom(), new Vector3d()));
+
+        return new Rayd(from, lDir);
+    }
+
+    public static Vector3d getOriginFromRay(Rayd ray) {
+        return new Vector3d(ray.oX, ray.oY, ray.oZ);
+    }
+
+    public static Vector3d getDestinationFromRay(Rayd ray) {
+        return new Vector3d(ray.oX + ray.dX, ray.oY + ray.dY, ray.oZ + ray.dZ);
     }
 
     public static Matrix4d calculateTransformationMatrix(double rx, double rz, double zoom) {
@@ -175,7 +215,7 @@ public class Camera {
             aspect = 1 / aspect;
             ortho = new double[]{-HALF_ORTHO_WITH / lZoom, HALF_ORTHO_WITH / lZoom, -HALF_ORTHO_HEIGHT / lZoom * aspect, HALF_ORTHO_HEIGHT / lZoom * aspect};
         }
-        
+
         if (orthoDest != null) {
             orthoDest.set(ortho[0], ortho[1], ortho[2], ortho[3]);
         }
@@ -195,6 +235,19 @@ public class Camera {
 
     public static Matrix4d calculateProjectionMatrix(double w, double h, double tx, double ty, double rx, double rz, double zoom) {
         return calculateProjectionMatrix(w, h, tx, ty, rx, rz, zoom, null, null);
+    }
+
+    public void dTranslateX(double d) {
+        setTranslateX(getTranslateX()+d);
+    }
+    
+    public void dTranslateY(double d) {
+        setTranslateY(getTranslateY()+d);
+    }
+    
+    public void dTranslate(double dx, double dy) {
+        dTranslateX(dx);
+        dTranslateY(dy);
     }
 
 }
