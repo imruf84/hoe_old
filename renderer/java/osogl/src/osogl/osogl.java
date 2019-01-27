@@ -18,10 +18,8 @@ import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 import com.jogamp.opengl.glu.GLU;
 import com.jogamp.opengl.util.awt.AWTGLReadBufferUtil;
-import com.jogamp.opengl.util.awt.ImageUtil;
 import com.jogamp.opengl.util.gl2.GLUT;
 import com.jogamp.opengl.util.texture.Texture;
-import com.jogamp.opengl.util.texture.TextureIO;
 import com.jogamp.opengl.util.texture.awt.AWTTextureIO;
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -29,19 +27,31 @@ import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import javax.imageio.ImageIO;
 
 public class osogl {
 
-    static int samples = 4;
-    static int size = 1000;
+    static int samples = 1;
+    static int size = 8000;
     static GLUT glut = new GLUT();
     static GLU glu = new GLU();
+    private static String fileName = null;
 
     public static void main(String[] args) throws IOException {
 
-        size = Integer.parseInt(args[0]);
-        samples = Integer.parseInt(args[1]);
+        String arg = "-size";
+        if (Arrays.asList(args).contains(arg)) {
+            size = Integer.parseInt(args[Arrays.asList(args).indexOf(arg) + 1]);
+        }
+        arg = "-samples";
+        if (Arrays.asList(args).contains(arg)) {
+            samples = Integer.parseInt(args[Arrays.asList(args).indexOf(arg) + 1]);
+        }
+        arg = "-file";
+        if (Arrays.asList(args).contains(arg)) {
+            fileName = args[Arrays.asList(args).indexOf(arg) + 1];
+        }
 
         int sampleSize = size * samples;
 
@@ -124,7 +134,7 @@ public class osogl {
 
         int textureSize = 200;
         int squareCount = 2;
-        int squareSize = textureSize/squareCount;
+        int squareSize = textureSize / squareCount;
         BufferedImage img = new BufferedImage(textureSize, textureSize, BufferedImage.TYPE_INT_RGB);
         Graphics2D g = img.createGraphics();
         g.setColor(Color.red);
@@ -145,12 +155,22 @@ public class osogl {
 
         BufferedImage im = new AWTGLReadBufferUtil(drawable.getGLProfile(), false).readPixelsToBufferedImage(drawable.getGL(), 0, 0, sampleSize, sampleSize, true);
 
+        // Multisampling
         if (samples != 1) {
             BufferedImage im2 = new BufferedImage(size, size, im.getType());
             im2.getGraphics().drawImage(((Image) im).getScaledInstance(size, size, Image.SCALE_AREA_AVERAGING), 0, 0, null);
             im = im2;
         }
 
-        ImageIO.write(im, "png", new File("im.png"));
+        // Save to file
+        if (fileName != null) {
+            ImageIO.write(im, "png", new File(fileName));
+            return;
+        }
+
+        // Show the result in a JFrame.
+        ImageViewer iw = new ImageViewer(im);
+        iw.setTitle(iw.getTitle() + " - size[" + im.getWidth() + "x" + im.getHeight() + "] " + "samples[" + samples + "]");
+        iw.setVisible(true);
     }
 }
