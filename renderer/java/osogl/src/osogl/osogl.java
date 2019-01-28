@@ -33,10 +33,14 @@ import javax.imageio.ImageIO;
 public class osogl {
 
     static int samples = 1;
-    static int size = 8000;
+    static int size = 500;
     static GLUT glut = new GLUT();
     static GLU glu = new GLU();
     private static String fileName = null;
+
+    public static void render(GL2 gl) {
+
+    }
 
     public static void main(String[] args) throws IOException {
 
@@ -84,93 +88,108 @@ public class osogl {
 
         gl.glViewport(0, 0, sampleSize, sampleSize);
 
-        gl.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
-        gl.glLoadIdentity();
+        int row = 0;
+        int column = 0;
+        int tileSize = 5;
 
-        gl.glOrtho(-10, 10, -10, 10, -100d, 100d);
-        glu.gluLookAt(10, 10, 10, 0, 0, 0, 0, 0, 1);
+        for (int oy = 10; oy > -10; oy -= tileSize) {
+            for (int ox = -10; ox < 10; ox += tileSize) {
+                gl.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
+                gl.glLoadIdentity();
 
-        gl.glClearColor(.15f, .15f, .15f, 1);
-        gl.glClear(GL2.GL_COLOR_BUFFER_BIT);
+                //gl.glOrtho(-10, 10, -10, 10, -100d, 100d);
+                gl.glOrtho(ox, ox + tileSize, oy - tileSize, oy, -100d, 100d);
+                glu.gluLookAt(10, 10, 10, 0, 0, 0, 0, 0, 1);
 
-        gl.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
+                gl.glClearColor(.15f, .15f, .15f, 1);
+                gl.glClear(GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT);
 
-        gl.glUseProgram(prog);
-        int col = gl.glGetUniformLocation(prog, "col");
-        gl.glUniform4f(col, 0, 0, 1, 1);
+                gl.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
 
-        gl.glBegin(GL2.GL_QUADS);
-        double s = 7;
-        gl.glVertex3d(-s, -s, 0);
-        gl.glVertex3d(s, -s, 0);
-        gl.glVertex3d(s, s, 0);
-        gl.glVertex3d(-s, s, 0);
-        gl.glEnd();
+                gl.glUseProgram(prog);
+                int col = gl.glGetUniformLocation(prog, "col");
+                gl.glUniform4f(col, 0, 0, 1, 1);
 
-        gl.glEnable(GL2.GL_LIGHTING);
-        gl.glEnable(GL2.GL_NORMALIZE);
-        gl.glEnable(GL2.GL_DEPTH_TEST);
-        gl.glLightModelfv(GL2.GL_LIGHT_MODEL_AMBIENT, new float[]{.1f, .1f, .1f, 0}, 0);
+                gl.glBegin(GL2.GL_QUADS);
+                double s = 7;
+                gl.glVertex3d(-s, -s, 0);
+                gl.glVertex3d(s, -s, 0);
+                gl.glVertex3d(s, s, 0);
+                gl.glVertex3d(-s, s, 0);
+                gl.glEnd();
 
-        gl.glEnable(GL2.GL_LIGHT0);
-        gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_DIFFUSE, new float[]{.4f, .4f, .4f}, 0);
-        gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_POSITION, new float[]{1000, 1000, 1000}, 0);
+                gl.glEnable(GL2.GL_LIGHTING);
+                gl.glEnable(GL2.GL_NORMALIZE);
+                gl.glEnable(GL2.GL_DEPTH_TEST);
+                gl.glLightModelfv(GL2.GL_LIGHT_MODEL_AMBIENT, new float[]{.1f, .1f, .1f, 0}, 0);
 
-        gl.glEnable(GL2.GL_LIGHT1);
-        gl.glLightfv(GL2.GL_LIGHT1, GL2.GL_DIFFUSE, new float[]{.3f, .3f, .3f}, 0);
-        gl.glLightfv(GL2.GL_LIGHT1, GL2.GL_POSITION, new float[]{-1000, 1000, 1000}, 0);
+                gl.glEnable(GL2.GL_LIGHT0);
+                gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_DIFFUSE, new float[]{.4f, .4f, .4f}, 0);
+                gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_POSITION, new float[]{1000, 1000, 1000}, 0);
 
-        gl.glEnable(GL2.GL_LIGHT2);
-        gl.glLightfv(GL2.GL_LIGHT2, GL2.GL_DIFFUSE, new float[]{.1f, .1f, .1f}, 0);
-        gl.glLightfv(GL2.GL_LIGHT2, GL2.GL_POSITION, new float[]{0, -1000, 10}, 0);
+                gl.glEnable(GL2.GL_LIGHT1);
+                gl.glLightfv(GL2.GL_LIGHT1, GL2.GL_DIFFUSE, new float[]{.3f, .3f, .3f}, 0);
+                gl.glLightfv(GL2.GL_LIGHT1, GL2.GL_POSITION, new float[]{-1000, 1000, 1000}, 0);
 
-        gl.glMaterialfv(GL2.GL_FRONT_AND_BACK, GL2.GL_DIFFUSE, new float[]{1, 1, 1}, 0);
-        gl.glMaterialfv(GL2.GL_FRONT_AND_BACK, GL2.GL_SPECULAR, new float[]{1, 1, 1}, 0);
-        gl.glMaterialf(GL2.GL_FRONT_AND_BACK, GL2.GL_SHININESS, 100f);
+                gl.glEnable(GL2.GL_LIGHT2);
+                gl.glLightfv(GL2.GL_LIGHT2, GL2.GL_DIFFUSE, new float[]{.1f, .1f, .1f}, 0);
+                gl.glLightfv(GL2.GL_LIGHT2, GL2.GL_POSITION, new float[]{0, -1000, 10}, 0);
 
-        gl.glUseProgram(0);
+                gl.glMaterialfv(GL2.GL_FRONT_AND_BACK, GL2.GL_DIFFUSE, new float[]{1, 1, 1}, 0);
+                gl.glMaterialfv(GL2.GL_FRONT_AND_BACK, GL2.GL_SPECULAR, new float[]{1, 1, 1}, 0);
+                gl.glMaterialf(GL2.GL_FRONT_AND_BACK, GL2.GL_SHININESS, 100f);
 
-        gl.glEnable(GL2.GL_TEXTURE_2D);
+                gl.glUseProgram(0);
 
-        int textureSize = 200;
-        int squareCount = 2;
-        int squareSize = textureSize / squareCount;
-        BufferedImage img = new BufferedImage(textureSize, textureSize, BufferedImage.TYPE_INT_RGB);
-        Graphics2D g = img.createGraphics();
-        g.setColor(Color.red);
-        g.fillRect(0, 0, img.getWidth(), img.getHeight());
-        g.setColor(Color.green);
-        for (int i = 0; i < squareCount; i++) {
-            for (int j = i % 2; j < squareCount; j += 2) {
-                g.fillRect(i * squareSize, j * squareSize, squareSize, squareSize);
+                gl.glEnable(GL2.GL_TEXTURE_2D);
+
+                int textureSize = 200;
+                int squareCount = 2;
+                int squareSize = textureSize / squareCount;
+                BufferedImage img = new BufferedImage(textureSize, textureSize, BufferedImage.TYPE_INT_RGB);
+                Graphics2D g = img.createGraphics();
+                g.setColor(Color.red);
+                g.fillRect(0, 0, img.getWidth(), img.getHeight());
+                g.setColor(Color.green);
+                for (int i = 0; i < squareCount; i++) {
+                    for (int j = i % 2; j < squareCount; j += 2) {
+                        g.fillRect(i * squareSize, j * squareSize, squareSize, squareSize);
+                    }
+                }
+                g.dispose();
+                Texture texture = AWTTextureIO.newTexture(GLProfile.getDefault(), img, true);
+                texture.setTexParameteri(gl, GL2.GL_TEXTURE_WRAP_S, GL2.GL_REPEAT);
+                texture.setTexParameteri(gl, GL2.GL_TEXTURE_WRAP_T, GL2.GL_REPEAT);
+                texture.enable(gl);
+
+                glut.glutSolidTeapot(4, false);
+
+                BufferedImage im = new AWTGLReadBufferUtil(drawable.getGLProfile(), false).readPixelsToBufferedImage(drawable.getGL(), 0, 0, sampleSize, sampleSize, true);
+
+                // Multisampling
+                if (samples != 1) {
+                    BufferedImage im2 = new BufferedImage(size, size, im.getType());
+                    im2.getGraphics().drawImage(((Image) im).getScaledInstance(size, size, Image.SCALE_AREA_AVERAGING), 0, 0, null);
+                    im = im2;
+                }
+
+                // Save to file
+                /*if (fileName != null) {
+                 ImageIO.write(im, "png", new File(fileName));
+                 return;
+                 }*/
+                ImageIO.write(im, "png", new File("images/img_" + column + "_" + row + ".png"));
+
+                column++;
+
             }
-        }
-        g.dispose();
-        Texture texture = AWTTextureIO.newTexture(GLProfile.getDefault(), img, true);
-        texture.setTexParameteri(gl, GL2.GL_TEXTURE_WRAP_S, GL2.GL_REPEAT);
-        texture.setTexParameteri(gl, GL2.GL_TEXTURE_WRAP_T, GL2.GL_REPEAT);
-        texture.enable(gl);
-
-        glut.glutSolidTeapot(4, false);
-
-        BufferedImage im = new AWTGLReadBufferUtil(drawable.getGLProfile(), false).readPixelsToBufferedImage(drawable.getGL(), 0, 0, sampleSize, sampleSize, true);
-
-        // Multisampling
-        if (samples != 1) {
-            BufferedImage im2 = new BufferedImage(size, size, im.getType());
-            im2.getGraphics().drawImage(((Image) im).getScaledInstance(size, size, Image.SCALE_AREA_AVERAGING), 0, 0, null);
-            im = im2;
-        }
-
-        // Save to file
-        if (fileName != null) {
-            ImageIO.write(im, "png", new File(fileName));
-            return;
+            column = 0;
+            row++;
         }
 
         // Show the result in a JFrame.
-        ImageViewer iw = new ImageViewer(im);
-        iw.setTitle(iw.getTitle() + " - size[" + im.getWidth() + "x" + im.getHeight() + "] " + "samples[" + samples + "]");
-        iw.setVisible(true);
+        /*ImageViewer iw = new ImageViewer(im);
+         iw.setTitle(iw.getTitle() + " - size[" + im.getWidth() + "x" + im.getHeight() + "] " + "samples[" + samples + "]");
+         iw.setVisible(true);*/
     }
 }

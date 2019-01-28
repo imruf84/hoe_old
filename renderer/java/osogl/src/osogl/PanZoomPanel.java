@@ -145,7 +145,6 @@ abstract public class PanZoomPanel extends JPanel {
             }
         } catch (NoninvertibleTransformException ex) {
         }
-        System.out.println(getZoomLevel());
     }
 
     @Override
@@ -153,10 +152,10 @@ abstract public class PanZoomPanel extends JPanel {
         super.paintComponent(pg);
         Graphics2D g = (Graphics2D) pg;
 
-        g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        /*g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-        g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);*/
 
         if (init) {
             init = false;
