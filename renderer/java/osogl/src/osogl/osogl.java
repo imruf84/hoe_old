@@ -61,7 +61,7 @@ public class osogl {
         int y = 0;
         for (int row = rows[1]; row >= rows[0]; row--) {
             for (int column = columns[0]; column <= columns[1]; column++) {
-                
+
                 // Rendering the tile
                 BufferedImage im = renderTile(gl, row, column, sampleSize, tileSizeInWorld);
 
@@ -71,19 +71,18 @@ public class osogl {
                     im2.getGraphics().drawImage(((Image) im).getScaledInstance(tileSize, tileSize, Image.SCALE_AREA_AVERAGING), 0, 0, null);
                     im = im2;
                 }
-                
+
                 // Saving tile to file
                 //ImageIO.write(im, "png", new File("images/img_" + column + "_" + row + ".png"));
-                
                 // Composing.
                 result.getGraphics().drawImage(im, x, y, null);
                 iw.repaint();
-                x+=tileSize;
+                x += tileSize;
             }
-            x=0;
-            y+=tileSize;
+            x = 0;
+            y += tileSize;
         }
-        
+
     }
 
     static BufferedImage normalize(BufferedImage im) {
@@ -243,13 +242,14 @@ public class osogl {
 
         gl.glUseProgram(depthShader);
         glut.glutSolidTeapot(4, false);
-        
+
         gl.glUseProgram(0);
         gl.glEnable(GL2.GL_TEXTURE_2D);
         texture.enable(gl);
         gl.glPushMatrix();
         gl.glTranslated(-5, 5, 0);
         gl.glScaled(.5, .5, .5);
+        gl.glRotated(-25, 0, 0, 1);
         glut.glutSolidTeapot(4, false);
         gl.glPopMatrix();
     }

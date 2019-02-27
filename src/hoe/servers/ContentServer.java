@@ -2,15 +2,25 @@ package hoe.servers;
 
 import hoe.servlets.ContentServlet;
 import hoe.Log;
+import hoe.SceneManager;
+import java.io.File;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 
 public class ContentServer extends AbstractServer {
 
     public static final String CONTENT_PATH = "/content/";
+    public static final String TILES_DIRECTORY_PATH = "./content/tiles/";
 
-    public ContentServer(String ip, int port) {
+    public ContentServer(String ip, int port) throws Exception {
         super(SubscribeRequest.CONTENT_SERVER_TYPE, ip, port);
+
+        File contentDirectory = new File(TILES_DIRECTORY_PATH);
+        if (!contentDirectory.exists()) {
+            contentDirectory.mkdirs();
+        }
+
+        SceneManager.init();
 
         ServletContextHandler context = new ServletContextHandler();
         context.setContextPath("/");

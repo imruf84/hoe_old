@@ -1,5 +1,6 @@
 package hoe;
 
+import java.sql.Clob;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -24,6 +25,8 @@ public class SceneDataBase extends DataBase {
             stat.execute("CREATE TABLE IF NOT EXISTS OBJECTS (ID IDENTITY NOT NULL, MASS BIGINT NOT NULL, DIAMETER BIGINT NOT NULL, POINTS BIGINT NOT NULL, OWNER VARCHAR(20) NOT NULL, TYPE VARCHAR(10) NOT NULL, PRIMARY KEY (ID));");
             // Positions.
             stat.execute("CREATE TABLE IF NOT EXISTS POSITIONS (STEP BIGINT NOT NULL, X DOUBLE NOT NULL, Y DOUBLE NOT NULL, VX DOUBLE NOT NULL, VY DOUBLE NOT NULL, OBJECT_ID BIGINT NOT NULL, FOREIGN KEY (OBJECT_ID) REFERENCES OBJECTS (ID) ON DELETE CASCADE);");
+            // Tiles.
+            stat.execute("CREATE TABLE IF NOT EXISTS TILES (TURN BIGINT NOT NULL, X INT NOT NULL, Y INT NOT NULL, TILE CLOB DEFAULT NULL);");
         }
     }
 
@@ -60,6 +63,42 @@ public class SceneDataBase extends DataBase {
         }
 
         return result.substring(0, result.length() - 1);
+    }
+
+    public void storeTile(long turn, int x, int y, String tile) throws SQLException {
+
+        try (PreparedStatement ps = getConnection().prepareStatement("INSERT INTO TILES (TURN, X, Y, TILE) VALUES (?,?,?,?)")) {
+
+            Clob clob = getConnection().createClob();
+            clob.setString(1, tile);
+
+            ps.setLong(1, turn);
+            ps.setInt(2, x);
+            ps.setInt(3, y);
+            ps.setClob(4, clob);
+
+            ps.execute();
+        }
+    }
+
+    public synchronized String getTile(long turn, int x, int y) throws SQLException {
+
+        try (PreparedStatement ps = getConnection().prepareStatement("SELECT TILE FROM TILES WHERE TURN=? AND X=? AND Y=?")) {
+
+            ps.setLong(1, turn);
+            ps.setInt(2, x);
+            ps.setInt(3, y);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    Clob clob = rs.getClob(1);
+                    return clob.getSubString(1, (int) clob.length());
+                }
+            }
+
+        }
+
+        return null;
     }
 
     public void storeMeteor(Meteor m) throws SQLException {

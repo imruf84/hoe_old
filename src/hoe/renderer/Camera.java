@@ -24,7 +24,7 @@ public class Camera {
     private final int viewport[] = new int[4];
     private double zoomMin;
     private double zoomMax;
-    private Vector4d ortho = new Vector4d();
+    private final Vector4d ortho = new Vector4d();
 
     public Camera(double width, double height) {
         setViewportSize(width, height);

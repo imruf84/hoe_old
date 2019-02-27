@@ -30,7 +30,6 @@ import hoe.nonlinear.ObjectsPacker;
 import org.joml.Vector3d;
 import hoe.physics.Vector3D;
 import hoe.renderer.Camera;
-import org.joml.Intersectiond;
 
 public class Editor implements GLEventListener, MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
 

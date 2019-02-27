@@ -16,13 +16,25 @@ public abstract class DataBase {
 
     public DataBase(String ip, String dbName) throws ClassNotFoundException, SQLException {
         dataBaseName = dbName;
-        this.ip = (ip == null ? "localhost" : ip);
+        setIp(ip == null ? "localhost" : ip);
         Class.forName("org.h2.Driver");
-        connection = DriverManager.getConnection("jdbc:h2:" + DATA_BASE_PATH.replace(IP_PATTERN, this.ip) + getDataBaseName() + ";trace_level_file=0;", "sa", "12345");
+        connection = DriverManager.getConnection(""
+                + "jdbc:h2:"
+                + DATA_BASE_PATH.replace(IP_PATTERN, getIp())
+                + getDataBaseName() + ";trace_level_file=0;DB_CLOSE_DELAY=-1;",
+                DATA_BASE_USER, DATA_BASE_PASSWORD);
 
         doThings();
     }
 
+    public final void setIp(String ip) {
+        this.ip = ip;
+    }
+
+    public final String getIp() {
+        return ip;
+    }
+    
     public DataBase(String dbName) throws ClassNotFoundException, SQLException {
         this("localhost", dbName);
     }

@@ -40,4 +40,5 @@ https://askubuntu.com/questions/85214/how-can-i-prevent-iwconfig-power-managemen
 nano /etc/NetworkManager/conf.d/default-wifi-powersave-on.conf
 change 3 to 2
 (to check: Then run iwconfig and if it worked you should see Power Management:off)
+iwconfig wlan0 power off
 reboot

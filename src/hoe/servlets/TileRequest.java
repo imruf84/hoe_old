@@ -6,9 +6,9 @@ public class TileRequest implements Serializable {
 
     private final int x;
     private final int y;
-    private final int turn;
+    private final long turn;
 
-    public TileRequest(int x, int y, int turn) {
+    public TileRequest(int x, int y, long turn) {
         this.x = x;
         this.y = y;
         this.turn = turn;
@@ -22,7 +22,7 @@ public class TileRequest implements Serializable {
         return y;
     }
 
-    public int getTurn() {
+    public long getTurn() {
         return turn;
     }
 

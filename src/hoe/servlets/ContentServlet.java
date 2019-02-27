@@ -1,7 +1,9 @@
 package hoe.servlets;
 
 import hoe.Log;
+import hoe.SceneManager;
 import hoe.servers.AbstractServer;
+import hoe.servers.ContentServer;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontFormatException;
@@ -9,19 +11,19 @@ import java.awt.Graphics2D;
 import java.awt.GraphicsEnvironment;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
-import java.awt.image.RenderedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
+import java.sql.SQLException;
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.eclipse.jetty.http.HttpStatus;
 
 public class ContentServlet extends HttpServletWithEncryption {
+
+    public static final String TILE_IMAGE_EXTENSION = "jpg";
+    public static final String TILE_IMAGE_FORMAT = "jpg";
+    public static final String TILE_CONTENT_TYPE = "image/jpeg";
 
     public ContentServlet(AbstractServer server) {
         super(server);
@@ -33,62 +35,79 @@ public class ContentServlet extends HttpServletWithEncryption {
         if (action instanceof TileRequest) {
             TileRequest tr = (TileRequest) action;
 
-            int w = 500;
-            int h = 500;
-            BufferedImage image = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
-            Graphics2D g = (Graphics2D) image.getGraphics();
-            g.setColor(Color.red);
-            g.drawRect(0, 0, w - 1, h - 1);
-            g.setColor(Color.white);
+            int x = tr.getX();
+            int y = tr.getY();
+            long turn = tr.getTurn();
+            String tileFileName = ContentServer.TILES_DIRECTORY_PATH + turn + "_" + x + "_" + y + "." + TILE_IMAGE_EXTENSION;
+            File tileFile = new File(tileFileName);
 
-            try (InputStream mainFontIn = getClass().getClassLoader().getResourceAsStream("fonts/cour.ttf")) {
+            BufferedImage image = null;
 
-                Font mainFont = Font.createFont(Font.TRUETYPE_FONT, mainFontIn);
-
-                GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-
-                ge.registerFont(mainFont);
-            } catch (IOException | FontFormatException e) {
-                Log.error(e);
+            // Reading tile from file.
+            if (tileFile.exists()) {
+                image = ImageIO.read(tileFile);
+            } else {
+                // Getting the tile from the database.
+                try {
+                    image = SceneManager.getTile(turn, x, y);
+                } catch (SQLException ex) {
+                    Log.error(ex);
+                }
             }
 
-            int fontSize = 100;
-            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            if (image == null) {
 
-            g.setFont(new Font("Courier New", Font.PLAIN, fontSize));
-            g.drawString("x=" + tr.getX(), 10, (int) (fontSize * 1.1));
-            g.drawString("y=" + tr.getY(), 10, (int) (fontSize * 2.2));
-            g.drawString("t=" + tr.getTurn(), 10, (int) (fontSize * 3.4));
-            g.dispose();
+                // Rendering tile.
+                int w = 500;
+                int h = 500;
+                image = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
+                Graphics2D g = (Graphics2D) image.getGraphics();
+                g.setColor(Color.red);
+                g.drawRect(0, 0, w - 1, h - 1);
+                g.setColor(Color.white);
+
+                try (InputStream mainFontIn = getClass().getClassLoader().getResourceAsStream("fonts/cour.ttf")) {
+
+                    Font mainFont = Font.createFont(Font.TRUETYPE_FONT, mainFontIn);
+
+                    GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+
+                    ge.registerFont(mainFont);
+                } catch (IOException | FontFormatException e) {
+                    Log.error(e);
+                }
+
+                int fontSize = 100;
+                g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                g.setFont(new Font("Courier New", Font.PLAIN, fontSize));
+                g.drawString("x=" + x, 10, (int) (fontSize * 1.1));
+                g.drawString("y=" + y, 10, (int) (fontSize * 2.2));
+                g.drawString("t=" + turn, 10, (int) (fontSize * 3.4));
+                g.dispose();
+
+                try {
+                    // Storing tile to database.
+                    SceneManager.storeTile(turn, x, y, image);
+                } catch (SQLException ex) {
+                    Log.error(ex);
+                }
+
+            }
+
+            // Save tile to disk if neccessary.
+            if (!tileFile.exists()) {
+                Log.debug("Saving tile to disk: " + tileFileName);
+                ImageIO.write(image, TILE_IMAGE_FORMAT, tileFile);
+            }
 
             response.reset();
             response.setStatus(HttpServletResponse.SC_OK);
-            response.setContentType("image/jpeg");
-            ImageIO.write(image, "jpg", response.getOutputStream());
+            response.setContentType(TILE_CONTENT_TYPE);
+            ImageIO.write(image, TILE_IMAGE_FORMAT, response.getOutputStream());
 
         }
 
-    }
-
-    public static String imgToBase64String(final RenderedImage img, final String formatName) {
-        final ByteArrayOutputStream os = new ByteArrayOutputStream();
-        try {
-            ImageIO.write(img, formatName, Base64.getEncoder().wrap(os));
-            return os.toString(StandardCharsets.ISO_8859_1.name());
-        } catch (final IOException ioe) {
-            Log.error(ioe);
-        }
-
-        return null;
-    }
-
-    public static BufferedImage base64StringToImg(final String base64String) {
-        try {
-            return ImageIO.read(new ByteArrayInputStream(Base64.getDecoder().decode(base64String)));
-        } catch (final IOException ioe) {
-            Log.error(ioe);
-        }
-        return null;
     }
 
 }

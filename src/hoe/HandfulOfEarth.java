@@ -42,7 +42,7 @@ import org.joml.Vector3d;
  * https://support.securly.com/hc/en-us/articles/360000881087-How-to-resolve-the-too-many-redirects-error-on-Safari-
  */
 public class HandfulOfEarth {
-    
+
     public static void main__(String[] args) {
 
         Vector3d p0 = new Vector3d();
@@ -52,14 +52,13 @@ public class HandfulOfEarth {
         double twist2 = 0, d2 = 0, a2 = 10, ang2 = -45;
         Matrix4d m2 = m1.mul(new Matrix4d().translateLocal(a2, 0, 0).rotateLocalY(Math.toRadians(ang2)));
         Vector3d p2 = m2.transformPosition(new Vector3d());
-        
+
         System.out.println(p0);
         System.out.println(p1);
-        
-        
+
         // http://joml-ci.github.io/JOML/
         Skeleton skeleton = new Skeleton();
-        
+
         //struct.c
         JFrame frame = new JFrame();
         frame.setLayout(new BorderLayout());
@@ -86,12 +85,10 @@ public class HandfulOfEarth {
             g2d.setTransform(transform);
 
             //skeleton.render(g2d, scale);
-            
             g2d.setColor(Color.white);
-            g2d.drawLine((int)(p0.x*scale), (int)(p0.z*scale), (int)(p1.x*scale), (int)(p1.z*scale));
+            g2d.drawLine((int) (p0.x * scale), (int) (p0.z * scale), (int) (p1.x * scale), (int) (p1.z * scale));
             g2d.setColor(Color.red);
-            g2d.drawLine((int)(p1.x*scale), (int)(p1.z*scale), (int)(p2.x*scale), (int)(p2.z*scale));
-            
+            g2d.drawLine((int) (p1.x * scale), (int) (p1.z * scale), (int) (p2.x * scale), (int) (p2.z * scale));
 
             // Axises
             g2d.setColor(Color.red);
@@ -127,7 +124,7 @@ public class HandfulOfEarth {
             public void mouseExited(MouseEvent e) {
             }
         });
-        
+
         label.addMouseMotionListener(new MouseMotionListener() {
             @Override
             public void mouseDragged(MouseEvent e) {
@@ -142,7 +139,7 @@ public class HandfulOfEarth {
                     if (SwingUtilities.isLeftMouseButton(e)) {
                         skeleton.getLeftArm().setTarget(new Vector3d(q.getX(), q.getY(), 0));
                     }
-                    
+
                     if (SwingUtilities.isRightMouseButton(e)) {
                         skeleton.getRightArm().setTarget(new Vector3d(q.getX(), q.getY(), 0));
                     }
@@ -181,7 +178,7 @@ public class HandfulOfEarth {
         frame.setVisible(true);
 
     }
-    
+
     public static void main____(String[] args) throws Exception {
         try {
             String data = "test data";
@@ -236,6 +233,11 @@ public class HandfulOfEarth {
             server.start();
         }
 
+        String sceneDbIp = prop.getProperty("scenedbip");
+        if (sceneDbIp != null) {
+            SceneManager.setDataBaseIp(sceneDbIp);
+        }
+
         propKey = "startcontentserver";
         if (prop.containsKey(propKey) && prop.getProperty(propKey).toLowerCase().equals("true")) {
             int port = Integer.parseInt(prop.getProperty("contentserverport"));
@@ -249,9 +251,6 @@ public class HandfulOfEarth {
             try {
                 String userDbIp = prop.getProperty("userdbip");
                 UserManager.setDataBaseIp(userDbIp);
-
-                String sceneDbIp = prop.getProperty("scenedbip");
-                SceneManager.setDataBaseIp(sceneDbIp);
 
                 int port = Integer.parseInt(prop.getProperty("gameserverport"));
                 GameServer server = new GameServer(ip, port);

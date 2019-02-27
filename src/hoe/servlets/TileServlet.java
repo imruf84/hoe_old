@@ -29,7 +29,7 @@ public class TileServlet extends HttpServletWithUserValidator {
         }
 
         int coords[] = {0, 0};
-        int turn = 0;
+        long turn = 0;
 
         try {
             if (request.getPathInfo() != null) {
@@ -45,7 +45,7 @@ public class TileServlet extends HttpServletWithUserValidator {
                     case 4:
                         coords[0] = Integer.parseInt(saTileCoords[1]);
                         coords[1] = Integer.parseInt(saTileCoords[2]);
-                        turn = Integer.parseInt(saTileCoords[3]);
+                        turn = Long.parseLong(saTileCoords[3]);
                         break;
                 }
             }
@@ -53,13 +53,7 @@ public class TileServlet extends HttpServletWithUserValidator {
             response.setStatus(HttpStatus.BAD_REQUEST_400);
             return;
         }
-        /*
-        File image = new File("assets/tiles/tile_" + coords[0] + "_" + coords[1] + "_" + turn + ".jpg");
 
-        if (!image.exists()) {
-            return;
-        }
-         */
         response.reset();
         response.setStatus(HttpStatus.MOVED_PERMANENTLY_301);
 
@@ -72,12 +66,7 @@ public class TileServlet extends HttpServletWithUserValidator {
         String era = Cryptography.encryptObject(ra);
 
         String redirectUrl = server.getRedirectServerUrl() + RedirectServer.REDIRECT_SERVLET_PATH + era;
-        //Log.debug("Redirecting user ["+user.getUserName()+"] to: "+redirectUrl+"...");
-
-//        response.setContentType(getServletContext().getMimeType(image.getName()));
-        //response.setHeader("Content-Length", String.valueOf(image.length()));
         response.setHeader("Location", redirectUrl);
-//        Files.copy(image.toPath(), response.getOutputStream());
     }
 
     @Override

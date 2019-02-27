@@ -19,7 +19,6 @@ public abstract class HttpServletWithEncryption extends HttpServletBase {
 
     protected <T> void doEncription(HttpServletRequest request, HttpServletResponse response, int requestType) throws IOException {
 
-        //RedirectAction ra = null;
         T ra = null;
 
         if (request.getPathInfo() != null) {
