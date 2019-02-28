@@ -86,7 +86,7 @@ public class SceneManager {
 
     public static void generate() throws SQLException, IOException {
 
-        GameServlet.setState(GameServlet.GAME_STATE_GENERATE);
+        GameServlet.setStateToGenerate();
         Log.info("Generating scene...");
         getSceneDataBase().removeAllObjects();
 

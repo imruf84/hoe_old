@@ -5,12 +5,10 @@ import hoe.servers.GameServer;
 import hoe.servers.RedirectServer;
 import hoe.servlets.GameAction;
 import hoe.servlets.HttpServletWithEncryption;
-import hoe.servlets.HttpServletWithUserValidator;
 import hoe.servlets.RenderTilesRequest;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.time.Instant;
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.http.HttpStatus;
@@ -51,7 +49,7 @@ public class GameServlet extends HttpServletWithEncryption {
         setStateToRender();
     }
 
-    public static void setState(String state) throws IOException {
+    private static void setState(String state) throws IOException {
 
         if (state.toUpperCase().equals(getCurrentState().toUpperCase())) {
             return;
@@ -67,18 +65,17 @@ public class GameServlet extends HttpServletWithEncryption {
     public static void setStateToInit() throws IOException {
         setState(GAME_STATE_INIT);
     }
+    
+    public static void setStateToGenerate() throws IOException {
+        setState(GAME_STATE_GENERATE);
+    }
 
     public static void setStateToRender() throws IOException {
 
         // TODO: check it there are anything to render
         setState(GAME_STATE_RENDER);
 
-        RenderTilesRequest ta = new RenderTilesRequest(0, 0);
-        String eta = Cryptography.encryptObject(ta);
-
-        RedirectAction ra = new RedirectAction(GameServer.DO_RENDER_PATH, Instant.now().getEpochSecond(), null);
-        ra.setData(eta);
-        String era = Cryptography.encryptObject(ra);
+        String era = RedirectAction.createAndEncrypt(GameServer.DO_RENDER_PATH, null, new RenderTilesRequest(0, 0));
 
         String redirectUrl = getGameServer().getRedirectServerUrl() + RedirectServer.REDIRECT_SERVLET_PATH + era;
         HttpClient client = new HttpClient();
