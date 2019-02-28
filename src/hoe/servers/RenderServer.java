@@ -1,6 +1,7 @@
 package hoe.servers;
 
 import hoe.Log;
+import hoe.SceneManager;
 import hoe.servlets.RenderServlet;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -9,9 +10,11 @@ public class RenderServer extends AbstractServer {
 
     public static final String RENDER_PATH = "/render";
 
-    public RenderServer(String ip, int port) {
+    public RenderServer(String ip, int port) throws Exception {
         super(SubscribeRequest.RENDER_SERVER_TYPE, ip, port);
 
+        SceneManager.init();
+        
         ServletContextHandler context = new ServletContextHandler();
         context.setContextPath("/");
         getServer().setHandler(context);

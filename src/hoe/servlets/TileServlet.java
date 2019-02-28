@@ -61,7 +61,7 @@ public class TileServlet extends HttpServletWithUserValidator {
         String eta = Cryptography.encryptObject(ta);
         GameServer server = (GameServer) getServer();
 
-        RedirectAction ra = new RedirectAction(GameServer.TILE_PATH, Instant.now().getEpochSecond(), user.getUserName());
+        RedirectAction ra = new RedirectAction(GameServer.GET_TILE_PATH, Instant.now().getEpochSecond(), user.getUserName());
         ra.setData(eta);
         String era = Cryptography.encryptObject(ra);
 

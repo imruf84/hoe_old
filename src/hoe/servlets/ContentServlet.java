@@ -38,7 +38,7 @@ public class ContentServlet extends HttpServletWithEncryption {
             int x = tr.getX();
             int y = tr.getY();
             long turn = tr.getTurn();
-            String tileFileName = ContentServer.TILES_DIRECTORY_PATH + turn + "_" + x + "_" + y + "." + TILE_IMAGE_EXTENSION;
+            String tileFileName = ContentServer.TILES_CACHE_PATH + turn + "_" + x + "_" + y + "." + TILE_IMAGE_EXTENSION;
             File tileFile = new File(tileFileName);
 
             BufferedImage image = null;

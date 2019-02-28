@@ -2,7 +2,7 @@ package hoe.servlets;
 
 import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
-import hoe.Game;
+import hoe.GameServlet;
 import hoe.servers.GameServer;
 import hoe.Language;
 import hoe.LanguageMessageKey;
@@ -112,7 +112,7 @@ public class PlayServlet extends HttpServletWithUserValidator {
                 break;
             // Getting game state (GetGameState).
             case "ggs":
-                user.sendMessage(Game.getStateChangedMessage());
+                user.sendMessage(GameServlet.getStateChangedMessage());
                 break;
             // Sending chat message (ChatMessage).
             case "cm":

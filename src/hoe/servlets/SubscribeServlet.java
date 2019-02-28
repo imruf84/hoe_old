@@ -5,6 +5,7 @@ import hoe.servers.AbstractServer;
 import hoe.servers.RedirectServer;
 import hoe.servers.SubscribeRequest;
 import java.io.IOException;
+import java.util.LinkedList;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.http.HttpStatus;
@@ -24,20 +25,19 @@ public class SubscribeServlet extends HttpServletWithEncryption {
         response.setStatus(HttpStatus.OK_200);
         String url = "http://" + sr.getIp() + ":" + sr.getPort();
         RedirectServer server = (RedirectServer) getServer();
-        switch (sr.getType()) {
-            case SubscribeRequest.CONTENT_SERVER_TYPE:
-                if (sr.isUnsubscribe()) {
-                    if (server.getClients().contains(url)) {
-                        server.getClients().remove(url);
-                        Log.info("Client is unsubscribed [" + url + "]");
-                    }
-                } else {
-                    if (!server.getClients().contains(url)) {
-                        server.getClients().add(url);
-                        Log.info("Client is subscribed [" + url + "]");
-                    }
-                }
-                break;
+
+        String clientType = sr.getType();
+        LinkedList<String> clients = server.getClients().get(clientType);
+        if (sr.isUnsubscribe()) {
+            if (clients.contains(url)) {
+                server.getClients().remove(url);
+                Log.info("Client (" + clientType + ") is unsubscribed [" + url + "]");
+            }
+        } else {
+            if (!clients.contains(url)) {
+                clients.add(url);
+                Log.info("Client (" + clientType + ") is subscribed [" + url + "]");
+            }
         }
         response.getWriter().append(url);
 

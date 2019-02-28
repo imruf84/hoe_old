@@ -86,8 +86,8 @@ public class SceneManager {
 
     public static void generate() throws SQLException, IOException {
 
+        GameServlet.setState(GameServlet.GAME_STATE_GENERATE);
         Log.info("Generating scene...");
-        Game.setState(Game.GENERATE);
         getSceneDataBase().removeAllObjects();
 
         new Meteor(1, 2, "imruf84", 3, 4, 5, 6, 7).storeToDataBase().getID();

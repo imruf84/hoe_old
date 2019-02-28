@@ -20,3 +20,6 @@ scenedbip=127.0.0.1:9092
 
 startcontentserver=true
 contentserverport=8085
+
+startrenderserver=true
+renderserverport=8086

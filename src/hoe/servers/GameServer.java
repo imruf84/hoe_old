@@ -1,7 +1,7 @@
 package hoe.servers;
 
 import hoe.FileSessionManager;
-import hoe.Game;
+import hoe.GameServlet;
 import hoe.Log;
 import hoe.SceneManager;
 import hoe.UserManager;
@@ -24,10 +24,12 @@ public class GameServer extends AbstractServer {
     public static final String LOGIN_PATH = "/";
     public static final String LOGOUT_PATH = "/logout";
     public static final String PLAY_PATH = "/play";
+    public static final String GAME_PATH = "/game/";
     public static final String REGISTER_PATH = "/register";
-    public static final String TILE_PATH = "/tile/";
-    public static final String VIDEO_PATH = "/video/";
+    public static final String GET_TILE_PATH = "/tile/";
+    public static final String GET_VIDEO_PATH = "/video/";
     public static final String GET_IP_PATH = "/getip";
+    public static final String DO_RENDER_PATH = "/render/";
     public static int POST_REQUEST = 0;
     public static int GET_REQUEST = 1;
     private final FileSessionManager sm;
@@ -36,7 +38,8 @@ public class GameServer extends AbstractServer {
         super(SubscribeRequest.GAME_SERVER_TYPE, ip, port);
 
         SceneManager.init();
-        Game.init();
+        GameServer gs = this;
+        GameServlet.init(gs);
 
         ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
         context.setContextPath("/");
@@ -44,11 +47,12 @@ public class GameServer extends AbstractServer {
         ServletHolder psh = new ServletHolder(new PlayServlet(this));
         psh.setAsyncSupported(true);
         context.addServlet(psh, PLAY_PATH);
+        context.addServlet(new ServletHolder(new GameServlet(this)), GAME_PATH+"*");
         context.addServlet(new ServletHolder(new LoginServlet(this)), LOGIN_PATH);
         context.addServlet(new ServletHolder(new LogoutServlet()), LOGOUT_PATH);
         context.addServlet(new ServletHolder(new RegisterServlet(this)), REGISTER_PATH);
-        context.addServlet(new ServletHolder(new TileServlet(this)), TILE_PATH + "*");
-        context.addServlet(new ServletHolder(new VideoServlet(this)), VIDEO_PATH + "*");
+        context.addServlet(new ServletHolder(new TileServlet(this)), GET_TILE_PATH + "*");
+        context.addServlet(new ServletHolder(new VideoServlet(this)), GET_VIDEO_PATH + "*");
         context.addServlet(new ServletHolder(new GetIpServlet(this)), GET_IP_PATH);
 
         /*FilterHolder filter = new FilterHolder(CrossOriginFilter.class);
@@ -66,6 +70,7 @@ public class GameServer extends AbstractServer {
         fm.setFilterName("cross-origin");
         fm.setPathSpec("*");
         context.addFilter(holder, "*", null);*/
+        
         sm = new FileSessionManager();
         sm.setSessionCookie(SESSION_COOKIE + port);
         sm.setStoreDirectory(new File("./sessions"));
@@ -80,6 +85,9 @@ public class GameServer extends AbstractServer {
 
         // Restoring sessions from file.
         UserManager.init(sm);
+        
+        // Start the game.
+        GameServlet.start();
     }
 
 }

@@ -61,5 +61,5 @@ public class HttpClient {
     public String getResponse() {
         return response;
     }
-
+    
 }

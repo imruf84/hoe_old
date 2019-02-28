@@ -4,6 +4,7 @@ import hoe.servers.GameServer;
 import hoe.editor.Editor;
 import hoe.servers.ContentServer;
 import hoe.servers.RedirectServer;
+import hoe.servers.RenderServer;
 import hoe.skeleton.Skeleton;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -238,6 +239,14 @@ public class HandfulOfEarth {
             SceneManager.setDataBaseIp(sceneDbIp);
         }
 
+        propKey = "startrenderserver";
+        if (prop.containsKey(propKey) && prop.getProperty(propKey).toLowerCase().equals("true")) {
+            int port = Integer.parseInt(prop.getProperty("renderserverport"));
+            RenderServer server = new RenderServer(ip, port);
+            server.setRedirectServerUrl(prop.getProperty("redirectserverurl"));
+            server.start();
+        }
+        
         propKey = "startcontentserver";
         if (prop.containsKey(propKey) && prop.getProperty(propKey).toLowerCase().equals("true")) {
             int port = Integer.parseInt(prop.getProperty("contentserverport"));
