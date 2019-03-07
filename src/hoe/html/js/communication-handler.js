@@ -74,6 +74,8 @@ var handleResponse = function (responseText) {
             case 'gsc':
                 toDebug('game state changed to: ' + o['d']['state']);
                 var state = o['d']['state'];
+                var gsd = document.getElementById('gameStateDiv');
+                gsd.innerHTML = state;
                 // Objektumok letöltése (GetSceneData).
                 sendToServer(JSON.stringify({a: 'gsd', d: {}}));
                 break;

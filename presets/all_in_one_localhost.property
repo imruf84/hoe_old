@@ -1,4 +1,3 @@
-# NI specific IP
 ip=127.0.0.1
 debug=true
 secretkey=abcd1234

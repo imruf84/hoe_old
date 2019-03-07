@@ -1,5 +1,18 @@
 package hoe.editor;
 
+import com.bulletphysics.collision.broadphase.BroadphaseInterface;
+import com.bulletphysics.collision.broadphase.DbvtBroadphase;
+import com.bulletphysics.collision.dispatch.CollisionDispatcher;
+import com.bulletphysics.collision.dispatch.DefaultCollisionConfiguration;
+import com.bulletphysics.collision.shapes.CollisionShape;
+import com.bulletphysics.collision.shapes.SphereShape;
+import com.bulletphysics.collision.shapes.StaticPlaneShape;
+import com.bulletphysics.dynamics.DiscreteDynamicsWorld;
+import com.bulletphysics.dynamics.RigidBody;
+import com.bulletphysics.dynamics.RigidBodyConstructionInfo;
+import com.bulletphysics.dynamics.constraintsolver.SequentialImpulseConstraintSolver;
+import com.bulletphysics.linearmath.DefaultMotionState;
+import com.bulletphysics.linearmath.Transform;
 import hoe.Player;
 import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.util.gl2.GLUT;
@@ -30,6 +43,9 @@ import hoe.nonlinear.ObjectsPacker;
 import org.joml.Vector3d;
 import hoe.physics.Vector3D;
 import hoe.renderer.Camera;
+import javax.vecmath.Matrix4f;
+import javax.vecmath.Quat4f;
+import javax.vecmath.Vector3f;
 
 public class Editor implements GLEventListener, MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
 
@@ -57,10 +73,47 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
     private final AtomicBoolean isUpdating = new AtomicBoolean(false);
     private Thread thread = null;
     private final long delay = (long) (250 * TimeUtils.getDeltaTime());
+    
+    DiscreteDynamicsWorld dynamicsWorld = null;
 
     public Editor() {
         getCamera().setZoomLimits(1, 10);
         getCamera().setZoom(3);
+        
+        initPhysics();
+    }
+    
+    private void initPhysics() {
+        BroadphaseInterface broadphase = new DbvtBroadphase();
+        DefaultCollisionConfiguration collisionConfiguration = new DefaultCollisionConfiguration();
+        CollisionDispatcher dispatcher = new CollisionDispatcher(collisionConfiguration);
+        
+        SequentialImpulseConstraintSolver solver = new SequentialImpulseConstraintSolver();
+
+        dynamicsWorld = new DiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration);
+        dynamicsWorld.setGravity(new Vector3f(0, -10, 0));
+
+        CollisionShape groundShape = new StaticPlaneShape(new Vector3f(0, 1, 0), 1);
+        CollisionShape fallShape = new SphereShape(1);
+
+        DefaultMotionState groundMotionState = new DefaultMotionState(new Transform(new Matrix4f(new Quat4f(0, 0, 0, 1), new Vector3f(0, -1, 0), 1.0f)));
+
+        RigidBodyConstructionInfo groundRigidBodyCI = new RigidBodyConstructionInfo(0, groundMotionState, groundShape, new Vector3f(0, 0, 0));
+        RigidBody groundRigidBody = new RigidBody(groundRigidBodyCI);
+
+        dynamicsWorld.addRigidBody(groundRigidBody); // add our ground to the dynamic world.. 
+
+        DefaultMotionState fallMotionState = new DefaultMotionState(new Transform(new Matrix4f(new Quat4f(0, 0, 0, 1), new Vector3f(0, 50, 0), 1.0f)));
+
+        int mass = 1;
+
+        Vector3f fallInertia = new Vector3f(0, 0, 0);
+        fallShape.calculateLocalInertia(mass, fallInertia);
+
+        RigidBodyConstructionInfo fallRigidBodyCI = new RigidBodyConstructionInfo(mass, fallMotionState, fallShape, fallInertia);
+        RigidBody fallRigidBody = new RigidBody(fallRigidBodyCI);
+
+        dynamicsWorld.addRigidBody(fallRigidBody);
     }
 
     @Override
@@ -502,6 +555,7 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
                 thread = new Thread(() -> {
                     Runnable updater = () -> {
                         updatePlayerPositions();
+                        dynamicsWorld.stepSimulation(1 / 100.f, 10);
                     };
 
                     while (thread != null) {

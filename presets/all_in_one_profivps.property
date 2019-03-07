@@ -1,7 +1,8 @@
-# NI specific IP
 ip=84.21.7.31
 debug=true
 secretkey=abcd1234
+
+runeditor=truea
 
 startdbserver=true
 dbserverwebport=8082
@@ -18,3 +19,6 @@ scenedbip=84.21.7.31:9092
 
 startcontentserver=true
 contentserverport=8085
+
+startrenderserver=true
+renderserverport=8086

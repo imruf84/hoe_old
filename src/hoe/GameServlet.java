@@ -7,8 +7,8 @@ import hoe.servlets.GameAction;
 import hoe.servlets.HttpServletWithEncryption;
 import hoe.servlets.RenderTilesRequest;
 import java.io.IOException;
+import java.io.Serializable;
 import java.sql.SQLException;
-import java.time.Instant;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.http.HttpStatus;
@@ -22,7 +22,7 @@ public class GameServlet extends HttpServletWithEncryption {
     public static final String GAME_STATE_WAIT = "WAIT";
 
     private static String currentState = "NaN";
-    
+
     private static GameServer server = null;
 
     public GameServlet(AbstractServer server) {
@@ -65,21 +65,29 @@ public class GameServlet extends HttpServletWithEncryption {
     public static void setStateToInit() throws IOException {
         setState(GAME_STATE_INIT);
     }
-    
+
     public static void setStateToGenerate() throws IOException {
         setState(GAME_STATE_GENERATE);
     }
 
     public static void setStateToRender() throws IOException {
 
-        // TODO: check it there are anything to render
+        // TODO: check if are there anything to render?
         setState(GAME_STATE_RENDER);
 
-        String era = RedirectAction.createAndEncrypt(GameServer.DO_RENDER_PATH, null, new RenderTilesRequest(0, 0));
+        sendRequestToRedirectServer(GameServer.DO_RENDER_PATH, new RenderTilesRequest(0, 0));
+    }
+    
+    public static void setStateToWait() throws IOException {
+        setState(GAME_STATE_WAIT);
+    }
+
+    protected static <T extends Serializable> int sendRequestToRedirectServer(String path, T request) throws IOException {
+        String era = RedirectAction.createAndEncrypt(path, null, request);
 
         String redirectUrl = getGameServer().getRedirectServerUrl() + RedirectServer.REDIRECT_SERVLET_PATH + era;
         HttpClient client = new HttpClient();
-        client.sendGet(redirectUrl);
+        return client.sendGet(redirectUrl);
     }
 
     public static String getStateChangedMessage() {
@@ -94,8 +102,10 @@ public class GameServlet extends HttpServletWithEncryption {
     protected <T> void handleRequest(HttpServletRequest request, HttpServletResponse response, T action, int requestType) throws IOException {
         response.reset();
         response.setStatus(HttpStatus.OK_200);
-        
+
         GameAction ga = (GameAction) action;
-        System.out.println(ga.toString());
+        if (ga.isTilesRenderingDone()) {
+            setStateToWait();
+        }
     }
 }

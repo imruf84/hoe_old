@@ -1,0 +1,15 @@
+﻿alaptörténet(ek):
+
+1. (sci-fi vonal) a Földet legyalulták, ami az előlények nagy részét elpusztította. Földkörüli pályán keringenek kis állomások (minden állomás egy játékosé), amelyek mindegyike képes leküldeni EGY! irányító egységet, ami képes az élőlények  idegrendszerére kapcsolódni (legyen élő, vagy halott) és irányítani azt. 
+Az irányítandó egység állapotától (erőnlét, kondíció [halott esetén oszlás állapota] stb.) és intelligenciájától sokminden függ majd.
+A játék célja 
+	1) megtalálni a tervrajzát egy fegyvernek, ami képes elpusztítani a többi játékos állomását
+	2) megtalálni a tervrajzát egy pajzsnak, ami képes megvédeni a játékost valamitől, ami a többit elpusztítja majd
+	3) megtalálni valami cuccot, amivel le lehet juttatni a játékost a felszínre
+	
+2. a) (fantasy vonal) sikerült az összes mágust ártalmatlanítani azzal, hogy egy párhuzamos világba száműzték őket. Emiatt nem léphetnek közvetlenül interakcióba a valódi világgal. Azonban találtak egy módot, hogy előlényekbe költözve átvegyék az irányítást felettük. Bármikor elhagyhatják a testeket, hogy egy másik testbe költözzenek. Ha a test meghal, akkor választhat, hogy újra entitásként kóborol-e tovább? Szétgányolt testben nem igazán tudna mihez kezdeni. Kitalálni, hogy entitás módban láthassák-e csak egymást a játékosok??? (entitás módban csak entitásokat látnának és a gazdátlan testeket [így nem tudhatnák, hogy milyen testek közé kerülnek foglaláskor], test módban pedig nem látnák az entitásokat [így senki sem tudná, hogy éppen kit fognak elfoglalni]), azaz mindkét állapot kockázatot jelentene. Senki sem lenne biztonságban.
+A játék célja egy pl. kő (vagy más tárgy, esetleg fegyver vagy ruha) megszerzése, és viselése X körön át, hogy megtörjön a száműzetés a mágusok számára. Ezt az élőknek kell megakadályozni.
+A két kaszt célja oldalanként közös, azonban egymás is megérheti megtámadni (kitalálni hogy miért?)...
+Az egységek állapota és intelligenciája és fegyverzete/páncélzata határozza meg a skilleket, amikre képes.
+Egységek skilljei:
+	- 

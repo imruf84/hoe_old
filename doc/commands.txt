@@ -42,3 +42,16 @@ change 3 to 2
 (to check: Then run iwconfig and if it worked you should see Power Management:off)
 iwconfig wlan0 power off
 reboot
+
+
+vagy (ez tûnik jobbnak, mert percenként tiltja le a power saving-et)
+https://unix.stackexchange.com/questions/269661/how-to-turn-off-wireless-power-management-permanently (itt van contrab script is)
+sudo mkdir -p /etc/pm/power.d
+sudo nano /etc/pm/power.d/wireless_power_management_off
+  #!/bin/bash
+  /sbin/iwconfig wlan0 power off
+cd /etc/pm/power.d/
+sudo chown root:root wireless_power_management_off
+sudo chmod 700 wireless_power_management_off
+sudo crontab -e
+  */1 * * * * /etc/pm/power.d/wireless_power_management_off

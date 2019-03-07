@@ -132,6 +132,41 @@ public class SceneDataBase extends DataBase {
             ps.execute();
         }
     }
+    
+    public boolean getMeteor(Meteor m) throws SQLException {
+        
+        boolean b = false;
+        
+        try (PreparedStatement ps = getConnection().prepareStatement("SELECT * FROM OBJECTS WHERE ID=?", Statement.RETURN_GENERATED_KEYS)) {
+
+            ps.setLong(1, m.getID());
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    b = true;
+                    m.setDiameter(rs.getLong("DIAMETER"));
+                    m.setMass(rs.getLong("MASS"));
+                    m.setOwner(rs.getString("OWNER"));
+                    m.setPoints(rs.getLong("POINTS"));
+                }
+            }
+        }
+
+        // Getting position.
+        try (PreparedStatement ps = getConnection().prepareStatement("SELECT * FROM POSITIONS WHERE OBJECT_ID=?")) {
+
+            ps.setLong(1, m.getID());
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                if (b && rs.next()) {
+                    m.setPosition(rs.getDouble("X"), rs.getDouble("Y"));
+                    m.setVelocity(rs.getDouble("VX"), rs.getDouble("VY"));
+                }
+            }
+        }
+        
+        return b;
+    }
 
     public void removeAllObjects() throws SQLException {
         try (PreparedStatement ps = getConnection().prepareStatement("DELETE FROM OBJECTS; ALTER TABLE OBJECTS ALTER COLUMN ID RESTART WITH 1;")) {

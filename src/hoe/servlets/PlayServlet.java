@@ -94,9 +94,15 @@ public class PlayServlet extends HttpServletWithUserValidator {
         switch (root.get("a").toString()) {
             // Sync game scene (GetSceneData)
             case "gsd":
-                user.sendMessage(new Meteor(1, 4, 20, "imruf84", 1, 0, 0, 0, 0).toJson());
-                user.sendMessage(new Meteor(2, 4, 30, "imruf84", 1, 50, 0, 0, 0).toJson());
-                user.sendMessage(new Meteor(3, 4, 10, "imruf84", 1, 0, 50, 0, 0).toJson());
+                try {
+                    Meteor m = new Meteor(1);
+                    if (SceneManager.getMeteor(m)) {
+                        user.sendMessage(m.toJson());
+                    }
+                } catch (SQLException ex) {
+                    // Sending error message if exists.
+                    user.sendMessage(ex.getLocalizedMessage());
+                }
                 break;
             // Getting chat messages history (GetChatMessages).
             case "gcm":

@@ -44,10 +44,6 @@ public class SceneManager {
         return dataBaseIP;
     }
 
-    public static void addMeteor(Meteor m) throws SQLException {
-        getSceneDataBase().storeMeteor(m);
-    }
-
     public static void storeTile(long turn, int x, int y, BufferedImage image) throws SQLException {
         String base64Image = imgToBase64String(image, ContentServlet.TILE_IMAGE_FORMAT);
         getSceneDataBase().storeTile(turn, x, y, base64Image);
@@ -84,6 +80,14 @@ public class SceneManager {
         return null;
     }
 
+    public static void addMeteor(Meteor m) throws SQLException {
+        getSceneDataBase().storeMeteor(m);
+    }
+    
+    public static boolean getMeteor(Meteor m) throws SQLException {
+        return getSceneDataBase().getMeteor(m);
+    }
+    
     public static void generate() throws SQLException, IOException {
 
         GameServlet.setStateToGenerate();

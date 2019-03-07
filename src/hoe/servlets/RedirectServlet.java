@@ -10,8 +10,6 @@ import hoe.servers.GameServer;
 import hoe.servers.RedirectServer;
 import hoe.servers.SubscribeRequest;
 import java.io.IOException;
-import java.time.Instant;
-import java.util.LinkedList;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.http.HttpStatus;
@@ -40,20 +38,28 @@ public class RedirectServlet extends HttpServletWithEncryption {
                 response.setHeader("Location", redirectUrl);
                 return;
             case GameServer.DO_RENDER_PATH:
-                String gameServerUrl = server.getClients().get(SubscribeRequest.GAME_SERVER_TYPE).getFirst();
+
                 Log.debug("Start tiles rendering...");
                 Log.debug("Tiles rendering finished");
-                
-                GameAction ga = new GameAction("RENDERING TILES DONE!!!");
-                String era = Cryptography.encryptObject(ga);
-                
-                HttpClient c = new HttpClient();
-                c.sendGet(gameServerUrl+GameServer.GAME_PATH+era);
+
+                sendActionToGameServer(GameAction.GAME_ACTION_TILE_RENDER_DONE);
+
                 return;
         }
 
         response.reset();
         response.setStatus(HttpStatus.BAD_GATEWAY_502);
+    }
+
+    private int sendActionToGameServer(String action) throws IOException {
+
+        RedirectServer server = (RedirectServer) getServer();
+        String gameServerUrl = server.getClients().get(SubscribeRequest.GAME_SERVER_TYPE).getFirst();
+        GameAction ga = new GameAction(action);
+        String era = Cryptography.encryptObject(ga);
+
+        HttpClient c = new HttpClient();
+        return c.sendGet(gameServerUrl + GameServer.GAME_PATH + era);
     }
 
 }

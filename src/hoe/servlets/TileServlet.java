@@ -1,13 +1,11 @@
 package hoe.servlets;
 
-import hoe.Cryptography;
 import hoe.RedirectAction;
 import hoe.servers.GameServer;
 import hoe.User;
 import hoe.servers.AbstractServer;
 import hoe.servers.RedirectServer;
 import java.io.IOException;
-import java.time.Instant;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;

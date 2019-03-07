@@ -1,7 +1,0 @@
-# NI specific IP
-ip=192.168.56.104
-debug=true
-secretkey=abcd1234
-
-startredirectserver=true
-redirectserverport=8084

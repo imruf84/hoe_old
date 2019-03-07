@@ -14,6 +14,10 @@ public class Meteor {
     private final Point2D.Double position = new Point2D.Double();
     private final Point2D.Double velocity = new Point2D.Double();
 
+    public Meteor(long ID) {
+        setID(ID);
+    }
+    
     public Meteor(long mass, long diameter, String owner, long points) {
         this.mass = mass;
         this.diameter = diameter;
@@ -44,7 +48,7 @@ public class Meteor {
         return ID;
     }
 
-    public void setID(long ID) {
+    public final void setID(long ID) {
         this.ID = ID;
     }
 
@@ -80,8 +84,16 @@ public class Meteor {
         this.points = points;
     }
 
+    public void setPosition(double x, double y) {
+        getPosition().setLocation(x, y);
+    }
+    
     public Point2D.Double getPosition() {
         return position;
+    }
+    
+    public void setVelocity(double x, double y) {
+        getVelocity().setLocation(x, y);
     }
 
     public Point2D.Double getVelocity() {
@@ -89,6 +101,11 @@ public class Meteor {
     }
 
     public Meteor storeToDataBase() throws SQLException {
+        SceneManager.addMeteor(this);
+        return this;
+    }
+    
+    public Meteor getFromDataBase() throws SQLException {
         SceneManager.addMeteor(this);
         return this;
     }
