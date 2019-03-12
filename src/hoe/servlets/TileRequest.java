@@ -7,11 +7,13 @@ public class TileRequest implements Serializable {
     private final int x;
     private final int y;
     private final long turn;
+    private final long frame;
 
-    public TileRequest(int x, int y, long turn) {
+    public TileRequest(int x, int y, long turn, long frame) {
         this.x = x;
         this.y = y;
         this.turn = turn;
+        this.frame = frame;
     }
 
     public int getX() {
@@ -26,9 +28,14 @@ public class TileRequest implements Serializable {
         return turn;
     }
 
+    public long getFrame() {
+        return frame;
+    }
+
     @Override
     public String toString() {
-        return "TileAction{" + "x=" + x + ", y=" + y + ", turn=" + turn + '}';
+        return "TileRequest{" + "x=" + x + ", y=" + y + ", turn=" + turn + ", frame=" + frame + '}';
     }
+
 
 }

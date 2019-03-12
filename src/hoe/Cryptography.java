@@ -24,23 +24,6 @@ public class Cryptography {
     private static SecretKeySpec secretKey;
     private static byte[] key;
 
-    static class C implements Serializable {
-
-        long i;
-        String s;
-
-        public C(int i, String s) {
-            this.i = i;
-            this.s = s;
-        }
-
-        @Override
-        public String toString() {
-            return "C{" + "i=" + i + ", s=" + s + '}';
-        }
-
-    }
-
     public static void setKey(String myKey) {
         MessageDigest sha;
         try {
@@ -106,17 +89,4 @@ public class Cryptography {
         }
     }
 
-    public static void sample(String[] args) throws IOException {
-
-        final String k = "szupertitkosjelszó";
-        setKey(k);
-
-        C c1 = new C(1, "oneklfjdlkégj dflkéjddfklé");
-        System.out.println(c1.toString());
-        String encryptedString = Cryptography.encryptObject(c1);
-        System.out.println(encryptedString);
-        System.out.println(encryptedString.length());
-        C c2 = Cryptography.decryptObject(encryptedString);
-        System.out.println(c2.toString());
-    }
 }

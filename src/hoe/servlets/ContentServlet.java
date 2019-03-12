@@ -4,16 +4,9 @@ import hoe.Log;
 import hoe.SceneManager;
 import hoe.servers.AbstractServer;
 import hoe.servers.ContentServer;
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.FontFormatException;
-import java.awt.Graphics2D;
-import java.awt.GraphicsEnvironment;
-import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.sql.SQLException;
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
@@ -38,6 +31,7 @@ public class ContentServlet extends HttpServletWithEncryption {
             int x = tr.getX();
             int y = tr.getY();
             long turn = tr.getTurn();
+            long frame = tr.getFrame();
             String tileFileName = ContentServer.TILES_CACHE_PATH + turn + "_" + x + "_" + y + "." + TILE_IMAGE_EXTENSION;
             File tileFile = new File(tileFileName);
 
@@ -49,50 +43,10 @@ public class ContentServlet extends HttpServletWithEncryption {
             } else {
                 // Getting the tile from the database.
                 try {
-                    image = SceneManager.getTile(turn, x, y);
+                    image = SceneManager.getTile(turn, frame, x, y);
                 } catch (SQLException ex) {
                     Log.error(ex);
                 }
-            }
-
-            if (image == null) {
-
-                // Rendering tile.
-                int w = 500;
-                int h = 500;
-                image = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
-                Graphics2D g = (Graphics2D) image.getGraphics();
-                g.setColor(Color.red);
-                g.drawRect(0, 0, w - 1, h - 1);
-                g.setColor(Color.white);
-
-                try (InputStream mainFontIn = getClass().getClassLoader().getResourceAsStream("fonts/cour.ttf")) {
-
-                    Font mainFont = Font.createFont(Font.TRUETYPE_FONT, mainFontIn);
-
-                    GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-
-                    ge.registerFont(mainFont);
-                } catch (IOException | FontFormatException e) {
-                    Log.error(e);
-                }
-
-                int fontSize = 100;
-                g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-                g.setFont(new Font("Courier New", Font.PLAIN, fontSize));
-                g.drawString("x=" + x, 10, (int) (fontSize * 1.1));
-                g.drawString("y=" + y, 10, (int) (fontSize * 2.2));
-                g.drawString("t=" + turn, 10, (int) (fontSize * 3.4));
-                g.dispose();
-
-                try {
-                    // Storing tile to database.
-                    SceneManager.storeTile(turn, x, y, image);
-                } catch (SQLException ex) {
-                    Log.error(ex);
-                }
-
             }
 
             // Save tile to disk if neccessary.

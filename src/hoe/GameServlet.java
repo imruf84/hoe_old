@@ -20,6 +20,7 @@ public class GameServlet extends HttpServletWithEncryption {
     public static final String GAME_STATE_SIMULATE = "SIMULATE";
     public static final String GAME_STATE_RENDER = "RENDER";
     public static final String GAME_STATE_WAIT = "WAIT";
+    public static final String GAME_STATE_ERROR = "ERROR";
 
     private static String currentState = "NaN";
 
@@ -55,6 +56,10 @@ public class GameServlet extends HttpServletWithEncryption {
             return;
         }
 
+        if (state.equals(GAME_STATE_ERROR)) {
+            throw new IOException("GAME_STATE_ERROR");
+        }
+
         String oldState = currentState;
         currentState = state;
         Log.debug("Game state is changed from " + oldState + " to " + currentState);
@@ -77,7 +82,11 @@ public class GameServlet extends HttpServletWithEncryption {
 
         sendRequestToRedirectServer(GameServer.DO_RENDER_PATH, new RenderTilesRequest(0, 0));
     }
-    
+
+    public static void setStateToError() throws IOException {
+        setState(GAME_STATE_ERROR);
+    }
+
     public static void setStateToWait() throws IOException {
         setState(GAME_STATE_WAIT);
     }
@@ -106,6 +115,8 @@ public class GameServlet extends HttpServletWithEncryption {
         GameAction ga = (GameAction) action;
         if (ga.isTilesRenderingDone()) {
             setStateToWait();
+        } else {
+            setStateToError();
         }
     }
 }

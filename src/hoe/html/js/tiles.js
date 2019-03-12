@@ -43,17 +43,22 @@ function initTiles() {
         }
     }, 100);
     tilesDiv = document.getElementById('tiles');
-    var tilesCountX = 8000 / tileWidth;
-    var tilesCountY = 13000 / tileHeight;
+    var tilesFromX = -5;
+    var tilesToX = 5;
+    var tilesFromY = -3;
+    var tilesToY = 3;
+    var tilesCountX = tilesToX - tilesFromX + 1;
+    var tilesCountY = tilesToY - tilesFromY + 1;
     scrollerDiv.style.width = tilesCountX * tileWidth + 'px';
     scrollerDiv.style.height = tilesCountY * tileHeight + 'px';
     myScroll.refresh();
+    scrollToCoordWorldQuickly(tilesCountX/2*tileWidth,tilesCountY/2*tileHeight);
     let tilesToLoad = [];
-    for (let x = 0; x < tilesCountX; x++) {
-        for (let y = 0; y < tilesCountY; y++) {
+    for (let x = tilesFromX; x <= tilesToX; x++) {
+        for (let y = tilesFromY; y <= tilesToY; y++) {
             let image = new Image();
-            image.style.left = (x * tileWidth) + 'px';
-            image.style.top = (y * tileHeight) + 'px';
+            image.style.left = ((-tilesFromX+x) * tileWidth) + 'px';
+            image.style.top = ((-tilesFromY+y) * tileHeight) + 'px';
             image.width = tileWidth;
             image.height = tileHeight;
             image.tileX = x;

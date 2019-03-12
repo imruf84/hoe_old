@@ -18,6 +18,7 @@ userdbip=127.0.0.1:9092
 scenedbip=127.0.0.1:9092
 
 startcontentserver=true
+clearcontentservercache=true
 contentserverport=8085
 
 startrenderserver=true

@@ -250,7 +250,12 @@ public class HandfulOfEarth {
         propKey = "startcontentserver";
         if (prop.containsKey(propKey) && prop.getProperty(propKey).toLowerCase().equals("true")) {
             int port = Integer.parseInt(prop.getProperty("contentserverport"));
-            ContentServer server = new ContentServer(ip, port);
+            boolean clearCache = false;
+            propKey = "clearcontentservercache";
+            if (prop.containsKey(propKey) && prop.getProperty(propKey).toLowerCase().equals("true")) {
+                clearCache = true;
+            }
+            ContentServer server = new ContentServer(ip, port, clearCache);
             server.setRedirectServerUrl(prop.getProperty("redirectserverurl"));
             server.start();
         }

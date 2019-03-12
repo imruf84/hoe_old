@@ -1,9 +1,11 @@
 var myScroll;
 var scrollerDiv;
+var mouseTarget;
 
 function initScroll() {
 
     scrollerDiv = document.getElementById('scroller');
+    mouseTarget = document.getElementById('mousePointerToScroll');
 
     myScroll = new IScroll('#wrapper', {
         startX: 0,
@@ -46,9 +48,17 @@ function scrollToCoordScreen(screenX, screenY) {
     scrollToCoordWorld(worldX, worldY);
 }
 
-function scrollToCoordWorld(worldX, worldY) {
-    var mouseTarget = document.getElementById('mousePointerToScroll');
+function setMouseTargetPosition(worldX, worldY) {
     mouseTarget.style.left = worldX + 'px';
     mouseTarget.style.top = worldY + 'px';
+}
+
+function scrollToCoordWorld(worldX, worldY) {
+    setMouseTargetPosition(worldX, worldY);
     myScroll.scrollToElement(mouseTarget, 1000, true, true);
+}
+
+function scrollToCoordWorldQuickly(worldX, worldY) {
+    setMouseTargetPosition(worldX, worldY);
+    myScroll.scrollToElement(mouseTarget, 0, !true, !true);
 }

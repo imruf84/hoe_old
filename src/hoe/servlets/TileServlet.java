@@ -28,6 +28,7 @@ public class TileServlet extends HttpServletWithUserValidator {
 
         int coords[] = {0, 0};
         long turn = 0;
+        long frame = 0;
 
         try {
             if (request.getPathInfo() != null) {
@@ -55,7 +56,7 @@ public class TileServlet extends HttpServletWithUserValidator {
         response.reset();
         response.setStatus(HttpStatus.MOVED_PERMANENTLY_301);
 
-        String era = RedirectAction.createAndEncrypt(GameServer.GET_TILE_PATH, user.getUserName(), new TileRequest(coords[0], coords[1], turn));
+        String era = RedirectAction.createAndEncrypt(GameServer.GET_TILE_PATH, user.getUserName(), new TileRequest(coords[0], coords[1], turn, frame));
 
         GameServer server = (GameServer) getServer();
         String redirectUrl = server.getRedirectServerUrl() + RedirectServer.REDIRECT_SERVLET_PATH + era;
