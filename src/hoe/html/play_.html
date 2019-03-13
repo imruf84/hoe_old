@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+		<link rel="stylesheet" type="text/css" href="css/ol.css">
+		<script src="js/ol.js"></script>
+		<style>html, body {width:100%;height:100%;margin:0;padding:0;border:0;overflow:hidden;font-size:100%;font-family:monospace;color:black;}</style>
+
+    </head>
+    <body>
+
+	<div id="map" style="width:100%; height:100%;background-color:black;"></div>
+	<script>
+		var tileSize = 256;
+		var mapSize = [tileSize*8,tileSize*5];
+
+		var extent = [0,0, mapSize[0], mapSize[1]];
+
+		var proj = new ol.proj.Projection({
+		  code: 'pixel',
+		  units: 'pixels',
+		  extent: extent
+		});
+
+		var resolutions = [1];
+
+		var layer = new ol.layer.Tile({
+		  preload: Infinity,
+		  extent: proj.getExtent(),
+		  source: new ol.source.TileImage({
+			tileGrid: new ol.tilegrid.TileGrid({
+			  origin: [0, 0],
+			  resolutions: resolutions,
+			  tileSize: tileSize,
+			}),
+			projection: proj,
+			tileUrlFunction: function(tileCoord, pixelRatio, projection) {
+				if (tileCoord === null) return undefined;
+				
+				var z = tileCoord[0];
+				var x = tileCoord[1];
+				var y = tileCoord[2];
+				
+				return 'https://a.tiles.mapbox.com/v3/mapbox.blue-marble-topo-jan/3/'+x+'/'+(5-y)+'.png';
+			}
+		  })
+		});
+
+		var map = new ol.Map({
+		  loadTilesWhileAnimating: true,
+		  target: 'map',
+		  layers: [layer],
+		  controls: [new ol.control.FullScreen()],
+		  interactions:  ol.interaction.defaults(),
+		  keyboardEventTarget: document,
+		  view: new ol.View({
+		    enableRotation: false,
+			projection: proj,
+			center: ol.extent.getCenter(extent),
+			resolution: 1,
+			minResolution: 1,
+			maxResolution: 4,
+			zoom: 1,
+		  })
+		});
+		//map.updateSize();
+	</script>
+
+    </body>
+</html>

@@ -7,8 +7,7 @@ document.addEventListener('gesturestart', function (e) {
     scrollTopLeft();
     e.preventDefault();
 });
-document.addEventListener('touchmove',
-        function (event) {
-            scrollTopLeft();
-            event.preventDefault();
-        }, false);
+document.addEventListener('touchmove', function (event) {
+    scrollTopLeft();
+    event.preventDefault();
+}, false);
