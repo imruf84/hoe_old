@@ -4,17 +4,20 @@
         <title>title</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-		<link rel="stylesheet" type="text/css" href="css/ol.css">
-		<script src="js/ol.js"></script>
-		<style>html, body {width:100%;height:100%;margin:0;padding:0;border:0;overflow:hidden;font-size:100%;font-family:monospace;color:black;}</style>
+	<link rel="stylesheet" type="text/css" href="css/ol.css">
+	<script src="js/ol.js"></script>
+	<style>html, body {width:100%;height:100%;margin:0;padding:0;border:0;overflow:hidden;font-size:100%;font-family:monospace;color:black;}</style>
 
     </head>
     <body>
 
-	<div id="map" style="width:100%; height:100%;background-color:black;"></div>
+        <div id="map" style="width:100%; height:100%;background-color:white;"></div>
+	
 	<script>
 		var tileSize = 256;
-		var mapSize = [tileSize*8,tileSize*5];
+		var tilesX = 8;
+		var tilesY = 5;
+		var mapSize = [tileSize*tilesX,tileSize*tilesY];
 
 		var extent = [0,0, mapSize[0], mapSize[1]];
 
@@ -32,6 +35,7 @@
 		  source: new ol.source.TileImage({
 			tileGrid: new ol.tilegrid.TileGrid({
 			  origin: [0, 0],
+			  //origin: [mapSize[0]/2,mapSize[1]/2],
 			  resolutions: resolutions,
 			  tileSize: tileSize,
 			}),
@@ -43,19 +47,30 @@
 				var x = tileCoord[1];
 				var y = tileCoord[2];
 				
-				return 'https://a.tiles.mapbox.com/v3/mapbox.blue-marble-topo-jan/3/'+x+'/'+(5-y)+'.png';
+				return 'https://a.tiles.mapbox.com/v3/mapbox.blue-marble-topo-jan/3/'+x+'/'+(tilesY-y)+'.png';
 			}
 		  })
 		});
-
+		
+		
 		var map = new ol.Map({
-		  loadTilesWhileAnimating: true,
 		  target: 'map',
 		  layers: [layer],
 		  controls: [new ol.control.FullScreen()],
-		  interactions:  ol.interaction.defaults(),
+		  interactions:  ol.interaction.defaults().extend([
+				new ol.interaction.KeyboardPan({
+					duration: 200,
+					pixelDelta: tileSize
+				}),
+				new ol.interaction.KeyboardZoom({
+					duration: 200,
+					delta: 10,
+				}),
+				
+			]),
 		  keyboardEventTarget: document,
 		  view: new ol.View({
+			extent: extent,
 		    enableRotation: false,
 			projection: proj,
 			center: ol.extent.getCenter(extent),
@@ -65,7 +80,36 @@
 			zoom: 1,
 		  })
 		});
-		//map.updateSize();
+		
+		
+		var duration = 200;
+		
+		map.on('dblclick', function(e) {
+			console.log(e.coordinate)
+			map.getView().animate({center: e.coordinate, duration: duration});
+		});
+		
+		document.addEventListener('keydown', function(event){
+			if (event.isComposing || event.keyCode === 229) {
+				return;
+			}
+			
+			switch (event.keyCode) {
+				// 1
+				case 49:
+				case 97:map.getView().animate({center: [0,0],duration: duration});break;
+				// 2
+				case 50:
+				case 98:map.getView().animate({center: [mapSize[0]/2,0],duration: duration});break;
+				// 3
+				case 51:
+				case 99:map.getView().animate({center: [mapSize[0],0],duration: duration});break;
+			}
+			console.log(event.keyCode);
+		});
+
+
+		
 	</script>
 
     </body>

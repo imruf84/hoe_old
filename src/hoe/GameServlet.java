@@ -1,5 +1,8 @@
 package hoe;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import hoe.servers.AbstractServer;
 import hoe.servers.GameServer;
 import hoe.servers.RedirectServer;
@@ -9,6 +12,8 @@ import hoe.servlets.RenderTilesRequest;
 import java.io.IOException;
 import java.io.Serializable;
 import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.http.HttpStatus;
@@ -100,7 +105,28 @@ public class GameServlet extends HttpServletWithEncryption {
     }
 
     public static String getStateChangedMessage() {
-        return "{\"a\":\"gsc\",\"d\":{\"state\":\"" + getCurrentState() + "\"}}";
+        JsonObject json = new JsonObject();
+        json.add("a", new JsonPrimitive("gsc"));
+        
+        JsonObject data = new JsonObject();
+        json.add("d", data);
+        data.add("state", new JsonPrimitive(getCurrentState()));
+        
+        JsonObject scene = new JsonObject();
+        data.add("scene", scene);
+        JsonArray tileBounds = new JsonArray();
+        
+        try {
+            for (int bound : SceneManager.getTileBounds()) {
+                tileBounds.add(new JsonPrimitive(bound));
+            }
+        } catch (SQLException ex) {
+            Log.error(ex);
+        }
+        
+        scene.add("tileBounds", tileBounds);
+        
+        return json.toString();
     }
 
     public static String getCurrentState() {

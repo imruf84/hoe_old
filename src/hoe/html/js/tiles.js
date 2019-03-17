@@ -2,12 +2,90 @@
 /* global myScroll */
 
 var tilesDiv;
+var map;
 var tileWidth = 500;
 var tileHeight = 500;
 
+function refreshTiles(turn) {
+    map.getLayers().array_[0].getSource().refresh();
+    // map.getView().animate({center: [0,0],duration: duration});
+    // map.updateSize();
+}
+
 function initTiles() {
 
-    let tilesQueueWasEmpty = true;
+    var tileSize = 500;
+    var tilesX = 11;
+    var tilesY = 7;
+    var mapSize = [tileSize*tilesX,tileSize*tilesY];
+
+    var extent = [0,0, mapSize[0], mapSize[1]];
+
+    var proj = new ol.proj.Projection({
+        code: 'pixel',
+        units: 'pixels',
+        extent: extent
+    });
+
+    var resolutions = [1];
+
+    var layer = new ol.layer.Tile({
+        preload: Infinity,
+        extent: proj.getExtent(),
+        source: new ol.source.TileImage({
+            tileGrid: new ol.tilegrid.TileGrid({
+            //origin: [Math.trunc(tilesX/2)*tileSize,Math.trunc(tilesY/2)*tileSize],
+            origin: [Math.trunc(tilesX/2)*tileSize,Math.round(tilesY/2)*tileSize],
+            resolutions: resolutions,
+            tileSize: tileSize,
+        }),
+        projection: proj,
+        url: 'tile/{x}/{y}'
+        /*tileUrlFunction: function(tileCoord, pixelRatio, projection) {
+            if (tileCoord === null) return undefined;
+				
+                var z = tileCoord[0];
+                var x = tileCoord[1];
+                var y = tileCoord[2];
+				
+                //return 'https://a.tiles.mapbox.com/v3/mapbox.blue-marble-topo-jan/3/'+x+'/'+(tilesY-y)+'.png';
+                return 'tile/' + x + '/' + y;
+            }*/
+        })
+    });
+		
+		
+    map = new ol.Map({
+        target: 'tiles',
+        layers: [layer],
+        controls: [new ol.control.FullScreen()],
+        interactions:  ol.interaction.defaults().extend([
+            new ol.interaction.KeyboardPan({
+                duration: 200,
+                pixelDelta: tileSize
+            }),
+            new ol.interaction.KeyboardZoom({
+                duration: 200,
+                delta: 10,
+            }),
+				
+        ]),
+        keyboardEventTarget: document,
+        view: new ol.View({
+            extent: extent,
+            enableRotation: false,
+            projection: proj,
+            center: ol.extent.getCenter(extent),
+            resolution: 1,
+            minResolution: 1,
+            maxResolution: 4,
+            zoom: 1,
+        })
+    });
+		
+
+
+/*    let tilesQueueWasEmpty = true;
     let tilesQueueToLoad = [];
     function loadTileFromQueue() {
         sortTilesByDistanceOfScreenCenter(tilesQueueToLoad);
@@ -74,9 +152,9 @@ function initTiles() {
             tilesToLoad.push(image);
         }
     }
-
+*/
 }
-
+/*
 function markCenterTile() {
     var ct = getClosestTileToScreenCenter();
     if (!ct) {
@@ -129,3 +207,4 @@ function sortTilesByDistanceOfScreenCenter(tiles) {
 function iterateTiles(func) {
     [].forEach.call(document.querySelectorAll('.tile'), func);
 }
+*/

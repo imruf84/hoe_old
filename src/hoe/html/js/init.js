@@ -1,5 +1,5 @@
 function init() {
-    initScroll();
+    //initScroll();
     initCommunicationHandler();
     longPolling();
     initKeyboardEvents();

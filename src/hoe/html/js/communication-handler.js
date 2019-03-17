@@ -72,10 +72,14 @@ var handleResponse = function (responseText) {
         switch (o['a']) {
             // Játékállapotváltozás érkezett (GameStateChanged).
             case 'gsc':
-                toDebug('game state changed to: ' + o['d']['state']);
-                var state = o['d']['state'];
+                var data  =o['d'];
+                var state = data['state'];
+                toDebug('game state changed to: ' + state);
                 var gsd = document.getElementById('gameStateDiv');
                 gsd.innerHTML = state;
+                // Jelenet kliensre vonatkozó alapadatai.
+                var scene = data['scene'];
+                var tileBounds = scene['tileBounds'];
                 // Objektumok letöltése (GetSceneData).
                 sendToServer(JSON.stringify({a: 'gsd', d: {}}));
                 break;

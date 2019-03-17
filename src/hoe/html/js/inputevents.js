@@ -15,7 +15,7 @@ function initKeyboardEvents() {
         var isShift = e.shiftKey;
         var isCtrl = e.ctrlKey;
 
-        var scrollBy = [myScroll.scale * tileWidth, myScroll.scale * tileHeight];
+/*        var scrollBy = [myScroll.scale * tileWidth, myScroll.scale * tileHeight];
         if (isShift) {
             scrollBy = [getWindowSize()[0], getWindowSize()[1]];
         }
@@ -28,7 +28,7 @@ function initKeyboardEvents() {
             scaleBy = myScroll.options.zoomMax - myScroll.options.zoomMin;
         }
         var scaleByDuration = 1000;
-
+*/
         switch (key) {
             // delete (logout)
             case 46:
@@ -42,7 +42,7 @@ function initKeyboardEvents() {
                     video.pause();
                 break;
                 // + (zoom in)
-            case 51:
+/*            case 51:
             case 107:
                 myScroll.zoom(myScroll.scale + scaleBy, screenCenterX, screenCenterY, scaleByDuration);
                 break;
@@ -65,7 +65,8 @@ function initKeyboardEvents() {
                 // left
             case 37:
                 myScroll.scrollBy(scrollBy[0], 0, scrollByDuration);
-                break;
+                break;*/
         }
     };
+    
 }
