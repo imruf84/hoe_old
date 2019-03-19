@@ -1,8 +1,6 @@
 package hoe;
 
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import hoe.servlets.TileRequest;
@@ -349,9 +347,9 @@ public class SceneDataBase extends DataBase {
 
         return null;
     }
-    
+
     public int getUnrenderedTilesCount() throws SQLException {
-        
+
         try (PreparedStatement ps = getConnection().prepareStatement("SELECT COUNT(*) AS C FROM TILES WHERE TILE IS NULL OR TILE = '';")) {
 
             try (ResultSet rs = ps.executeQuery()) {
@@ -364,6 +362,24 @@ public class SceneDataBase extends DataBase {
         }
 
         return 0;
+    }
+
+    public long getCurrentTurn() throws SQLException {
+
+        // TODO: instead of this it would be better to get current turn from a stored property to keep states sync
+        try (PreparedStatement ps = getConnection().prepareStatement("SELECT MAX(TURN) AS T FROM TILES WHERE TILE <> '' AND NOT TILE IS NULL;")) {
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+
+                }
+            }
+
+        }
+
+        return -1;
+
     }
 
 }

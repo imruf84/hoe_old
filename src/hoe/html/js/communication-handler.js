@@ -72,14 +72,24 @@ var handleResponse = function (responseText) {
         switch (o['a']) {
             // Játékállapotváltozás érkezett (GameStateChanged).
             case 'gsc':
-                var data  =o['d'];
+                var data = o['d'];
                 var state = data['state'];
-                toDebug('game state changed to: ' + state);
+                toDebug('Game state is changed to: ' + state);
                 var gsd = document.getElementById('gameStateDiv');
                 gsd.innerHTML = state;
-                // Jelenet kliensre vonatkozó alapadatai.
+                
                 var scene = data['scene'];
                 var tileBounds = scene['tileBounds'];
+                if (!isTilesMapCreated()) {
+                    var tilesX = Math.max(tileBounds[0], tileBounds[1]) - Math.min(tileBounds[0], tileBounds[1]) + 1;
+                    var tilesY = Math.max(tileBounds[2], tileBounds[3]) - Math.min(tileBounds[2], tileBounds[3]) + 1;
+
+                    initTiles(getTileSize(), tilesX, tilesY);
+                }
+                
+                var currentTurn = scene['currentTurn'];
+                refreshTiles(currentTurn);
+                
                 // Objektumok letöltése (GetSceneData).
                 sendToServer(JSON.stringify({a: 'gsd', d: {}}));
                 break;
@@ -92,8 +102,9 @@ var handleResponse = function (responseText) {
             case 'cm':
                 var cmb = document.getElementById('chatMsgBox');
                 var count = (cmb.innerHTML.match(/<br>/g) || []).length;
-                if (count === messagesCount)
+                if (count === messagesCount) {
                     cmb.innerHTML = cmb.innerHTML.substring(cmb.innerHTML.indexOf('<br>') + 4);
+                }
                 if (downloadinMessages) {
                     cmb.innerHTML = "";
                     downloadinMessages = false;

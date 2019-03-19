@@ -139,6 +139,10 @@ public class SceneManager {
     public static int getUnrenderedTilesCount() throws SQLException {
         return getSceneDataBase().getUnrenderedTilesCount();
     }
+    
+    public static long getCurrentTurn() throws SQLException {
+        return getSceneDataBase().getCurrentTurn();
+    }
 
     public static void clearAll() throws SQLException, IOException {
         Log.info("Clearing scene...");
@@ -156,7 +160,7 @@ public class SceneManager {
         setSceneLength(300);
         setSceneWidth(100);
         setSceneHeight(1000);
-        setTileBounds(new int[]{-5, 5, -3, 3});
+        setTileBounds(new int[]{-3, 3, -1, 1});
 
         new Meteor(1, 2, "imruf84", 3, 4, 5, 6, 7).storeToDataBase().getID();
     }

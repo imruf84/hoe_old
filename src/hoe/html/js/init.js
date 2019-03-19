@@ -3,6 +3,6 @@ function init() {
     initCommunicationHandler();
     longPolling();
     initKeyboardEvents();
-    initTiles();
+    //initTiles();
     initVideo();
 }

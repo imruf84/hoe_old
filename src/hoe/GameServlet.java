@@ -120,6 +120,9 @@ public class GameServlet extends HttpServletWithEncryption {
             for (int bound : SceneManager.getTileBounds()) {
                 tileBounds.add(new JsonPrimitive(bound));
             }
+            
+            scene.add("currentTurn", new JsonPrimitive(SceneManager.getCurrentTurn()));
+            
         } catch (SQLException ex) {
             Log.error(ex);
         }
