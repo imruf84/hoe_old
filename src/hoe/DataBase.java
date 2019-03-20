@@ -22,13 +22,15 @@ public abstract class DataBase {
         createConnection();
 
         doThings();
+        
+        //compact();
     }
     
     private void createConnection() throws SQLException {
         connection = DriverManager.getConnection(""
                 + "jdbc:h2:"
                 + DATA_BASE_PATH.replace(IP_PATTERN, getIp())
-                + getDataBaseName() + ";trace_level_file=0;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;",
+                + getDataBaseName() + ";trace_level_file=0;DB_CLOSE_DELAY=-1;MV_STORE=FALSE;",
                 DATA_BASE_USER, DATA_BASE_PASSWORD);
     }
     
@@ -62,7 +64,7 @@ public abstract class DataBase {
         return dataBaseName;
     }
     
-    public void compact() throws SQLException {
+    public final void compact() throws SQLException {
         try (PreparedStatement ps = getConnection().prepareStatement("SHUTDOWN COMPACT;")) {
             ps.execute();
             reconnect();

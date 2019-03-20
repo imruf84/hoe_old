@@ -14,6 +14,8 @@ import javax.imageio.ImageIO;
 
 public class SceneManager {
 
+    public static final long TURNS_TO_KEEP_OLD_TILES = 2;
+    
     private static String dataBaseIP;
     private static SceneDataBase sceneDataBase;
     private static boolean inited = false;
@@ -52,7 +54,7 @@ public class SceneManager {
         }
         getSceneDataBase().updateTile(turn, frame, x, y, base64Image);
     }
-    
+
     public static void storeTile(long turn, long frame, int x, int y, BufferedImage image) throws SQLException {
         String base64Image = null;
         if (image != null) {
@@ -135,19 +137,27 @@ public class SceneManager {
     public static TileRequest markTileToRender() throws SQLException {
         return getSceneDataBase().markTileToRender();
     }
+
+    public static void removeTiles(long turn, long frame) throws SQLException {
+        getSceneDataBase().removeTiles(turn, frame);
+    }
     
+    public static void removeOldTiles(long turnBefore) throws SQLException {
+        getSceneDataBase().removeOldTiles(turnBefore);
+    }
+
     public static int getUnrenderedTilesCount() throws SQLException {
         return getSceneDataBase().getUnrenderedTilesCount();
     }
-    
+
     public static void setCurrentTurnAndFrame(long turn, long frame) throws SQLException {
         getSceneDataBase().setCurrentTurnAndFrame(turn, frame);
     }
-    
+
     public static long getCurrentTurn() throws SQLException {
         return getSceneDataBase().getCurrentTurn();
     }
-    
+
     public static long getCurrentFrame() throws SQLException {
         return getSceneDataBase().getCurrentFrame();
     }
@@ -156,7 +166,6 @@ public class SceneManager {
         Log.info("Clearing scene...");
         getSceneDataBase().removeAllObjects();
         getSceneDataBase().removeAllTiles();
-        getSceneDataBase().compact();
     }
 
     public static void generate() throws SQLException, IOException {
@@ -170,8 +179,8 @@ public class SceneManager {
         setSceneLength(300);
         setSceneWidth(100);
         setSceneHeight(1000);
-        setTileBounds(new int[]{-3, 3, -1, 1});
-        //setTileBounds(new int[]{0, 0, 0, 0});
+        //setTileBounds(new int[]{-2, 2, -2, 2});
+        setTileBounds(new int[]{0, 0, 0, 0});
 
         new Meteor(1, 2, "imruf84", 3, 4, 5, 6, 7).storeToDataBase().getID();
     }

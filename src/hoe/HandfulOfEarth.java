@@ -269,6 +269,7 @@ public class HandfulOfEarth {
                 int port = Integer.parseInt(prop.getProperty("gameserverport"));
                 GameServer server = new GameServer(ip, port);
                 server.setRedirectServerUrl(prop.getProperty("redirectserverurl"));
+                //SceneManager.generate();
                 server.start();
 
             } catch (Exception ex) {

@@ -49,8 +49,7 @@ public class GameServlet extends HttpServletWithEncryption {
 
     public static void start() throws SQLException, IOException {
         Log.info("Starting game...");
-        SceneManager.generate();
-        setStateToRender();
+        setStateToWait();
     }
 
     private static void setState(String state) throws IOException {
@@ -67,17 +66,19 @@ public class GameServlet extends HttpServletWithEncryption {
         currentState = state;
         Log.debug("Game state is changed from " + oldState + " to " + currentState);
 
-        UserManager.sendMessageToAll(getStateChangedMessage());
+        if (!isStateInit() && !isStateGenerate()) {
+            UserManager.sendMessageToAll(getStateChangedMessage());
+        }
     }
 
     public static boolean isStateInit() {
         return getCurrentState().equals(GAME_STATE_INIT);
     }
-    
+
     public static void setStateToInit() throws IOException {
         setState(GAME_STATE_INIT);
     }
-    
+
     public static boolean isStateGenerate() {
         return getCurrentState().equals(GAME_STATE_GENERATE);
     }
@@ -89,7 +90,7 @@ public class GameServlet extends HttpServletWithEncryption {
     public static boolean isStateRender() {
         return getCurrentState().equals(GAME_STATE_RENDER);
     }
-    
+
     public static void setStateToRender() throws IOException {
 
         long framesPerTurn = 1;
@@ -102,6 +103,7 @@ public class GameServlet extends HttpServletWithEncryption {
                 // If all the frames have been rendered we set the gamestate to wait.
                 currentTurn++;
                 SceneManager.setCurrentTurnAndFrame(currentTurn, currentFrame);
+                SceneManager.removeOldTiles(SceneManager.TURNS_TO_KEEP_OLD_TILES);
                 setStateToWait();
                 return;
             }
@@ -119,7 +121,7 @@ public class GameServlet extends HttpServletWithEncryption {
             } else {
                 SceneManager.setCurrentTurnAndFrame(currentTurn, currentFrame);
             }
-            
+
             // Rendering the next turn frame.
             int[] tileBounds = SceneManager.getTileBounds();
 
@@ -129,7 +131,7 @@ public class GameServlet extends HttpServletWithEncryption {
             int tileToY = tileBounds[3];
 
             currentTurn = Math.max(0, currentTurn);
-            
+
             // Create empty frames to fill it by render servers...
             for (int x = tileFromX; x <= tileToX; x++) {
                 for (int y = tileFromY; y <= tileToY; y++) {
@@ -148,7 +150,7 @@ public class GameServlet extends HttpServletWithEncryption {
     public static boolean isStateError() {
         return getCurrentState().equals(GAME_STATE_ERROR);
     }
-    
+
     public static void setStateToError() throws IOException {
         setState(GAME_STATE_ERROR);
     }
@@ -156,9 +158,23 @@ public class GameServlet extends HttpServletWithEncryption {
     public static boolean isStateWait() {
         return getCurrentState().equals(GAME_STATE_WAIT);
     }
-    
+
     public static void setStateToWait() throws IOException {
-        setState(GAME_STATE_WAIT);
+        try {
+
+            long currentTurn = SceneManager.getCurrentTurn();
+            long currentFrame = SceneManager.getCurrentFrame();
+
+            if (currentTurn < 0 || currentFrame != 0) {
+                setStateToRender();
+            } else {
+                setState(GAME_STATE_WAIT);
+            }
+        } catch (SQLException ex) {
+            Log.error(ex);
+            setStateToError();
+        }
+
     }
 
     protected static <T extends Serializable> int sendRequestToRedirectServer(String path, T request) throws IOException {

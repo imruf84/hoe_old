@@ -351,6 +351,22 @@ public class SceneDataBase extends DataBase {
 
         return null;
     }
+    
+    public void removeTiles(long turn, long frame) throws SQLException {
+        try (PreparedStatement ps = getConnection().prepareStatement("DELETE FROM TILES WHERE TURN=? AND FRAME=?;")) {
+            ps.setLong(1, turn);
+            ps.setLong(2, frame);
+            ps.execute();
+        }
+    }
+    
+    public void removeOldTiles(long turnBefore) throws SQLException {
+        long currentTurn = getCurrentTurn();
+        try (PreparedStatement ps = getConnection().prepareStatement("DELETE FROM TILES WHERE TURN<?;")) {
+            ps.setLong(1, currentTurn-turnBefore);
+            ps.execute();
+        }
+    }
 
     public int getUnrenderedTilesCount() throws SQLException {
 
