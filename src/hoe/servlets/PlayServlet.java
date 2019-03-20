@@ -136,6 +136,16 @@ public class PlayServlet extends HttpServletWithUserValidator {
                 }
 
                 break;
+            // User's end turn.
+            case "et":
+                
+                if (!GameServlet.isStateWait()) {
+                    return;
+                }
+                
+                Log.debug("Player [" + user.getUserName() + "] ends his/her turn.");
+                GameServlet.setStateToRender();
+                break;
         }
 
     }

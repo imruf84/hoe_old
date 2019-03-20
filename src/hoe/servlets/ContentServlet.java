@@ -51,7 +51,7 @@ public class ContentServlet extends HttpServletWithEncryption {
 
             // Save tile to disk if neccessary.
             if (!tileFile.exists()) {
-                Log.debug("Saving tile to disk: " + tileFileName);
+                //Log.debug("Saving tile to disk: " + tileFileName);
                 ImageIO.write(image, TILE_IMAGE_FORMAT, tileFile);
             }
 

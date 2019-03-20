@@ -3,7 +3,6 @@ var chatInput;
 var sendChatMsgButton;
 var userNameDiv;
 var downloadinMessages = true;
-// Egyszerre megjelenő üzenetek száma.
 var messagesCount = 20;
 
 function initCommunicationHandler() {
@@ -27,7 +26,7 @@ function initCommunicationHandler() {
     };
     chatMsgBox.innerHTML = unescape('#!DOWNLOADING_CHAT_MESSAGES!#');
 
-    // Enter lenyomása az üzenet beírásához/elküldéséhez.
+    // Press Enter to enter/send chat messages.
     document.body.addEventListener('keydown', function (e) {
         if (13 === e.keyCode) {
             if (!chatInput.hasFocus()) {
@@ -41,7 +40,7 @@ function initCommunicationHandler() {
 
 }
 
-// Üzenet küldése.
+// Send chat message.
 var sendMsgFunc = function () {
     if ('' !== chatInput.value) {
         sendToServer(JSON.stringify({a: 'cm', d: {msg: escape(chatInput.value)}}));
@@ -49,7 +48,6 @@ var sendMsgFunc = function () {
     }
 };
 
-// Üzenet érkezett.
 function isJSON(text) {
     try {
         JSON.parse(text);
@@ -59,18 +57,18 @@ function isJSON(text) {
     }
 }
 
-// Érkezett üzenet feldolgozása.
+// Handle received message.
 var handleResponse = function (responseText) {
     if ('' !== responseText)
         toDebug(responseText);
     if ('' === responseText || !isJSON(responseText))
         return;
-    // Üzenet átalakítása.
+    // Transforming message.
     var response = JSON.parse(responseText);
     for (var i in response) {
         var o = response[i];
         switch (o['a']) {
-            // Játékállapotváltozás érkezett (GameStateChanged).
+            // GameStateChanged
             case 'gsc':
                 var data = o['d'];
                 var state = data['state'];
@@ -90,15 +88,15 @@ var handleResponse = function (responseText) {
                 var currentTurn = scene['currentTurn'];
                 refreshTiles(currentTurn);
                 
-                // Objektumok letöltése (GetSceneData).
+                // GetSceneData
                 sendToServer(JSON.stringify({a: 'gsd', d: {}}));
                 break;
-                // Átirányítás érkezett (ReDirect).
+                // ReDirect
             case 'rd':
                 toDebug('redirected to: ' + o['d']['url']);
                 window.location.href = o['d']['url'];
                 break;
-                // Chat üzenet érkezett (ChatMessage).
+                // ChatMessage
             case 'cm':
                 var cmb = document.getElementById('chatMsgBox');
                 var count = (cmb.innerHTML.match(/<br>/g) || []).length;
@@ -116,10 +114,15 @@ var handleResponse = function (responseText) {
     }
 };
 
-// Játékadatok szinkronizálása.
+// Syncing scene data.
 function syncData() {
-    // Chat üzenetek letöltése (GetChatMessages).
+    // GetChatMessages
     sendToServer(JSON.stringify({a: 'gcm', d: {mc: messagesCount}}));
-    // Játékállapot letöltése (GetGameState).
+    // GetGameState
     sendToServer(JSON.stringify({a: 'ggs', d: {}}));
+}
+
+// Send end turn signal.
+function sendEndTurn() {
+    sendToServer(JSON.stringify({a: 'et', d: {}}));
 }

@@ -34,12 +34,16 @@ function initKeyboardEvents() {
             case 46:
                 window.location.href = 'logout';
                 break;
-                // space
+            // space (play/stop video)
             case 32:
                 if (video.paused)
                     video.play();
                 else
                     video.pause();
+                break;
+            // e (EndTurn)
+            case 69:
+                sendEndTurn();
                 break;
                 // + (zoom in)
 /*            case 51:

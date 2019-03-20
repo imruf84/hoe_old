@@ -1,6 +1,7 @@
 package hoe;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import hoe.servlets.TileRequest;
@@ -16,6 +17,9 @@ public class SceneDataBase extends DataBase {
     public static final String SCENE_PROPERTY_WIDTH = "width";
     public static final String SCENE_PROPERTY_HEIGHT = "height";
     public static final String SCENE_PROPERTY_TILE_BOUNDS = "tile_bounds";
+    public static final String SCENE_PROPERTY_CURRENT_TURN_FRAME = "current_turn_frame";
+    public static final String SCENE_PROPERTY_KEY_TURN = "turn";
+    public static final String SCENE_PROPERTY_KEY_FRAME = "frame";
 
     public SceneDataBase() throws ClassNotFoundException, SQLException {
         super("scene");
@@ -364,10 +368,55 @@ public class SceneDataBase extends DataBase {
         return 0;
     }
 
+    public void setCurrentTurnAndFrame(long turn, long frame) throws SQLException {
+
+        JsonObject json = new JsonObject();
+        json.add(SCENE_PROPERTY_KEY_TURN, new JsonPrimitive(turn));
+        json.add(SCENE_PROPERTY_KEY_FRAME, new JsonPrimitive(frame));
+
+        setSceneProperty(SCENE_PROPERTY_CURRENT_TURN_FRAME, json.toString());
+    }
+
+    public long[] getCurrentTurnAndFrame() throws SQLException {
+        String sBounds = getSceneProperty(SCENE_PROPERTY_CURRENT_TURN_FRAME);
+
+        if (sBounds == null) {
+            return null;
+        }
+
+        JsonParser parser = new JsonParser();
+        JsonObject json = parser.parse(sBounds).getAsJsonObject();
+
+        return new long[]{
+            json.get(SCENE_PROPERTY_KEY_TURN).getAsLong(),
+            json.get(SCENE_PROPERTY_KEY_FRAME).getAsLong()
+        };
+    }
+
     public long getCurrentTurn() throws SQLException {
 
         // TODO: instead of this it would be better to get current turn from a stored property to keep states sync
-        try (PreparedStatement ps = getConnection().prepareStatement("SELECT MAX(TURN) AS T FROM TILES WHERE TILE <> '' AND NOT TILE IS NULL;")) {
+        /*try (PreparedStatement ps = getConnection().prepareStatement("SELECT MAX(TURN) AS T FROM TILES WHERE FRAME=0 AND TILE <> '' AND NOT TILE IS NULL;")) {
+        try (ResultSet rs = ps.executeQuery()) {
+        if (rs.next()) {
+        return rs.getInt(1);
+        }
+        }
+        }
+        return -1;*/
+        long[] result = getCurrentTurnAndFrame();
+        
+        if (result == null) {
+            return -1;
+        }
+        
+        return result[0];
+    }
+
+    public long getCurrentFrame() throws SQLException {
+
+        // TODO: instead of this it would be better to get current turn from a stored property to keep states sync
+        /*try (PreparedStatement ps = getConnection().prepareStatement("SELECT FRAME AS F FROM TILES WHERE TILE <> '' AND NOT TILE IS NULL ORDER BY TURN DESC, FRAME DESC LIMIT 1;")) {
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -378,8 +427,15 @@ public class SceneDataBase extends DataBase {
 
         }
 
-        return -1;
+        return -1;*/
 
+        long[] result = getCurrentTurnAndFrame();
+        
+        if (result == null) {
+            return -1;
+        }
+        
+        return result[1];
     }
 
 }

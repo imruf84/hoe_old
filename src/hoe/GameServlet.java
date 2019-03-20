@@ -12,8 +12,6 @@ import hoe.servlets.RenderTilesRequest;
 import java.io.IOException;
 import java.io.Serializable;
 import java.sql.SQLException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.http.HttpStatus;
@@ -72,26 +70,93 @@ public class GameServlet extends HttpServletWithEncryption {
         UserManager.sendMessageToAll(getStateChangedMessage());
     }
 
+    public static boolean isStateInit() {
+        return getCurrentState().equals(GAME_STATE_INIT);
+    }
+    
     public static void setStateToInit() throws IOException {
         setState(GAME_STATE_INIT);
+    }
+    
+    public static boolean isStateGenerate() {
+        return getCurrentState().equals(GAME_STATE_GENERATE);
     }
 
     public static void setStateToGenerate() throws IOException {
         setState(GAME_STATE_GENERATE);
     }
 
+    public static boolean isStateRender() {
+        return getCurrentState().equals(GAME_STATE_RENDER);
+    }
+    
     public static void setStateToRender() throws IOException {
 
-        // TODO: check if are there anything to render?
-        setState(GAME_STATE_RENDER);
+        long framesPerTurn = 1;
 
-        sendRequestToRedirectServer(GameServer.DO_RENDER_PATH, new RenderTilesRequest(0, 0));
+        try {
+            long currentTurn = SceneManager.getCurrentTurn();
+            long currentFrame = SceneManager.getCurrentFrame();
+
+            if (currentFrame == 0 && isStateRender()) {
+                // If all the frames have been rendered we set the gamestate to wait.
+                currentTurn++;
+                SceneManager.setCurrentTurnAndFrame(currentTurn, currentFrame);
+                setStateToWait();
+                return;
+            }
+
+            setState(GAME_STATE_RENDER);
+
+            // TODO: simulating the scene by several steps (depending on the fps)
+            // ...
+            // Rendering the next frame.
+            currentFrame++;
+            if (currentFrame == framesPerTurn) {
+                currentFrame = 0;
+                SceneManager.setCurrentTurnAndFrame(currentTurn, currentFrame);
+                currentTurn++;
+            } else {
+                SceneManager.setCurrentTurnAndFrame(currentTurn, currentFrame);
+            }
+            
+            // Rendering the next turn frame.
+            int[] tileBounds = SceneManager.getTileBounds();
+
+            int tileFromX = tileBounds[0];
+            int tileToX = tileBounds[1];
+            int tileFromY = tileBounds[2];
+            int tileToY = tileBounds[3];
+
+            currentTurn = Math.max(0, currentTurn);
+            
+            // Create empty frames to fill it by render servers...
+            for (int x = tileFromX; x <= tileToX; x++) {
+                for (int y = tileFromY; y <= tileToY; y++) {
+                    SceneManager.storeTile(currentTurn, currentFrame, x, y, null);
+                }
+            }
+
+            // Send the rendering request.
+            sendRequestToRedirectServer(GameServer.DO_RENDER_PATH, new RenderTilesRequest(currentTurn, currentFrame));
+        } catch (SQLException ex) {
+            Log.error(ex);
+            setStateToError();
+        }
     }
 
+    public static boolean isStateError() {
+        return getCurrentState().equals(GAME_STATE_ERROR);
+    }
+    
     public static void setStateToError() throws IOException {
         setState(GAME_STATE_ERROR);
     }
 
+    public static boolean isStateWait() {
+        return getCurrentState().equals(GAME_STATE_WAIT);
+    }
+    
     public static void setStateToWait() throws IOException {
         setState(GAME_STATE_WAIT);
     }
@@ -107,28 +172,28 @@ public class GameServlet extends HttpServletWithEncryption {
     public static String getStateChangedMessage() {
         JsonObject json = new JsonObject();
         json.add("a", new JsonPrimitive("gsc"));
-        
+
         JsonObject data = new JsonObject();
         json.add("d", data);
         data.add("state", new JsonPrimitive(getCurrentState()));
-        
+
         JsonObject scene = new JsonObject();
         data.add("scene", scene);
         JsonArray tileBounds = new JsonArray();
-        
+
         try {
             for (int bound : SceneManager.getTileBounds()) {
                 tileBounds.add(new JsonPrimitive(bound));
             }
-            
+
             scene.add("currentTurn", new JsonPrimitive(SceneManager.getCurrentTurn()));
-            
+
         } catch (SQLException ex) {
             Log.error(ex);
         }
-        
+
         scene.add("tileBounds", tileBounds);
-        
+
         return json.toString();
     }
 
@@ -143,7 +208,9 @@ public class GameServlet extends HttpServletWithEncryption {
 
         GameAction ga = (GameAction) action;
         if (ga.isTilesRenderingDone()) {
-            setStateToWait();
+            // Continue the rendering...
+
+            setStateToRender();
         } else {
             setStateToError();
         }

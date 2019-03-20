@@ -38,7 +38,7 @@ function refreshTiles(t) {
         setCurrentTurn(t);
         map.getLayers().array_[0].getSource().setUrl(getTilesUrl());
     } else {
-        map.getLayers().array_[0].getSource().refresh();
+        //map.getLayers().array_[0].getSource().refresh();
     }
     //map.getLayers().array_[0].getSource().refresh();
     // map.getView().animate({center: [0,0],duration: duration});

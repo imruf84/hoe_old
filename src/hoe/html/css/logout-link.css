@@ -24,3 +24,18 @@
 .link-button:active {
     text-decoration: underline;
 }
+.static-label {
+    border:1px solid black;
+    padding:10px;
+    display:table;
+    cursor:default;
+    pointer-events:auto;
+    color:white;
+    background-color:gray;
+    white-space:nowrap;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
