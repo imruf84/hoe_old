@@ -99,7 +99,7 @@ function initTiles(tileSize, tilesX, tilesY) {
             }),
             new ol.interaction.KeyboardZoom({
                 duration: 200,
-                delta: 10
+                delta: 1
             })
         ]),
         keyboardEventTarget: document,
