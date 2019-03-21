@@ -115,6 +115,10 @@ public class SceneManager {
     public static int[] getTileBounds() throws SQLException {
         return getSceneDataBase().getTileBounds();
     }
+    
+    public static void remarkUnrenderedTiles() throws SQLException {
+        getSceneDataBase().remarkUnrenderedTiles();
+    }
 
     public static TileRequest markTileToRender() throws SQLException {
         return getSceneDataBase().markTileToRender();
@@ -161,7 +165,7 @@ public class SceneManager {
         setSceneLength(300);
         setSceneWidth(100);
         setSceneHeight(1000);
-        setTileBounds(new int[]{-1, 1, -1, 1});
+        setTileBounds(new int[]{-10, 10, -10, 10});
         //setTileBounds(new int[]{0, 0, 0, 0});
 
         new Meteor(1, 2, "imruf84", 3, 4, 5, 6, 7).storeToDataBase().getID();

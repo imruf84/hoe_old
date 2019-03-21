@@ -132,11 +132,15 @@ public class GameServlet extends HttpServletWithEncryption {
 
             currentTurn = Math.max(0, currentTurn);
 
-            // Create empty frames to fill it by render servers...
-            for (int x = tileFromX; x <= tileToX; x++) {
-                for (int y = tileFromY; y <= tileToY; y++) {
-                    SceneManager.storeTile(currentTurn, currentFrame, x, y, null);
+            // Create empty frames to fill it by render servers if there are no unfinished tiles...
+            if (SceneManager.getUnrenderedTilesCount() == 0) {
+                for (int x = tileFromX; x <= tileToX; x++) {
+                    for (int y = tileFromY; y <= tileToY; y++) {
+                        SceneManager.storeTile(currentTurn, currentFrame, x, y, null);
+                    }
                 }
+            }else{
+                SceneManager.remarkUnrenderedTiles();
             }
 
             // Send the rendering request.
@@ -165,7 +169,7 @@ public class GameServlet extends HttpServletWithEncryption {
             long currentTurn = SceneManager.getCurrentTurn();
             long currentFrame = SceneManager.getCurrentFrame();
 
-            if (currentTurn < 0 || currentFrame != 0) {
+            if (currentTurn < 0 || currentFrame != 0 || SceneManager.getUnrenderedTilesCount() > 0) {
                 setStateToRender();
             } else {
                 setState(GAME_STATE_WAIT);

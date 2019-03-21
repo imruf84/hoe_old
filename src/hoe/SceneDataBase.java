@@ -309,6 +309,12 @@ public class SceneDataBase extends DataBase {
         return result;
     }
 
+    public synchronized void remarkUnrenderedTiles() throws SQLException {
+        try (PreparedStatement ps = getConnection().prepareStatement("UPDATE TILES SET TILE=NULL WHERE TILE='';")) {
+            ps.executeUpdate();
+        }
+    }
+
     public synchronized TileRequest markTileToRender() throws SQLException {
 
         try (PreparedStatement ps = getConnection().prepareStatement("SELECT * FROM TILES WHERE TILE IS NULL LIMIT 1;")) {
@@ -321,7 +327,7 @@ public class SceneDataBase extends DataBase {
                     int y = rs.getInt("Y");
 
                     try (PreparedStatement ps2 = getConnection().prepareStatement("UPDATE TILES SET TILE=? WHERE X=? AND Y=? AND TURN=? AND FRAME=?;")) {
-                        ps2.setClob(1, getConnection().createClob());
+                        ps2.setBytes(1, new byte[]{});
                         ps2.setInt(2, x);
                         ps2.setInt(3, y);
                         ps2.setLong(4, turn);
