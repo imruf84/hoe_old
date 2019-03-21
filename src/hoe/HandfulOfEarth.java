@@ -9,7 +9,10 @@ import hoe.skeleton.Skeleton;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.FontFormatException;
 import java.awt.Graphics2D;
+import java.awt.GraphicsEnvironment;
 import java.awt.RenderingHints;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -21,15 +24,25 @@ import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Properties;
+import java.util.zip.DataFormatException;
+import java.util.zip.Deflater;
+import java.util.zip.DeflaterOutputStream;
+import java.util.zip.Inflater;
+import java.util.zip.InflaterOutputStream;
+import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -203,7 +216,65 @@ public class HandfulOfEarth {
             Log.error(e);
         }
     }
+/*
+    public static void main(String[] args) throws Exception {
+        // Buffered image compression pilot.
 
+        // Creating the image.
+        int w = 500;
+        int h = 500;
+        BufferedImage image = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g = (Graphics2D) image.getGraphics();
+
+        for (int y = 0; y < image.getHeight(); y++) {
+            for (int x = 0; x < image.getWidth(); x++) {
+                int r = (int) (Math.random() * 256);
+                int gr = (int) (Math.random() * 256);
+                int b = (int) (Math.random() * 256);
+
+                int p = (r << 16) | (gr << 8) | b;
+
+                image.setRGB(x, y, p);
+            }
+        }
+
+        g.setColor(Color.red);
+        g.drawRect(0, 0, w - 1, h - 1);
+        g.setColor(Color.black);
+
+        int fontSize = 100;
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setFont(new Font("Courier New", Font.PLAIN, fontSize));
+        int x = 1;
+        int y = 2;
+        long turn = 3;
+        long frame = 4;
+        g.drawString("x=" + x, 10, (int) (fontSize * 1.1));
+        g.drawString("y=" + y, 10, (int) (fontSize * 2.2));
+        g.drawString("t=" + turn, 10, (int) (fontSize * 3.4));
+        g.drawString("f=" + frame, 10, (int) (fontSize * 4.6));
+        g.dispose();
+
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+            
+            ImageIO.write(image, "jpg", baos);
+            baos.flush();
+            byte[] iba = baos.toByteArray();
+
+            System.out.println(iba.length);
+
+            byte[] compressed = compress(iba);
+            System.out.println(compressed.length);
+            byte[] decompressed = decompress(compressed);
+            System.out.println(decompressed.length);
+
+            InputStream in = new ByteArrayInputStream(decompressed);
+            BufferedImage image2 = ImageIO.read(in);
+            ImageIO.write(image, "jpg", new File("image.jpg"));
+            ImageIO.write(image2, "jpg", new File("image2.jpg"));
+        }
+    }
+*/
     public static void main(String[] args) throws Exception {
 
         Properties prop = new Properties();
@@ -246,7 +317,7 @@ public class HandfulOfEarth {
             server.setRedirectServerUrl(prop.getProperty("redirectserverurl"));
             server.start();
         }
-        
+
         propKey = "startcontentserver";
         if (prop.containsKey(propKey) && prop.getProperty(propKey).toLowerCase().equals("true")) {
             int port = Integer.parseInt(prop.getProperty("contentserverport"));
@@ -269,7 +340,7 @@ public class HandfulOfEarth {
                 int port = Integer.parseInt(prop.getProperty("gameserverport"));
                 GameServer server = new GameServer(ip, port);
                 server.setRedirectServerUrl(prop.getProperty("redirectserverurl"));
-                //SceneManager.generate();
+                SceneManager.generate();
                 server.start();
 
             } catch (Exception ex) {

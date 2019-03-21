@@ -1,6 +1,5 @@
 package hoe;
 
-import hoe.servlets.ContentServlet;
 import hoe.servlets.TileRequest;
 import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
@@ -10,6 +9,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.Base64;
+import java.util.zip.DataFormatException;
 import javax.imageio.ImageIO;
 
 public class SceneManager {
@@ -47,51 +47,33 @@ public class SceneManager {
         return dataBaseIP;
     }
 
-    public static void updateTile(long turn, long frame, int x, int y, BufferedImage image) throws SQLException {
-        String base64Image = null;
+    public static void updateTile(long turn, long frame, int x, int y, BufferedImage image) throws SQLException, IOException {
+
+        byte[] imageByteArray = null;
         if (image != null) {
-            base64Image = imgToBase64String(image, ContentServlet.TILE_IMAGE_FORMAT);
+            imageByteArray = Compression.compress(Compression.imageToByteArray(image));
         }
-        getSceneDataBase().updateTile(turn, frame, x, y, base64Image);
+        getSceneDataBase().updateTile(turn, frame, x, y, imageByteArray);
     }
 
-    public static void storeTile(long turn, long frame, int x, int y, BufferedImage image) throws SQLException {
-        String base64Image = null;
+    public static void storeTile(long turn, long frame, int x, int y, BufferedImage image) throws SQLException, IOException {
+
+        byte[] imageByteArray = null;
         if (image != null) {
-            base64Image = imgToBase64String(image, ContentServlet.TILE_IMAGE_FORMAT);
+            imageByteArray = Compression.compress(Compression.imageToByteArray(image));
         }
-        getSceneDataBase().storeTile(turn, frame, x, y, base64Image);
+        getSceneDataBase().storeTile(turn, frame, x, y, imageByteArray);
     }
 
-    public static BufferedImage getTile(long turn, long frame, int x, int y) throws SQLException {
-        String base64Image = getSceneDataBase().getTile(turn, frame, x, y);
+    public static BufferedImage getTile(long turn, long frame, int x, int y) throws SQLException, IOException, DataFormatException {
 
-        if (base64Image == null) {
+        byte[] imageByteArray = getSceneDataBase().getTile(turn, frame, x, y);
+
+        if (imageByteArray == null) {
             return null;
         }
 
-        return base64StringToImg(base64Image);
-    }
-
-    public static String imgToBase64String(final RenderedImage img, final String formatName) {
-        final ByteArrayOutputStream os = new ByteArrayOutputStream();
-        try {
-            ImageIO.write(img, formatName, Base64.getEncoder().wrap(os));
-            return os.toString(StandardCharsets.ISO_8859_1.name());
-        } catch (final IOException ioe) {
-            Log.error(ioe);
-        }
-
-        return null;
-    }
-
-    public static BufferedImage base64StringToImg(final String base64String) {
-        try {
-            return ImageIO.read(new ByteArrayInputStream(Base64.getDecoder().decode(base64String)));
-        } catch (final IOException ioe) {
-            Log.error(ioe);
-        }
-        return null;
+        return Compression.byteArrayToImage(Compression.decompress(imageByteArray));
     }
 
     public static void addMeteor(Meteor m) throws SQLException {
@@ -179,8 +161,8 @@ public class SceneManager {
         setSceneLength(300);
         setSceneWidth(100);
         setSceneHeight(1000);
-        //setTileBounds(new int[]{-2, 2, -2, 2});
-        setTileBounds(new int[]{0, 0, 0, 0});
+        setTileBounds(new int[]{-2, 2, -2, 2});
+        //setTileBounds(new int[]{0, 0, 0, 0});
 
         new Meteor(1, 2, "imruf84", 3, 4, 5, 6, 7).storeToDataBase().getID();
     }

@@ -40,9 +40,22 @@ public class RenderServlet extends HttpServletWithApiKeyValidator {
                     int h = 500;
                     BufferedImage image = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
                     Graphics2D g = (Graphics2D) image.getGraphics();
+
+                    for (int y = 0; y < image.getHeight(); y++) {
+                        for (int x = 0; x < image.getWidth(); x++) {
+                            int r = (int) (Math.random() * 256);
+                            int gr = (int) (Math.random() * 256);
+                            int b = (int) (Math.random() * 256);
+
+                            int p = (r << 16) | (gr << 8) | b;
+
+                            image.setRGB(x, y, p);
+                        }
+                    }
+
                     g.setColor(Color.red);
                     g.drawRect(0, 0, w - 1, h - 1);
-                    g.setColor(Color.white);
+                    g.setColor(Color.black);
                     try (InputStream mainFontIn = getClass().getClassLoader().getResourceAsStream("fonts/cour.ttf")) {
                         Font mainFont = Font.createFont(Font.TRUETYPE_FONT, mainFontIn);
                         GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
@@ -65,7 +78,7 @@ public class RenderServlet extends HttpServletWithApiKeyValidator {
                     try {
                         // Update tile in database.
                         SceneManager.updateTile(turn, frame, x, y, image);
-                    } catch (SQLException ex) {
+                    } catch (SQLException | IOException ex) {
                         Log.error(ex);
                     }
                 }

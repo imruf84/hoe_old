@@ -5,7 +5,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import hoe.servlets.TileRequest;
-import java.sql.Clob;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -43,7 +42,7 @@ public class SceneDataBase extends DataBase {
             // Positions.
             stat.execute("CREATE TABLE IF NOT EXISTS POSITIONS (STEP BIGINT NOT NULL, X DOUBLE NOT NULL, Y DOUBLE NOT NULL, VX DOUBLE NOT NULL, VY DOUBLE NOT NULL, OBJECT_ID BIGINT NOT NULL, FOREIGN KEY (OBJECT_ID) REFERENCES OBJECTS (ID) ON DELETE CASCADE);");
             // Tiles.
-            stat.execute("CREATE TABLE IF NOT EXISTS TILES (TURN BIGINT NOT NULL, FRAME BIGINT NOT NULL, X INT NOT NULL, Y INT NOT NULL, TILE CLOB DEFAULT NULL);");
+            stat.execute("CREATE TABLE IF NOT EXISTS TILES (TURN BIGINT NOT NULL, FRAME BIGINT NOT NULL, X INT NOT NULL, Y INT NOT NULL, TILE BINARY(170000) DEFAULT NULL);");
         }
     }
 
@@ -82,24 +81,21 @@ public class SceneDataBase extends DataBase {
         return result.substring(0, result.length() - 1);
     }
 
-    public synchronized int updateTile(long turn, long frame, int x, int y, String tile) throws SQLException {
+    public synchronized int updateTile(long turn, long frame, int x, int y, byte[] tile) throws SQLException {
 
         try (PreparedStatement ps = getConnection().prepareStatement("UPDATE TILES SET TILE=? WHERE X=? AND Y=? AND TURN=? AND FRAME=?;")) {
 
+            ps.setBytes(1, tile);
             ps.setInt(2, x);
             ps.setInt(3, y);
             ps.setLong(4, turn);
             ps.setLong(5, frame);
 
-            Clob clob = getConnection().createClob();
-            clob.setString(1, tile);
-            ps.setClob(1, clob);
-
             return ps.executeUpdate();
         }
     }
 
-    public synchronized void storeTile(long turn, long frame, int x, int y, String tile) throws SQLException {
+    public synchronized void storeTile(long turn, long frame, int x, int y, byte[] tile) throws SQLException {
 
         try (PreparedStatement ps = getConnection().prepareStatement("INSERT INTO TILES (TURN, FRAME, X, Y, TILE) VALUES (?,?,?,?,?)")) {
 
@@ -107,21 +103,13 @@ public class SceneDataBase extends DataBase {
             ps.setLong(2, frame);
             ps.setInt(3, x);
             ps.setInt(4, y);
-
-            Clob clob = null;
-
-            if (tile != null) {
-                clob = getConnection().createClob();
-                clob.setString(1, tile);
-            }
-
-            ps.setClob(5, clob);
+            ps.setBytes(5, tile);
 
             ps.execute();
         }
     }
 
-    public synchronized String getTile(long turn, long frame, int x, int y) throws SQLException {
+    public synchronized byte[] getTile(long turn, long frame, int x, int y) throws SQLException {
 
         try (PreparedStatement ps = getConnection().prepareStatement("SELECT TILE FROM TILES WHERE TURN=? AND FRAME=? AND X=? AND Y=?")) {
 
@@ -132,8 +120,7 @@ public class SceneDataBase extends DataBase {
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    Clob clob = rs.getClob(1);
-                    return clob.getSubString(1, (int) clob.length());
+                    return rs.getBytes(1);
                 }
             }
 
@@ -351,7 +338,7 @@ public class SceneDataBase extends DataBase {
 
         return null;
     }
-    
+
     public void removeTiles(long turn, long frame) throws SQLException {
         try (PreparedStatement ps = getConnection().prepareStatement("DELETE FROM TILES WHERE TURN=? AND FRAME=?;")) {
             ps.setLong(1, turn);
@@ -359,11 +346,11 @@ public class SceneDataBase extends DataBase {
             ps.execute();
         }
     }
-    
+
     public void removeOldTiles(long turnBefore) throws SQLException {
         long currentTurn = getCurrentTurn();
         try (PreparedStatement ps = getConnection().prepareStatement("DELETE FROM TILES WHERE TURN<?;")) {
-            ps.setLong(1, currentTurn-turnBefore);
+            ps.setLong(1, currentTurn - turnBefore);
             ps.execute();
         }
     }
@@ -411,46 +398,23 @@ public class SceneDataBase extends DataBase {
 
     public long getCurrentTurn() throws SQLException {
 
-        // TODO: instead of this it would be better to get current turn from a stored property to keep states sync
-        /*try (PreparedStatement ps = getConnection().prepareStatement("SELECT MAX(TURN) AS T FROM TILES WHERE FRAME=0 AND TILE <> '' AND NOT TILE IS NULL;")) {
-        try (ResultSet rs = ps.executeQuery()) {
-        if (rs.next()) {
-        return rs.getInt(1);
-        }
-        }
-        }
-        return -1;*/
         long[] result = getCurrentTurnAndFrame();
-        
+
         if (result == null) {
             return -1;
         }
-        
+
         return result[0];
     }
 
     public long getCurrentFrame() throws SQLException {
 
-        // TODO: instead of this it would be better to get current turn from a stored property to keep states sync
-        /*try (PreparedStatement ps = getConnection().prepareStatement("SELECT FRAME AS F FROM TILES WHERE TILE <> '' AND NOT TILE IS NULL ORDER BY TURN DESC, FRAME DESC LIMIT 1;")) {
-
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt(1);
-
-                }
-            }
-
-        }
-
-        return -1;*/
-
         long[] result = getCurrentTurnAndFrame();
-        
+
         if (result == null) {
             return -1;
         }
-        
+
         return result[1];
     }
 

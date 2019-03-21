@@ -8,6 +8,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.zip.DataFormatException;
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -44,7 +45,7 @@ public class ContentServlet extends HttpServletWithEncryption {
                 // Getting the tile from the database.
                 try {
                     image = SceneManager.getTile(turn, frame, x, y);
-                } catch (SQLException ex) {
+                } catch (DataFormatException | SQLException ex) {
                     Log.error(ex);
                 }
             }
