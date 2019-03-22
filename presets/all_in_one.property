@@ -2,7 +2,7 @@ ip=192.168.0.25
 debug=true
 secretkey=abcd1234
 
-runeditor=truea
+#runeditor=true
 
 startdbserver=true
 dbserverwebport=8082

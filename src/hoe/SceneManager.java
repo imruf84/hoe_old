@@ -2,15 +2,9 @@ package hoe;
 
 import hoe.servlets.TileRequest;
 import java.awt.image.BufferedImage;
-import java.awt.image.RenderedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
-import java.util.Base64;
 import java.util.zip.DataFormatException;
-import javax.imageio.ImageIO;
 
 public class SceneManager {
 
@@ -165,7 +159,7 @@ public class SceneManager {
         setSceneLength(300);
         setSceneWidth(100);
         setSceneHeight(1000);
-        setTileBounds(new int[]{-10, 10, -10, 10});
+        setTileBounds(new int[]{-1, 1, -1, 1});
         //setTileBounds(new int[]{0, 0, 0, 0});
 
         new Meteor(1, 2, "imruf84", 3, 4, 5, 6, 7).storeToDataBase().getID();

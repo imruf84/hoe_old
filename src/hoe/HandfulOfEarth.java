@@ -1,7 +1,9 @@
 package hoe;
 
+import hoe.designer.NetworkDesigner;
 import hoe.servers.GameServer;
 import hoe.editor.Editor;
+import hoe.editor.MyMetalTheme;
 import hoe.servers.ContentServer;
 import hoe.servers.RedirectServer;
 import hoe.servers.RenderServer;
@@ -28,12 +30,15 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Properties;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import org.joml.Matrix4d;
 import org.joml.Vector3d;
 
@@ -264,6 +269,13 @@ public class HandfulOfEarth {
 */
     public static void main(String[] args) throws Exception {
 
+        if (Arrays.asList(args).contains("-network")) {
+            setLookAndFeel();
+            NetworkDesigner designer = new NetworkDesigner();
+            designer.setVisible(true);
+            return;
+        }
+        
         Properties prop = new Properties();
         prop.load(new BufferedReader(new FileReader(args[0])));
 
@@ -337,10 +349,25 @@ public class HandfulOfEarth {
 
         propKey = "runeditor";
         if (prop.containsKey(propKey) && prop.getProperty(propKey).toLowerCase().equals("true")) {
+            setLookAndFeel();
             Editor editor = new Editor();
             editor.show();
         }
 
+    }
+    
+    public static void setLookAndFeel() {
+        // Téma beállítása.
+        javax.swing.plaf.metal.MetalLookAndFeel.setCurrentTheme(new MyMetalTheme());
+        // Az ablakkeret az operációs rendszeré szeretnénk, hogy legyen.
+        JFrame.setDefaultLookAndFeelDecorated(false);
+        // Egyes témák esetében az alapértelmezett Enter leütés nem csinál semmit, ezért engedélyezzük külön.
+        UIManager.getLookAndFeelDefaults().put("Button.defaultButtonFollowsFocus", Boolean.TRUE);
+        // Görgetősávok témájának megváltoztatása sajátra, mert a lila szerintem túl gagyi.
+        UIManager.getLookAndFeelDefaults().put("ScrollBarUI", "lottery.SimpleScrollBarUI");
+        // Folyamatjelző felirata legyen fekete.
+        UIManager.put("ProgressBar.selectionForeground", javafx.scene.paint.Color.BLACK);
+        UIManager.put("ProgressBar.selectionBackground", javafx.scene.paint.Color.BLACK);
     }
 
 }
