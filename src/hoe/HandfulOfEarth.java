@@ -364,7 +364,7 @@ public class HandfulOfEarth {
         // Egyes témák esetében az alapértelmezett Enter leütés nem csinál semmit, ezért engedélyezzük külön.
         UIManager.getLookAndFeelDefaults().put("Button.defaultButtonFollowsFocus", Boolean.TRUE);
         // Görgetősávok témájának megváltoztatása sajátra, mert a lila szerintem túl gagyi.
-        UIManager.getLookAndFeelDefaults().put("ScrollBarUI", "lottery.SimpleScrollBarUI");
+        UIManager.getLookAndFeelDefaults().put("ScrollBarUI", "hoe.editor.SimpleScrollBarUI");
         // Folyamatjelző felirata legyen fekete.
         UIManager.put("ProgressBar.selectionForeground", javafx.scene.paint.Color.BLACK);
         UIManager.put("ProgressBar.selectionBackground", javafx.scene.paint.Color.BLACK);
