@@ -1,0 +1,9 @@
+name=game
+ip=127.0.0.1
+debug=true
+secretkey=abcd1234
+startgameserver=true
+gameserverport=8080
+redirectserverurl=http://127.0.0.1:8082
+userdbip=127.0.0.1:9081
+scenedbip=127.0.0.1:9081

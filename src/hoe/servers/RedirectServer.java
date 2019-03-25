@@ -3,6 +3,8 @@ package hoe.servers;
 import hoe.servlets.SubscribeServlet;
 import hoe.servlets.RedirectServlet;
 import hoe.Log;
+import hoe.SceneManager;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -15,10 +17,12 @@ public class RedirectServer extends AbstractServer {
     
     private final HashMap<String, LinkedList<String>> clients = new HashMap<>();
 
-    public RedirectServer(String ip, int port) {
+    public RedirectServer(String ip, int port) throws ClassNotFoundException, SQLException {
         super(null, ip, port);
 
         initClientsContainer();
+        
+        SceneManager.init();
         
         ServletContextHandler context = new ServletContextHandler();
         context.setContextPath("/");

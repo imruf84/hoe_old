@@ -1,0 +1,1 @@
+[{"name":"all_in_one","address":"127.0.0.1","debug":true,"servers":[{"type":"Game","port":8080},{"type":"DatabaseWeb","port":8081},{"type":"DatabaseTCP","port":9081},{"type":"Redirect","port":8082},{"type":"Content","port":8083},{"type":"Render","port":8084}]}]

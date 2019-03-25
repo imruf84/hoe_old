@@ -34,7 +34,6 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.Properties;
 import javax.swing.ImageIcon;
-import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
@@ -269,7 +268,9 @@ public class HandfulOfEarth {
 */
     public static void main(String[] args) throws Exception {
 
-        if (Arrays.asList(args).contains("-network")) {
+        // Correct order to run servers: 1.database 2.redirect 3.minimum one content/render 4.game
+        
+        if (Arrays.asList(args).contains("-network_designer") || Arrays.asList(args).contains("-nd")) {
             setLookAndFeel();
             NetworkDesigner designer = new NetworkDesigner();
             designer.setVisible(true);
@@ -296,17 +297,17 @@ public class HandfulOfEarth {
             String tcpPort = prop.getProperty("dbservertcpport");
             hoe.servers.DatabaseServer.startServers(webPort, tcpPort);
         }
+        
+        String sceneDbIp = prop.getProperty("scenedbip");
+        if (sceneDbIp != null) {
+            SceneManager.setDataBaseIp(sceneDbIp);
+        }
 
         propKey = "startredirectserver";
         if (prop.containsKey(propKey) && prop.getProperty(propKey).toLowerCase().equals("true")) {
             int port = Integer.parseInt(prop.getProperty("redirectserverport"));
             RedirectServer server = new RedirectServer(ip, port);
             server.start();
-        }
-
-        String sceneDbIp = prop.getProperty("scenedbip");
-        if (sceneDbIp != null) {
-            SceneManager.setDataBaseIp(sceneDbIp);
         }
 
         propKey = "startrenderserver";

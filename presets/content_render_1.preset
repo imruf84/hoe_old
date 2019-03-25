@@ -1,0 +1,12 @@
+name=content_render_1
+ip=127.0.0.1
+debug=true
+secretkey=abcd1234
+startcontentserver=true
+clearcontentservercache=true
+contentserverport=8083
+startrenderserver=true
+renderserverport=8084
+redirectserverurl=http://127.0.0.1:8082
+userdbip=127.0.0.1:9081
+scenedbip=127.0.0.1:9081

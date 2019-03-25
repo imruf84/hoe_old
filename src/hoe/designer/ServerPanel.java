@@ -1,13 +1,43 @@
 package hoe.designer;
 
+import javax.swing.JSpinner;
+
 public class ServerPanel extends javax.swing.JPanel {
 
-    public static enum SERVER_TYPE {Game, Database, Redirect, Content, Render};
-    
+    public static enum SERVER_TYPE {
+
+        Game, DatabaseWeb, DatabaseTCP, Redirect, Content, Render
+    };
+
+    private final SERVER_TYPE type;
+
     public ServerPanel(SERVER_TYPE type) {
         initComponents();
-        
-        enabledCheckBox.setText(type.toString());
+
+        portSpinner.setEditor(new JSpinner.NumberEditor(portSpinner, "#"));
+        this.type = type;
+        enabledCheckBox.setText(getServerType().toString());
+    }
+
+    public boolean isServerEnabled() {
+        return enabledCheckBox.isSelected();
+    }
+
+    public void enableServer() {
+        enabledCheckBox.setSelected(true);
+        portSpinner.setEnabled(true);
+    }
+
+    public int getServerPort() {
+        return (int) portSpinner.getValue();
+    }
+
+    public void setServerPort(int port) {
+        portSpinner.setValue(port);
+    }
+
+    public final SERVER_TYPE getServerType() {
+        return type;
     }
 
     @SuppressWarnings("unchecked")
@@ -17,7 +47,7 @@ public class ServerPanel extends javax.swing.JPanel {
         enabledCheckBox = new javax.swing.JCheckBox();
         portSpinner = new javax.swing.JSpinner();
 
-        setLayout(new java.awt.GridLayout());
+        setLayout(new java.awt.GridLayout(1, 0));
 
         enabledCheckBox.setText("jCheckBox1");
         enabledCheckBox.addActionListener(new java.awt.event.ActionListener() {
@@ -27,6 +57,7 @@ public class ServerPanel extends javax.swing.JPanel {
         });
         add(enabledCheckBox);
 
+        portSpinner.setEditor(new javax.swing.JSpinner.NumberEditor(portSpinner, ""));
         portSpinner.setEnabled(false);
         add(portSpinner);
     }// </editor-fold>//GEN-END:initComponents
