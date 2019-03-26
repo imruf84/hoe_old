@@ -15,8 +15,6 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.LinkedList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 
@@ -236,9 +234,9 @@ public class NetworkDesigner extends javax.swing.JFrame {
             }
 
             try {
-                BufferedWriter bw = new BufferedWriter(new FileWriter(file));
-                bw.write(toJson().toString());
-                bw.close();
+                try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
+                    bw.write(toJson().toString());
+                }
             } catch (IOException ex) {
                 JOptionPane.showMessageDialog(this, ex.getLocalizedMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
@@ -265,6 +263,8 @@ public class NetworkDesigner extends javax.swing.JFrame {
                 JsonParser parser = new JsonParser();
                 JsonArray json = parser.parse(jsonString.toString()).getAsJsonArray();
                 fromJson(json);
+                pack();
+                setLocationRelativeTo(null);
             } catch (IOException ex) {
                 JOptionPane.showMessageDialog(this, ex.getLocalizedMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }

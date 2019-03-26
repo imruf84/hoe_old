@@ -190,7 +190,8 @@ public class osogl {
         double oy = (double) row * tileSizeInOrtho;
 
         gl.glOrtho(ox - h, ox + h, oy - h, oy + h, -100d, 100d);
-        glu.gluLookAt(10, 10, 10, 0, 0, 0, 0, 0, 1);
+        //glu.gluLookAt(10, 10, 10, 0, 0, 0, 0, 0, 1);
+        glu.gluLookAt(0, 1, 1, 0, 0, 0, 0, 0, 1);
 
         gl.glClearColor(.15f, .15f, .15f, 1);
         //gl.glClearColor(0, 0, 0, 1);
