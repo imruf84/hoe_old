@@ -1,5 +1,6 @@
 package hoe;
 
+import static hoe.servlets.ContentServlet.TILE_IMAGE_FORMAT;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -9,7 +10,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.zip.DataFormatException;
 import java.util.zip.Deflater;
 import java.util.zip.Inflater;
+import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
+import javax.imageio.ImageWriteParam;
+import javax.imageio.ImageWriter;
+import javax.imageio.stream.ImageOutputStream;
 
 public class Compression {
 
@@ -75,12 +80,33 @@ public class Compression {
 
         byte[] iba;
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-            ImageIO.write(image, "jpg", baos);
+            ImageIO.write(image, TILE_IMAGE_FORMAT, baos);
             baos.flush();
             iba = baos.toByteArray();
         }
 
         return iba;
+    }
+
+    public static byte[] imageToByteArray(BufferedImage image, float quality) throws IOException {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        ImageWriter writer = ImageIO.getImageWritersByFormatName(TILE_IMAGE_FORMAT).next();
+        ImageOutputStream ios = ImageIO.createImageOutputStream(out);
+        writer.setOutput(ios);
+
+        ImageWriteParam param = writer.getDefaultWriteParam();
+        if (param.canWriteCompressed()) {
+            param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+            param.setCompressionQuality(quality);
+        }
+
+        writer.write(null, new IIOImage(image, null, null), param);
+
+        out.close();
+        ios.close();
+        writer.dispose();
+
+        return out.toByteArray();
     }
 
     public static BufferedImage byteArrayToImage(byte[] byteArray) throws IOException {

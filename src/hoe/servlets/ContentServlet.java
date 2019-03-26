@@ -15,9 +15,10 @@ import javax.servlet.http.HttpServletResponse;
 
 public class ContentServlet extends HttpServletWithEncryption {
 
-    public static final String TILE_IMAGE_EXTENSION = "jpg";
-    public static final String TILE_IMAGE_FORMAT = "jpg";
-    public static final String TILE_CONTENT_TYPE = "image/jpeg";
+    public static final String TILE_IMAGE_EXTENSION = "png";
+    public static final String TILE_IMAGE_FORMAT = "png";
+    public static final String TILE_CONTENT_TYPE = "image/png";
+    public static final float TILE_COMPRESSION_QUALITY = 1f;
 
     public ContentServlet(AbstractServer server) {
         super(server);
@@ -52,8 +53,11 @@ public class ContentServlet extends HttpServletWithEncryption {
 
             // Save tile to disk if neccessary.
             if (!tileFile.exists()) {
-                //Log.debug("Saving tile to disk: " + tileFileName);
+
                 ImageIO.write(image, TILE_IMAGE_FORMAT, tileFile);
+                
+                // Remove old files.
+                removeOldTiles(turn);
             }
 
             response.reset();
@@ -63,6 +67,16 @@ public class ContentServlet extends HttpServletWithEncryption {
 
         }
 
+    }
+
+    // TODO: schedule this task instead of call on every tile saving
+    private void removeOldTiles(long turn) {
+        // TODO: remove all the tiles which are < turn...
+        for (File f : new File(ContentServer.TILES_CACHE_PATH).listFiles()) {
+            if (f.getName().startsWith("" + (turn - SceneManager.TURNS_TO_KEEP_OLD_TILES - 1))) {
+                f.delete();
+            }
+        }
     }
 
 }

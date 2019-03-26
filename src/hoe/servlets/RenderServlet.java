@@ -36,10 +36,12 @@ public class RenderServlet extends HttpServletWithApiKeyValidator {
     public static final int TILE_SIZE = 500;
     public static final int SAMPLE_SIZE = TILE_SIZE * TILE_MULTISAMPLE;
     public static final double TILE_SIZE_IN_WORLD = 2.5d;
+    public static final boolean RENDER_TILE_INFORMATION = !true;
+    public static final boolean RENDER_TILE_BORDER = !true;
 
-    GLUT glut = null;
-    GLU glu = null;
-    GL2 gl = null;
+    private GLUT glut = null;
+    private GLU glu = null;
+    private GL2 gl = null;
     private Texture texture;
     private int colorShader;
     private int depthShader;
@@ -58,11 +60,11 @@ public class RenderServlet extends HttpServletWithApiKeyValidator {
         GLOffscreenAutoDrawable drawable = factory.createOffscreenAutoDrawable(null, caps, null, size, size);
         drawable.display();
         drawable.getContext().makeCurrent();
-        
+
         gl = drawable.getGL().getGL2();
         glut = new GLUT();
         glu = new GLU();
-        
+
         gl.glViewport(0, 0, SAMPLE_SIZE, SAMPLE_SIZE);
         depthShader = createDepthShader(gl);
         colorShader = createConstantColorShader(gl);
@@ -78,7 +80,7 @@ public class RenderServlet extends HttpServletWithApiKeyValidator {
             TileRequest tile;
 
             Log.debug("Rendering tiles...");
-            
+
             initGL(SAMPLE_SIZE);
 
             try {
@@ -99,48 +101,38 @@ public class RenderServlet extends HttpServletWithApiKeyValidator {
                         image = im2;
                     }
 
-                    /*int w = 500;
-                     int h = 500;
-                     BufferedImage image = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);*/
-                     Graphics2D g = (Graphics2D) image.getGraphics();
+                    if (RENDER_TILE_INFORMATION || RENDER_TILE_BORDER) {
+                        Graphics2D g = (Graphics2D) image.getGraphics();
+                        if (RENDER_TILE_BORDER) {
+                            g.setColor(Color.red);
+                            g.drawRect(0, 0, TILE_SIZE - 1, TILE_SIZE - 1);
+                        }
+                        if (RENDER_TILE_INFORMATION) {
+                            g.setColor(Color.white);
+                            try (InputStream mainFontIn = getClass().getClassLoader().getResourceAsStream("fonts/cour.ttf")) {
+                                Font mainFont = Font.createFont(Font.TRUETYPE_FONT, mainFontIn);
+                                GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+                                ge.registerFont(mainFont);
+                            } catch (IOException | FontFormatException e) {
+                                Log.error(e);
+                            }
+                            int fontSize = 100;
+                            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                            g.setFont(new Font("Courier New", Font.PLAIN, fontSize));
 
-                    /* for (int y = 0; y < image.getHeight(); y++) {
-                     for (int x = 0; x < image.getWidth(); x++) {
-                     int r = (int) (Math.random() * 256);
-                     int gr = (int) (Math.random() * 256);
-                     int b = (int) (Math.random() * 256);
-
-                     int p = (r << 16) | (gr << 8) | b;
-
-                     image.setRGB(x, y, p);
-                     }
-                     }*/
-
-                     g.setColor(Color.red);
-                     g.drawRect(0, 0, TILE_SIZE - 1, TILE_SIZE - 1);
-                     g.setColor(Color.white);
-                     try (InputStream mainFontIn = getClass().getClassLoader().getResourceAsStream("fonts/cour.ttf")) {
-                     Font mainFont = Font.createFont(Font.TRUETYPE_FONT, mainFontIn);
-                     GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-                     ge.registerFont(mainFont);
-                     } catch (IOException | FontFormatException e) {
-                     Log.error(e);
-                     }
-                     int fontSize = 100;
-                     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                     g.setFont(new Font("Courier New", Font.PLAIN, fontSize));
-                    
-                     g.drawString("x=" + x, 10, (int) (fontSize * 1.1));
-                     g.drawString("y=" + y, 10, (int) (fontSize * 2.2));
-                     g.drawString("t=" + turn, 10, (int) (fontSize * 3.4));
-                     g.drawString("f=" + frame, 10, (int) (fontSize * 4.6));
-                     g.dispose();
-                     try {
-                     // Update tile in database.
-                     SceneManager.updateTile(turn, frame, x, y, image);
-                     } catch (SQLException | IOException ex) {
-                     Log.error(ex);
-                     }
+                            g.drawString("x=" + x, 10, (int) (fontSize * 1.1));
+                            g.drawString("y=" + y, 10, (int) (fontSize * 2.2));
+                            g.drawString("t=" + turn, 10, (int) (fontSize * 3.4));
+                            g.drawString("f=" + frame, 10, (int) (fontSize * 4.6));
+                        }
+                        g.dispose();
+                    }
+                    try {
+                        // Update tile in database.
+                        SceneManager.updateTile(turn, frame, x, y, image);
+                    } catch (SQLException | IOException ex) {
+                        Log.error(ex);
+                    }
                 }
             } catch (SQLException ex) {
                 Log.error(ex);
@@ -212,15 +204,15 @@ public class RenderServlet extends HttpServletWithApiKeyValidator {
 
         gl.glOrtho(ox - h, ox + h, oy - h, oy + h, -100d, 100d);
         glu.gluLookAt(0, 1, 1, 0, 0, 0, 0, 0, 1);
-        
+
         gl.glClearColor(.15f, .15f, .15f, 1);
         gl.glClear(GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT);
 
         renderScene(gl, turn, frame);
 
-        BufferedImage im = new AWTGLReadBufferUtil(gl.getGLProfile(), false).readPixelsToBufferedImage(gl, 0, 0, tileSizeInPixels, tileSizeInPixels, true);
+        BufferedImage image = new AWTGLReadBufferUtil(gl.getGLProfile(), false).readPixelsToBufferedImage(gl, 0, 0, tileSizeInPixels, tileSizeInPixels, true);
 
-        return im;
+        return image;
     }
 
     private void renderScene(GL2 gl, long turn, long frame) {
@@ -269,7 +261,7 @@ public class RenderServlet extends HttpServletWithApiKeyValidator {
         gl.glPushMatrix();
         gl.glTranslated(-5, 5, 0);
         gl.glScaled(.5, .5, .5);
-        gl.glRotated(-turn*2, 0, 0, 1);
+        gl.glRotated(-turn * 2, 0, 0, 1);
         glut.glutSolidTeapot(4, false);
         gl.glPopMatrix();
     }
