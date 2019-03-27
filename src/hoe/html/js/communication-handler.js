@@ -2,6 +2,7 @@ var chatMsgBox;
 var chatInput;
 var sendChatMsgButton;
 var userNameDiv;
+var gameStateDiv;
 var downloadinMessages = true;
 var messagesCount = 20;
 
@@ -11,6 +12,7 @@ function initCommunicationHandler() {
     sendChatMsgButton = document.getElementById('sendChatMsgButton');
     userNameDiv = document.getElementById('userNameDiv');
     userNameDiv.innerHTML = unescape('#!PLAYER_NAME!#');
+    gameStateDiv = document.getElementById('gameStateDiv');
     chatInput.focused = false;
     chatInput.hasFocus = function () {
         return this.focused;
@@ -72,22 +74,26 @@ var handleResponse = function (responseText) {
             case 'gsc':
                 var data = o['d'];
                 var state = data['state'];
+                setCurrentGameState(state);
                 toDebug('Game state is changed to: ' + state);
-                var gsd = document.getElementById('gameStateDiv');
-                gsd.innerHTML = state;
-                
+
                 var scene = data['scene'];
+                var currentTurn = scene['currentTurn'];
+
                 var tileBounds = scene['tileBounds'];
+                
+                if (currentTurn >= 0) {
                 if (!isTilesMapCreated()) {
                     var tilesX = Math.max(tileBounds[0], tileBounds[1]) - Math.min(tileBounds[0], tileBounds[1]) + 1;
                     var tilesY = Math.max(tileBounds[2], tileBounds[3]) - Math.min(tileBounds[2], tileBounds[3]) + 1;
 
                     initTiles(getTileSize(), tilesX, tilesY);
                 }
-                
-                var currentTurn = scene['currentTurn'];
+
                 refreshTiles(currentTurn);
-                
+            }
+                updateGameStateDiv();
+
                 // GetSceneData
                 sendToServer(JSON.stringify({a: 'gsd', d: {}}));
                 break;

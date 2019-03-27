@@ -5,7 +5,7 @@ var tilesDiv;
 var map = null;
 //var tileWidth = 500;
 //var tileHeight = 500;
-var turn = 0;
+var turn = -1;
 
 function getTileSize() {
     return 500;
@@ -32,9 +32,9 @@ function getTilesUrl() {
 }
 
 function refreshTiles(t) {
-    toDebug('Refresh tiles for turn: ' + t);
-
+    
     if (t !== getCurrentTurn()) {
+        toDebug('Refresh tiles for turn: ' + t);
         setCurrentTurn(t);
         map.getLayers().array_[0].getSource().setUrl(getTilesUrl());
     } else {

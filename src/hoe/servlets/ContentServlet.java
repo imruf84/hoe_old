@@ -19,6 +19,7 @@ public class ContentServlet extends HttpServletWithEncryption {
     public static final String TILE_IMAGE_FORMAT = "png";
     public static final String TILE_CONTENT_TYPE = "image/png";
     public static final float TILE_COMPRESSION_QUALITY = 1f;
+    private final Object tileFileLock = new Object();
 
     public ContentServlet(AbstractServer server) {
         super(server);
@@ -35,29 +36,31 @@ public class ContentServlet extends HttpServletWithEncryption {
             long turn = tr.getTurn();
             long frame = tr.getFrame();
             String tileFileName = ContentServer.TILES_CACHE_PATH + turn + "_" + x + "_" + y + "." + TILE_IMAGE_EXTENSION;
-            File tileFile = new File(tileFileName);
 
             BufferedImage image = null;
+            
+            synchronized (tileFileLock) {
+                File tileFile = new File(tileFileName);
 
-            // Reading tile from file.
-            if (tileFile.exists()) {
-                image = ImageIO.read(tileFile);
-            } else {
-                // Getting the tile from the database.
-                try {
-                    image = SceneManager.getTile(turn, frame, x, y);
-                } catch (DataFormatException | SQLException ex) {
-                    Log.error(ex);
+                // Reading tile from file.
+                if (tileFile.exists()) {
+                    image = ImageIO.read(tileFile);
+                } else {
+                    // Getting the tile from the database.
+                    try {
+                        image = SceneManager.getTile(turn, frame, x, y);
+                    } catch (DataFormatException | SQLException ex) {
+                        Log.error(ex);
+                    }
                 }
-            }
 
-            // Save tile to disk if neccessary.
-            if (!tileFile.exists()) {
+                // Save tile to disk if neccessary.
+                if (!tileFile.exists()) {
+                    ImageIO.write(image, TILE_IMAGE_FORMAT, tileFile);
+                    // Remove old files.
+                    removeOldTiles(turn);
+                }
 
-                ImageIO.write(image, TILE_IMAGE_FORMAT, tileFile);
-                
-                // Remove old files.
-                removeOldTiles(turn);
             }
 
             response.reset();

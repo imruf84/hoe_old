@@ -36,7 +36,7 @@ public class RenderServlet extends HttpServletWithApiKeyValidator {
     public static final int TILE_SIZE = 500;
     public static final int SAMPLE_SIZE = TILE_SIZE * TILE_MULTISAMPLE;
     public static final double TILE_SIZE_IN_WORLD = 2.5d;
-    public static final boolean RENDER_TILE_INFORMATION = !true;
+    public static final boolean RENDER_TILE_INFORMATION = true;
     public static final boolean RENDER_TILE_BORDER = !true;
 
     private GLUT glut = null;
@@ -120,10 +120,11 @@ public class RenderServlet extends HttpServletWithApiKeyValidator {
                             g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                             g.setFont(new Font("Courier New", Font.PLAIN, fontSize));
 
-                            g.drawString("x=" + x, 10, (int) (fontSize * 1.1));
-                            g.drawString("y=" + y, 10, (int) (fontSize * 2.2));
-                            g.drawString("t=" + turn, 10, (int) (fontSize * 3.4));
-                            g.drawString("f=" + frame, 10, (int) (fontSize * 4.6));
+                            //g.drawString("x=" + x, 10, (int) (fontSize * 1.1));
+                            //g.drawString("y=" + y, 10, (int) (fontSize * 2.2));
+                            //g.drawString("t=" + turn, 10, (int) (fontSize * 3.4));
+                            g.drawString(""+turn, 10, (int) (fontSize * 3.4));
+                            //g.drawString("f=" + frame, 10, (int) (fontSize * 4.6));
                         }
                         g.dispose();
                     }
@@ -252,8 +253,11 @@ public class RenderServlet extends HttpServletWithApiKeyValidator {
         gl.glMaterialfv(GL2.GL_FRONT_AND_BACK, GL2.GL_SPECULAR, new float[]{1, 1, 1}, 0);
         gl.glMaterialf(GL2.GL_FRONT_AND_BACK, GL2.GL_SHININESS, 100f);
 
+        gl.glPushMatrix();
+        gl.glRotated(turn * 4, 0, 0, 1);
         gl.glUseProgram(depthShader);
         glut.glutSolidTeapot(4, false);
+        gl.glPopMatrix();
 
         gl.glUseProgram(0);
         gl.glEnable(GL2.GL_TEXTURE_2D);

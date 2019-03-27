@@ -159,8 +159,8 @@ public class SceneManager {
         setSceneLength(300);
         setSceneWidth(100);
         setSceneHeight(1000);
-        setTileBounds(new int[]{-4, 4, -2, 2});
-        //setTileBounds(new int[]{0, 0, 0, 0});
+        int s = 1;
+        setTileBounds(new int[]{-4*s, 4*s, -2*s, 2*s});
 
         new Meteor(1, 2, "imruf84", 3, 4, 5, 6, 7).storeToDataBase().getID();
     }

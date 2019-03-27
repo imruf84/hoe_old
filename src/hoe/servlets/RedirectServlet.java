@@ -4,7 +4,6 @@ import hoe.Cryptography;
 import hoe.HttpClient;
 import hoe.Log;
 import hoe.RedirectAction;
-import hoe.SceneDataBase;
 import hoe.SceneManager;
 import hoe.servers.AbstractServer;
 import hoe.servers.ContentServer;
@@ -82,6 +81,9 @@ public class RedirectServlet extends HttpServletWithEncryption {
                     }
                 }, 0, TIME_TO_WAIT_TO_CHECK_RENDERING);
 
+                response.reset();
+                response.setStatus(HttpStatus.OK_200);
+                
                 return;
         }
 
