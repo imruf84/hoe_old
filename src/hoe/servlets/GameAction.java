@@ -8,13 +8,19 @@ public class GameAction implements Serializable {
     public static final String GAME_ACTION_TILE_RENDER_FAILED = "TILES_RENDERING_FAILED";
     
     private final String action;
+    private final String data;
 
-    public GameAction(String action) {
+    public GameAction(String action, String data) {
         this.action = action;
+        this.data = data;
     }
 
     public String getAction() {
         return action;
+    }
+
+    public String getData() {
+        return data;
     }
     
     public boolean isTilesRenderingDone() {

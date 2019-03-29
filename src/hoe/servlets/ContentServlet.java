@@ -8,6 +8,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.zip.DataFormatException;
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
@@ -38,10 +39,12 @@ public class ContentServlet extends HttpServletWithEncryption {
             String tileFileName = ContentServer.TILES_CACHE_PATH + turn + "_" + x + "_" + y + "." + TILE_IMAGE_EXTENSION;
 
             BufferedImage image = null;
-            
-            synchronized (tileFileLock) {
-                File tileFile = new File(tileFileName);
 
+            
+            File tileFile = new File(tileFileName);
+            
+            // TODO: find a better solution (e.g. hashmap with the saved tiles)
+            synchronized (tileFileLock) {
                 // Reading tile from file.
                 if (tileFile.exists()) {
                     image = ImageIO.read(tileFile);
@@ -49,18 +52,17 @@ public class ContentServlet extends HttpServletWithEncryption {
                     // Getting the tile from the database.
                     try {
                         image = SceneManager.getTile(turn, frame, x, y);
+
+                        // Save tile to disk if neccessary.
+                        ImageIO.write(image, TILE_IMAGE_FORMAT, tileFile);
+
+                        // Remove old files.
+                        removeOldTiles(turn);
+
                     } catch (DataFormatException | SQLException ex) {
                         Log.error(ex);
                     }
                 }
-
-                // Save tile to disk if neccessary.
-                if (!tileFile.exists()) {
-                    ImageIO.write(image, TILE_IMAGE_FORMAT, tileFile);
-                    // Remove old files.
-                    removeOldTiles(turn);
-                }
-
             }
 
             response.reset();

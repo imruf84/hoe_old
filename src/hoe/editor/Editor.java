@@ -638,7 +638,7 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
                 /*for (Player p : players) {
                  p.doOneStep(1, true);
                  }*/
-                appendLogMessage("Finished in " + time.stopAndGet());
+                appendLogMessage("Finished in " + time.stopAndGetFormat());
                 interpolatePlayerPositions();
                 isUpdating.set(false);
             });

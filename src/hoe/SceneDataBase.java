@@ -42,7 +42,7 @@ public class SceneDataBase extends DataBase {
             // Positions.
             stat.execute("CREATE TABLE IF NOT EXISTS POSITIONS (STEP BIGINT NOT NULL, X DOUBLE NOT NULL, Y DOUBLE NOT NULL, VX DOUBLE NOT NULL, VY DOUBLE NOT NULL, OBJECT_ID BIGINT NOT NULL, FOREIGN KEY (OBJECT_ID) REFERENCES OBJECTS (ID) ON DELETE CASCADE);");
             // Tiles.
-            stat.execute("CREATE TABLE IF NOT EXISTS TILES (TURN BIGINT NOT NULL, FRAME BIGINT NOT NULL, X INT NOT NULL, Y INT NOT NULL, TILE BINARY(170000) DEFAULT NULL);");
+            stat.execute("CREATE TABLE IF NOT EXISTS TILES (TURN BIGINT NOT NULL, FRAME BIGINT NOT NULL, X INT NOT NULL, Y INT NOT NULL, RENDER_TIME BIGINT DEFAULT NULL,TILE BINARY(170000) DEFAULT NULL);");
             stat.execute("CREATE UNIQUE INDEX IF NOT EXISTS PK_TILES ON TILES (TURN,FRAME,X,Y);");
         }
     }
@@ -82,15 +82,16 @@ public class SceneDataBase extends DataBase {
         return result.substring(0, result.length() - 1);
     }
 
-    public synchronized int updateTile(long turn, long frame, int x, int y, byte[] tile) throws SQLException {
+    public synchronized int updateTile(long turn, long frame, int x, int y, byte[] tile, long renderTime) throws SQLException {
 
-        try (PreparedStatement ps = getConnection().prepareStatement("UPDATE TILES SET TILE=? WHERE X=? AND Y=? AND TURN=? AND FRAME=?;")) {
+        try (PreparedStatement ps = getConnection().prepareStatement("UPDATE TILES SET TILE=?,RENDER_TIME=? WHERE X=? AND Y=? AND TURN=? AND FRAME=?;")) {
 
             ps.setBytes(1, tile);
-            ps.setInt(2, x);
-            ps.setInt(3, y);
-            ps.setLong(4, turn);
-            ps.setLong(5, frame);
+            ps.setLong(2, renderTime);
+            ps.setInt(3, x);
+            ps.setInt(4, y);
+            ps.setLong(5, turn);
+            ps.setLong(6, frame);
 
             return ps.executeUpdate();
         }
@@ -128,6 +129,21 @@ public class SceneDataBase extends DataBase {
         }
 
         return null;
+    }
+    
+    public long getRenderTimeAvg() throws SQLException {
+        
+        try (PreparedStatement ps = getConnection().prepareStatement("SELECT AVG(RENDER_TIME) AS T FROM TILES WHERE TILE IS NULL OR TILE = ''; ")) {
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getLong(1);
+                }
+            }
+
+        }
+
+        return 0;
     }
 
     public synchronized void storeMeteor(Meteor m) throws SQLException {

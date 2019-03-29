@@ -12,6 +12,8 @@ import hoe.servlets.RenderTilesRequest;
 import java.io.IOException;
 import java.io.Serializable;
 import java.sql.SQLException;
+import java.util.Timer;
+import java.util.TimerTask;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.http.HttpStatus;
@@ -25,9 +27,15 @@ public class GameServlet extends HttpServletWithEncryption {
     public static final String GAME_STATE_WAIT = "WAIT";
     public static final String GAME_STATE_ERROR = "ERROR";
 
-    private static String currentState = "NaN";
+    public static final double TURN_LENGTH_IN_SECONDS = 1;
+    public static final double TURN_TILES_FPS = 1;
+    public static final double TURN_TILES_FRAMES_COUNT = TURN_LENGTH_IN_SECONDS * TURN_TILES_FPS;
+    public static final double TURN_TILES_FRAME_DELAY = 1d / TURN_TILES_FPS;
+    public static final int TIME_TO_WAIT_TO_CHECK_RENDERING = 1000;
 
+    private static String currentState = "NaN";
     private static GameServer server = null;
+    private static Timer tileRenderRemainingTimer = null;
 
     public GameServlet(AbstractServer server) {
         super(server);
@@ -93,8 +101,6 @@ public class GameServlet extends HttpServletWithEncryption {
 
     public static void setStateToRender() throws IOException {
 
-        long framesPerTurn = 1;
-
         try {
             long currentTurn = SceneManager.getCurrentTurn();
             long currentFrame = SceneManager.getCurrentFrame();
@@ -104,17 +110,29 @@ public class GameServlet extends HttpServletWithEncryption {
                 currentTurn++;
                 SceneManager.setCurrentTurnAndFrame(currentTurn, currentFrame);
                 SceneManager.removeOldTiles(SceneManager.TURNS_TO_KEEP_OLD_TILES);
+
+                // Stop the timer.
+                if (tileRenderRemainingTimer != null) {
+                    tileRenderRemainingTimer.cancel();
+                    tileRenderRemainingTimer = null;
+                }
+
+                Log.debug("Stop rendering turn: " + currentTurn);
+
                 setStateToWait();
                 return;
             }
 
-            setState(GAME_STATE_RENDER);
+            if (!isStateRender()) {
+                Log.debug("Start rendering turn: " + (currentTurn + 1));
+                setState(GAME_STATE_RENDER);
+            }
 
             // TODO: simulating the scene by several steps (depending on the fps)
             // ...
             // Rendering the next frame.
             currentFrame++;
-            if (currentFrame == framesPerTurn) {
+            if (currentFrame == TURN_TILES_FRAMES_COUNT) {
                 currentFrame = 0;
                 SceneManager.setCurrentTurnAndFrame(currentTurn, currentFrame);
                 currentTurn++;
@@ -132,6 +150,8 @@ public class GameServlet extends HttpServletWithEncryption {
 
             currentTurn = Math.max(0, currentTurn);
 
+            Log.debug("Start rendering frame: " + currentFrame);
+
             // Create empty frames to fill it by render servers if there are no unfinished tiles...
             if (SceneManager.getUnrenderedTilesCount() == 0) {
                 for (int x = tileFromX; x <= tileToX; x++) {
@@ -139,12 +159,41 @@ public class GameServlet extends HttpServletWithEncryption {
                         SceneManager.storeTile(currentTurn, currentFrame, x, y, null);
                     }
                 }
-            }else{
+            } else {
                 SceneManager.remarkUnrenderedTiles();
             }
 
             // Send the rendering request.
             sendRequestToRedirectServer(GameServer.DO_RENDER_PATH, new RenderTilesRequest(currentTurn, currentFrame));
+
+            if (tileRenderRemainingTimer == null) {
+                tileRenderRemainingTimer = new Timer();
+                tileRenderRemainingTimer.schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        try {
+                            int tilesLeft = SceneManager.getUnrenderedTilesCount();
+                            if (!(tilesLeft > 0)) {
+                                setStateToRender();
+                            } else {
+                                long remainingTime = SceneManager.getRenderTimeAvg() * ((long) tilesLeft + (long) TURN_TILES_FRAMES_COUNT);
+                                Log.debug(tilesLeft + " tiles left... [" + remainingTime + "s]");
+                            }
+                        } catch (SQLException | IOException ex) {
+                            Log.debug("Tiles rendering failed");
+                            try {
+                                setStateToError();
+                            } catch (IOException ex1) {
+                                Log.error(ex1);
+                            }
+                            Log.error(ex);
+                            tileRenderRemainingTimer.cancel();
+                            tileRenderRemainingTimer = null;
+                        }
+                    }
+                }, 0, TIME_TO_WAIT_TO_CHECK_RENDERING);
+            }
+
         } catch (SQLException ex) {
             Log.error(ex);
             setStateToError();
@@ -230,6 +279,7 @@ public class GameServlet extends HttpServletWithEncryption {
         if (ga.isTilesRenderingDone()) {
             // Continue the rendering...
 
+            Log.debug("Stop rendering frame: " + ga.getData());
             setStateToRender();
         } else {
             setStateToError();

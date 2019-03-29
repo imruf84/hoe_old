@@ -41,13 +41,13 @@ public class SceneManager {
         return dataBaseIP;
     }
 
-    public static void updateTile(long turn, long frame, int x, int y, BufferedImage image) throws SQLException, IOException {
+    public static void updateTile(long turn, long frame, int x, int y, BufferedImage image, long renderTime) throws SQLException, IOException {
 
         byte[] imageByteArray = null;
         if (image != null) {
             imageByteArray = Compression.compress(Compression.imageToByteArray(image));
         }
-        getSceneDataBase().updateTile(turn, frame, x, y, imageByteArray);
+        getSceneDataBase().updateTile(turn, frame, x, y, imageByteArray, renderTime);
     }
 
     public static void storeTile(long turn, long frame, int x, int y, BufferedImage image) throws SQLException, IOException {
@@ -68,6 +68,10 @@ public class SceneManager {
         }
 
         return Compression.byteArrayToImage(Compression.decompress(imageByteArray));
+    }
+    
+    public static long getRenderTimeAvg() throws SQLException {
+        return getSceneDataBase().getRenderTimeAvg();
     }
 
     public static void addMeteor(Meteor m) throws SQLException {
@@ -159,8 +163,9 @@ public class SceneManager {
         setSceneLength(300);
         setSceneWidth(100);
         setSceneHeight(1000);
-        int s = 1;
-        setTileBounds(new int[]{-4*s, 4*s, -2*s, 2*s});
+        int s = 2;
+        //setTileBounds(new int[]{-4*s, 4*s, -2*s, 2*s});
+        setTileBounds(new int[]{-1, 1, -1, 1});
 
         new Meteor(1, 2, "imruf84", 3, 4, 5, 6, 7).storeToDataBase().getID();
     }

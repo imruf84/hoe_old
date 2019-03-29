@@ -1,6 +1,7 @@
 package hoe.renderer;
 
 import hoe.math.Rayd;
+import static hoe.servlets.RenderServlet.TILE_SIZE_IN_WORLD;
 import org.joml.Matrix4d;
 import org.joml.Vector3d;
 import org.joml.Vector4d;
@@ -9,8 +10,8 @@ public class Camera {
 
     private double width;
     private double height;
-    private final static double HALF_ORTHO_WITH = 10;
-    private final static double HALF_ORTHO_HEIGHT = 10;
+    private final static double HALF_ORTHO_WITH = TILE_SIZE_IN_WORLD;
+    private final static double HALF_ORTHO_HEIGHT = TILE_SIZE_IN_WORLD;
     private double translateX;
     private double translateY;
     private double rotateX;

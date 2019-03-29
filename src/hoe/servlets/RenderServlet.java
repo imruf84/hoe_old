@@ -18,9 +18,11 @@ import hoe.servers.AbstractServer;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontFormatException;
+import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.GraphicsEnvironment;
 import java.awt.Image;
+import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -35,9 +37,10 @@ public class RenderServlet extends HttpServletWithApiKeyValidator {
     public static final int TILE_MULTISAMPLE = 1;
     public static final int TILE_SIZE = 500;
     public static final int SAMPLE_SIZE = TILE_SIZE * TILE_MULTISAMPLE;
-    public static final double TILE_SIZE_IN_WORLD = 2.5d;
+    public static final double TILE_SIZE_IN_WORLD = 10d;
     public static final boolean RENDER_TILE_INFORMATION = true;
-    public static final boolean RENDER_TILE_BORDER = !true;
+    public static final boolean RENDER_TILE_TURN_CENTER = true;
+    public static final boolean RENDER_TILE_BORDER = true;
 
     private GLUT glut = null;
     private GLU glu = null;
@@ -86,6 +89,8 @@ public class RenderServlet extends HttpServletWithApiKeyValidator {
             try {
                 while ((tile = SceneManager.markTileToRender()) != null) {
 
+                    TimeElapseMeter meter = new TimeElapseMeter();
+                    
                     int x = tile.getX();
                     int y = tile.getY();
                     long turn = tile.getTurn();
@@ -101,7 +106,7 @@ public class RenderServlet extends HttpServletWithApiKeyValidator {
                         image = im2;
                     }
 
-                    if (RENDER_TILE_INFORMATION || RENDER_TILE_BORDER) {
+                    if (RENDER_TILE_INFORMATION || RENDER_TILE_BORDER || RENDER_TILE_TURN_CENTER) {
                         Graphics2D g = (Graphics2D) image.getGraphics();
                         if (RENDER_TILE_BORDER) {
                             g.setColor(Color.red);
@@ -116,21 +121,29 @@ public class RenderServlet extends HttpServletWithApiKeyValidator {
                             } catch (IOException | FontFormatException e) {
                                 Log.error(e);
                             }
+
                             int fontSize = 100;
                             g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                            g.setFont(new Font("Courier New", Font.PLAIN, fontSize));
+                            Font font = new Font("Courier New", Font.PLAIN, fontSize);
 
-                            //g.drawString("x=" + x, 10, (int) (fontSize * 1.1));
-                            //g.drawString("y=" + y, 10, (int) (fontSize * 2.2));
-                            //g.drawString("t=" + turn, 10, (int) (fontSize * 3.4));
-                            g.drawString(""+turn, 10, (int) (fontSize * 3.4));
-                            //g.drawString("f=" + frame, 10, (int) (fontSize * 4.6));
+                            if (RENDER_TILE_TURN_CENTER) {
+                                drawCenteredString(g, "" + turn, new Rectangle(TILE_SIZE, TILE_SIZE), font);
+                            } else {
+
+                                g.setFont(font);
+
+                                g.drawString("x=" + x, 10, (int) (fontSize * 1.1));
+                                g.drawString("y=" + y, 10, (int) (fontSize * 2.2));
+                                g.drawString("t=" + turn, 10, (int) (fontSize * 3.4));
+                                g.drawString("f=" + frame, 10, (int) (fontSize * 4.6));
+                            }
                         }
                         g.dispose();
                     }
                     try {
                         // Update tile in database.
-                        SceneManager.updateTile(turn, frame, x, y, image);
+                        long renderTime = meter.stopAndGet();
+                        SceneManager.updateTile(turn, frame, x, y, image, renderTime);
                     } catch (SQLException | IOException ex) {
                         Log.error(ex);
                     }
@@ -142,12 +155,25 @@ public class RenderServlet extends HttpServletWithApiKeyValidator {
                 response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             }
 
-            Log.debug("Rendering tiles [" + getServer().getIp() + ":" + getServer().getPort() + "] has been finished [it took " + timer.stopAndGet() + "].");
+            Log.debug("Rendering tiles [" + getServer().getIp() + ":" + getServer().getPort() + "] has been finished [it took " + timer.stopAndGetFormat() + "].");
         });
         t.start();
 
         response.reset();
         response.setStatus(HttpServletResponse.SC_OK);
+    }
+
+    public void drawCenteredString(Graphics2D g, String text, Rectangle rect, Font font) {
+        // Get the FontMetrics
+        FontMetrics metrics = g.getFontMetrics(font);
+        // Determine the X coordinate for the text
+        int x = rect.x + (rect.width - metrics.stringWidth(text)) / 2;
+        // Determine the Y coordinate for the text (note we add the ascent, as in java 2d 0 is top of the screen)
+        int y = rect.y + ((rect.height - metrics.getHeight()) / 2) + metrics.getAscent();
+        // Set the font
+        g.setFont(font);
+        // Draw the String
+        g.drawString(text, x, y);
     }
 
     private int createConstantColorShader(GL2 gl) {
@@ -225,7 +251,7 @@ public class RenderServlet extends HttpServletWithApiKeyValidator {
         gl.glUniform4f(col, 0, 0, 1, 1);
 
         gl.glBegin(GL2.GL_QUADS);
-        double s = 7;
+        double s = 5;
         gl.glVertex3d(-s, -s, 0);
         gl.glVertex3d(s, -s, 0);
         gl.glVertex3d(s, s, 0);
@@ -253,20 +279,20 @@ public class RenderServlet extends HttpServletWithApiKeyValidator {
         gl.glMaterialfv(GL2.GL_FRONT_AND_BACK, GL2.GL_SPECULAR, new float[]{1, 1, 1}, 0);
         gl.glMaterialf(GL2.GL_FRONT_AND_BACK, GL2.GL_SHININESS, 100f);
 
-        gl.glPushMatrix();
-        gl.glRotated(turn * 4, 0, 0, 1);
-        gl.glUseProgram(depthShader);
-        glut.glutSolidTeapot(4, false);
-        gl.glPopMatrix();
-
         gl.glUseProgram(0);
         gl.glEnable(GL2.GL_TEXTURE_2D);
         texture.enable(gl);
         gl.glPushMatrix();
-        gl.glTranslated(-5, 5, 0);
-        gl.glScaled(.5, .5, .5);
-        gl.glRotated(-turn * 2, 0, 0, 1);
+        gl.glRotated(turn * 15, 0, 0, 1);
         glut.glutSolidTeapot(4, false);
+        gl.glPopMatrix();
+
+        gl.glUseProgram(colorShader);
+        gl.glUniform4f(col, 1, 1, 1, 1);
+        gl.glPushMatrix();
+        gl.glTranslated(0, 0, 5);
+        gl.glRotated(turn * 15, 0, 0, 1);
+        glut.glutWireCube((float) TILE_SIZE_IN_WORLD);
         gl.glPopMatrix();
     }
 

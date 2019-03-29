@@ -5,7 +5,6 @@ var tilesDiv;
 var map = null;
 //var tileWidth = 500;
 //var tileHeight = 500;
-var turn = -1;
 
 function getTileSize() {
     return 500;
@@ -17,14 +16,6 @@ function isTilesMapCreated() {
 
 function getTilesMap() {
     return map;
-}
-
-function setCurrentTurn(t) {
-    turn = t;
-}
-
-function getCurrentTurn() {
-    return turn;
 }
 
 function getTilesUrl() {
