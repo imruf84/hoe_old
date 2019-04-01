@@ -28,14 +28,18 @@ public class GameServlet extends HttpServletWithEncryption {
     public static final String GAME_STATE_ERROR = "ERROR";
 
     public static final double TURN_LENGTH_IN_SECONDS = 1;
-    public static final double TURN_TILES_FPS = 1;
-    public static final double TURN_TILES_FRAMES_COUNT = TURN_LENGTH_IN_SECONDS * TURN_TILES_FPS;
-    public static final double TURN_TILES_FRAME_DELAY = 1d / TURN_TILES_FPS;
+    public static final double RENDER_FPS = 4;
+    public static final double TURN_TILES_FRAMES_COUNT = TURN_LENGTH_IN_SECONDS * RENDER_FPS;
+    public static final double TURN_TILES_FRAME_DELAY = 1d / RENDER_FPS;
     public static final int TIME_TO_WAIT_TO_CHECK_RENDERING = 1000;
 
     private static String currentState = "NaN";
     private static GameServer server = null;
     private static Timer tileRenderRemainingTimer = null;
+    private static final double PHYSICS_FPS = 100d;
+    private static final double PHYSICS_DELTA_TIME = 1d / PHYSICS_FPS;
+    private static double RENDER_DELTA_TIME = TURN_TILES_FRAME_DELAY;
+    private static double CURRENT_GAME_TIME;
 
     public GameServlet(AbstractServer server) {
         super(server);
@@ -128,8 +132,19 @@ public class GameServlet extends HttpServletWithEncryption {
                 setState(GAME_STATE_RENDER);
             }
 
-            // TODO: simulating the scene by several steps (depending on the fps)
-            // ...
+            // Simulating the scene by several steps (depending on the fps)
+            if (currentTurn < 0) {
+                RENDER_DELTA_TIME = 0;
+            } else {
+                RENDER_DELTA_TIME = TURN_TILES_FRAME_DELAY;
+            }
+            Log.debug("Simulating physics...");
+            while (RENDER_DELTA_TIME > 0) {
+                RENDER_DELTA_TIME -= PHYSICS_DELTA_TIME;
+                CURRENT_GAME_TIME += PHYSICS_DELTA_TIME;
+            }
+            Log.debug("Current game time: " + CURRENT_GAME_TIME);
+
             // Rendering the next frame.
             currentFrame++;
             if (currentFrame == TURN_TILES_FRAMES_COUNT) {
@@ -147,6 +162,7 @@ public class GameServlet extends HttpServletWithEncryption {
             int tileToX = tileBounds[1];
             int tileFromY = tileBounds[2];
             int tileToY = tileBounds[3];
+            int tilesCountPerFrame = SceneManager.getTilesCount(tileBounds);
 
             currentTurn = Math.max(0, currentTurn);
 
@@ -176,8 +192,7 @@ public class GameServlet extends HttpServletWithEncryption {
                             if (!(tilesLeft > 0)) {
                                 setStateToRender();
                             } else {
-                                long remainingTime = SceneManager.getRenderTimeAvg() * ((long) tilesLeft + (long) TURN_TILES_FRAMES_COUNT);
-                                Log.debug(tilesLeft + " tiles left... [" + remainingTime + "s]");
+                                Log.debug(tilesLeft + " tiles left... ");
                             }
                         } catch (SQLException | IOException ex) {
                             Log.debug("Tiles rendering failed");

@@ -130,10 +130,12 @@ public class SceneDataBase extends DataBase {
 
         return null;
     }
-    
-    public long getRenderTimeAvg() throws SQLException {
-        
-        try (PreparedStatement ps = getConnection().prepareStatement("SELECT AVG(RENDER_TIME) AS T FROM TILES WHERE TILE IS NULL OR TILE = ''; ")) {
+
+    public long getRenderTimeAvg(long turn) throws SQLException {
+
+        try (PreparedStatement ps = getConnection().prepareStatement("SELECT AVG(RENDER_TIME) AS T FROM TILES WHERE TURN=? AND NOT RENDER_TIME IS NULL; ")) {
+
+            ps.setLong(1, turn);
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -323,6 +325,12 @@ public class SceneDataBase extends DataBase {
         }
 
         return result;
+    }
+
+    public int getTilesCount() throws SQLException {
+        int[] tileBounds = SceneManager.getTileBounds();
+
+        return SceneManager.getTilesCount(tileBounds);
     }
 
     public synchronized void remarkUnrenderedTiles() throws SQLException {

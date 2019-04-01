@@ -24,14 +24,8 @@ import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
+import java.text.DecimalFormat;
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.Properties;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
@@ -184,99 +178,49 @@ public class HandfulOfEarth {
 
     }
 
-    public static void main____(String[] args) throws Exception {
-        try {
-            String data = "test data";
-
-            //URL url = new URL("http://192.168.0.25:8090/calc");
-            URL url = new URL("http://127.0.0.1:8090/calc");
-            String encoding = Base64.getEncoder().encodeToString(("admin:admin").getBytes(StandardCharsets.UTF_8));
-
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("POST");
-            connection.setDoOutput(true);
-            connection.setRequestProperty("Authorization", "Basic " + encoding);
-            connection.getOutputStream().write(data.getBytes(StandardCharsets.UTF_8));
-            InputStream content = (InputStream) connection.getInputStream();
-            BufferedReader in = new BufferedReader(new InputStreamReader(content));
-            String line;
-            while ((line = in.readLine()) != null) {
-                System.out.println(line);
-            }
-        } catch (IOException e) {
-            Log.error(e);
-        }
-    }
+    public static void main_(String[] args) throws Exception {
+        int physicsFps = 100;
+        int renderFps = 20;
+        double physicsDeltaTime = 1d / (double) physicsFps;
+        double renderDeltaTime = 0;
+        double currentFrame = 0;
+        double currentPhysicsTime = 0;
 /*
-    public static void main(String[] args) throws Exception {
-        // Buffered image compression pilot.
+        while ((currentPhysicsTime += physicsDeltaTime) <= 1d + physicsDeltaTime) {
 
-        // Creating the image.
-        int w = 500;
-        int h = 500;
-        BufferedImage image = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
-        Graphics2D g = (Graphics2D) image.getGraphics();
+            renderDeltaTime -= physicsDeltaTime;
 
-        for (int y = 0; y < image.getHeight(); y++) {
-            for (int x = 0; x < image.getWidth(); x++) {
-                int r = (int) (Math.random() * 256);
-                int gr = (int) (Math.random() * 256);
-                int b = (int) (Math.random() * 256);
+            System.out.print(new DecimalFormat("#.##").format(currentPhysicsTime) + " " + currentFrame);
 
-                int p = (r << 16) | (gr << 8) | b;
-
-                image.setRGB(x, y, p);
+            if (renderDeltaTime <= 0) {
+                System.out.print(" render frame");
+                currentFrame++;
+                renderDeltaTime = 1d / (double) renderFps;
             }
+
+            System.out.println("");
+
         }
-
-        g.setColor(Color.red);
-        g.drawRect(0, 0, w - 1, h - 1);
-        g.setColor(Color.black);
-
-        int fontSize = 100;
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setFont(new Font("Courier New", Font.PLAIN, fontSize));
-        int x = 1;
-        int y = 2;
-        long turn = 3;
-        long frame = 4;
-        g.drawString("x=" + x, 10, (int) (fontSize * 1.1));
-        g.drawString("y=" + y, 10, (int) (fontSize * 2.2));
-        g.drawString("t=" + turn, 10, (int) (fontSize * 3.4));
-        g.drawString("f=" + frame, 10, (int) (fontSize * 4.6));
-        g.dispose();
-
-        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-            
-            ImageIO.write(image, "jpg", baos);
-            baos.flush();
-            byte[] iba = baos.toByteArray();
-
-            System.out.println(iba.length);
-
-            byte[] compressed = compress(iba);
-            System.out.println(compressed.length);
-            byte[] decompressed = decompress(compressed);
-            System.out.println(decompressed.length);
-
-            InputStream in = new ByteArrayInputStream(decompressed);
-            BufferedImage image2 = ImageIO.read(in);
-            ImageIO.write(image, "jpg", new File("image.jpg"));
-            ImageIO.write(image2, "jpg", new File("image2.jpg"));
-        }
-    }
 */
+        renderDeltaTime = 1d / (double) renderFps;
+        while ((renderDeltaTime -= physicsDeltaTime)>0){
+            currentPhysicsTime += physicsDeltaTime;
+        }
+        
+        System.out.println(currentPhysicsTime);
+        
+    }
+
     public static void main(String[] args) throws Exception {
 
         // Correct order to run servers: 1.database 2.redirect 3.minimum one content/render 4.game
-        
         if (Arrays.asList(args).contains("-network_designer") || Arrays.asList(args).contains("-nd")) {
             setLookAndFeel();
             NetworkDesigner designer = new NetworkDesigner();
             designer.setVisible(true);
             return;
         }
-        
+
         Properties prop = new Properties();
         prop.load(new BufferedReader(new FileReader(args[0])));
 
@@ -297,7 +241,7 @@ public class HandfulOfEarth {
             String tcpPort = prop.getProperty("dbservertcpport");
             hoe.servers.DatabaseServer.startServers(webPort, tcpPort);
         }
-        
+
         String sceneDbIp = prop.getProperty("scenedbip");
         if (sceneDbIp != null) {
             SceneManager.setDataBaseIp(sceneDbIp);
@@ -356,7 +300,7 @@ public class HandfulOfEarth {
         }
 
     }
-    
+
     public static void setLookAndFeel() {
         // Téma beállítása.
         javax.swing.plaf.metal.MetalLookAndFeel.setCurrentTheme(new MyMetalTheme());

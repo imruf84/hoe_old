@@ -70,8 +70,8 @@ public class SceneManager {
         return Compression.byteArrayToImage(Compression.decompress(imageByteArray));
     }
     
-    public static long getRenderTimeAvg() throws SQLException {
-        return getSceneDataBase().getRenderTimeAvg();
+    public static long getRenderTimeAvg(long turn) throws SQLException {
+        return getSceneDataBase().getRenderTimeAvg(turn);
     }
 
     public static void addMeteor(Meteor m) throws SQLException {
@@ -112,6 +112,14 @@ public class SceneManager {
 
     public static int[] getTileBounds() throws SQLException {
         return getSceneDataBase().getTileBounds();
+    }
+    
+    public static int getTilesCount() throws SQLException {
+        return getSceneDataBase().getTilesCount();
+    }
+    
+    public static int getTilesCount(int[] tileBounds) throws SQLException {
+        return (tileBounds[1] - tileBounds[0] + 1) * (tileBounds[3] - tileBounds[2] + 1);
     }
     
     public static void remarkUnrenderedTiles() throws SQLException {
@@ -163,9 +171,9 @@ public class SceneManager {
         setSceneLength(300);
         setSceneWidth(100);
         setSceneHeight(1000);
-        int s = 2;
-        //setTileBounds(new int[]{-4*s, 4*s, -2*s, 2*s});
-        setTileBounds(new int[]{-1, 1, -1, 1});
+        int s = 1;
+        setTileBounds(new int[]{-4*s, 4*s, -2*s, 2*s});
+        //setTileBounds(new int[]{-1, 1, -1, 1});
 
         new Meteor(1, 2, "imruf84", 3, 4, 5, 6, 7).storeToDataBase().getID();
     }
