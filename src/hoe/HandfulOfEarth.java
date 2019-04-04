@@ -24,7 +24,6 @@ import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.Properties;
 import javax.swing.ImageIcon;
@@ -176,39 +175,6 @@ public class HandfulOfEarth {
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
 
-    }
-
-    public static void main_(String[] args) throws Exception {
-        int physicsFps = 100;
-        int renderFps = 20;
-        double physicsDeltaTime = 1d / (double) physicsFps;
-        double renderDeltaTime = 0;
-        double currentFrame = 0;
-        double currentPhysicsTime = 0;
-/*
-        while ((currentPhysicsTime += physicsDeltaTime) <= 1d + physicsDeltaTime) {
-
-            renderDeltaTime -= physicsDeltaTime;
-
-            System.out.print(new DecimalFormat("#.##").format(currentPhysicsTime) + " " + currentFrame);
-
-            if (renderDeltaTime <= 0) {
-                System.out.print(" render frame");
-                currentFrame++;
-                renderDeltaTime = 1d / (double) renderFps;
-            }
-
-            System.out.println("");
-
-        }
-*/
-        renderDeltaTime = 1d / (double) renderFps;
-        while ((renderDeltaTime -= physicsDeltaTime)>0){
-            currentPhysicsTime += physicsDeltaTime;
-        }
-        
-        System.out.println(currentPhysicsTime);
-        
     }
 
     public static void main(String[] args) throws Exception {

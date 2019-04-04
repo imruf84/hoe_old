@@ -12,6 +12,7 @@ import java.sql.Statement;
 
 public class SceneDataBase extends DataBase {
 
+    public static final String SCENE_PROPERTY_GLOBAL_GAME_TIME = "global_game_time";
     public static final String SCENE_PROPERTY_LENGTH = "length";
     public static final String SCENE_PROPERTY_WIDTH = "width";
     public static final String SCENE_PROPERTY_HEIGHT = "height";
@@ -260,6 +261,20 @@ public class SceneDataBase extends DataBase {
         return result;
     }
 
+    public synchronized void setCurrentGlobalGameTime(double time) throws SQLException {
+        setSceneProperty(SCENE_PROPERTY_GLOBAL_GAME_TIME, time + "");
+    }
+    
+    public double getCurrentGlobalGameTime() throws SQLException {
+        String sLength = getSceneProperty(SCENE_PROPERTY_GLOBAL_GAME_TIME);
+
+        if (sLength == null) {
+            return Double.NaN;
+        }
+
+        return Double.parseDouble(sLength);
+    }
+    
     public void setSceneLength(double length) throws SQLException {
         setSceneProperty(SCENE_PROPERTY_LENGTH, length + "");
     }

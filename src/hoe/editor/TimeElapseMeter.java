@@ -22,7 +22,7 @@ public class TimeElapseMeter {
     }
     
     public final void stop() {
-        time = Calendar.getInstance().getTimeInMillis() - time;
+        time = getTime();
     }
 
     public String stopAndGetFormat() {
@@ -30,11 +30,11 @@ public class TimeElapseMeter {
     }
 
     public long getTime() {
-        return time;
+        return Calendar.getInstance().getTimeInMillis() - time;
     }
     
     public long stopAndGet() {
         stop();
-        return getTime();
+        return time;
     }
 }

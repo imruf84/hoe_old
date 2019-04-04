@@ -52,8 +52,10 @@
                         <b><big><div id=userNameDiv class="static-label"></div></big></b></td>
                     <td align=center style='width:100%;'>
                         <b><big><div id=gameStateDiv class="static-label"></div></big></b>
+                        <b><big><div id=renderProgressDiv class="static-label"></div></big></b>
                     </td>
                     <td align=right>
+                        <a href='javascript:map.getLayers().array_[0].getSource().refresh();' style="white-space: nowrap;" class='link-button'>REFRESH</a>
                         <a href='javascript:sendEndTurn();' style="white-space: nowrap;" class='link-button'>END TURN</a>
                         <a href='/logout' class='link-button'>#!LOGOUT!#</a>
                     </td></tr>

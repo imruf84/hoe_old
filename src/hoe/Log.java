@@ -14,12 +14,30 @@ public class Log {
         return new SimpleDateFormat("yyyy.MM.dd-HH:mm:ss").format(new Date());
     }
 
-    public static String formatInterval(final long l) {
+    public static String formatInterval(final long l, final boolean shortFormat) {
         final long hr = TimeUnit.MILLISECONDS.toHours(l);
         final long min = TimeUnit.MILLISECONDS.toMinutes(l - TimeUnit.HOURS.toMillis(hr));
         final long sec = TimeUnit.MILLISECONDS.toSeconds(l - TimeUnit.HOURS.toMillis(hr) - TimeUnit.MINUTES.toMillis(min));
         final long ms = TimeUnit.MILLISECONDS.toMillis(l - TimeUnit.HOURS.toMillis(hr) - TimeUnit.MINUTES.toMillis(min) - TimeUnit.SECONDS.toMillis(sec));
+
+        if (shortFormat) {
+
+            if (hr == 0 && min == 0) {
+                return String.format("%ds", sec);
+            }
+
+            if (hr == 0) {
+                return String.format("%02d:%02d", min, sec);
+            }
+
+            return String.format("%02d:%02d:%02d", hr, min, sec);
+        }
+
         return String.format("%02d:%02d:%02d.%03d", hr, min, sec, ms);
+    }
+
+    public static String formatInterval(final long l) {
+        return formatInterval(l, false);
     }
 
     public static void print(String msg) {
@@ -59,7 +77,7 @@ public class Log {
         }
 
         System.out.println(Arrays.toString(s));
-        
+
         return s;
     }
 }

@@ -82,6 +82,14 @@ public class SceneManager {
         return getSceneDataBase().getMeteor(m);
     }
 
+    public static void setCurrentGlobalGameTime(double time) throws SQLException {
+        getSceneDataBase().setCurrentGlobalGameTime(time);
+    }
+    
+    public static double getCurrentGlobalGameTime() throws SQLException {
+        return getSceneDataBase().getCurrentGlobalGameTime();
+    }
+    
     public static void setSceneLength(double length) throws SQLException {
         getSceneDataBase().setSceneLength(length);
     }
@@ -167,6 +175,7 @@ public class SceneManager {
 
         clearAll();
 
+        setCurrentGlobalGameTime(0);
         setCurrentTurnAndFrame(-1, -1);
         setSceneLength(300);
         setSceneWidth(100);

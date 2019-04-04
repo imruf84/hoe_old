@@ -8,7 +8,8 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.HashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.zip.DataFormatException;
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
@@ -20,6 +21,7 @@ public class ContentServlet extends HttpServletWithEncryption {
     public static final String TILE_IMAGE_FORMAT = "png";
     public static final String TILE_CONTENT_TYPE = "image/png";
     public static final float TILE_COMPRESSION_QUALITY = 1f;
+    public static final boolean TILE_CACHE_ENABLED = true;
     private final Object tileFileLock = new Object();
 
     public ContentServlet(AbstractServer server) {
@@ -40,28 +42,35 @@ public class ContentServlet extends HttpServletWithEncryption {
 
             BufferedImage image = null;
 
-            
-            File tileFile = new File(tileFileName);
-            
-            // TODO: find a better solution (e.g. hashmap with the saved tiles)
-            synchronized (tileFileLock) {
-                // Reading tile from file.
-                if (tileFile.exists()) {
-                    image = ImageIO.read(tileFile);
-                } else {
-                    // Getting the tile from the database.
-                    try {
-                        image = SceneManager.getTile(turn, frame, x, y);
+            if (TILE_CACHE_ENABLED) {
+                File tileFile = new File(tileFileName);
 
-                        // Save tile to disk if neccessary.
-                        ImageIO.write(image, TILE_IMAGE_FORMAT, tileFile);
+                // TODO: find a better solution (e.g. hashmap with the saved tiles)
+                synchronized (tileFileLock) {
+                    // Reading tile from file.
+                    if (tileFile.exists()) {
+                        image = ImageIO.read(tileFile);
+                    } else {
+                        // Getting the tile from the database.
+                        try {
+                            image = SceneManager.getTile(turn, frame, x, y);
 
-                        // Remove old files.
-                        removeOldTiles(turn);
+                            // Save tile to disk if neccessary.
+                            ImageIO.write(image, TILE_IMAGE_FORMAT, tileFile);
 
-                    } catch (DataFormatException | SQLException ex) {
-                        Log.error(ex);
+                            // Remove old files.
+                            removeOldTiles(turn);
+
+                        } catch (DataFormatException | SQLException ex) {
+                            Log.error(ex);
+                        }
                     }
+                }
+            } else {
+                try {
+                    image = SceneManager.getTile(turn, frame, x, y);
+                } catch (SQLException | DataFormatException ex) {
+                    Log.error(ex);
                 }
             }
 

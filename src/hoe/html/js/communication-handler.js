@@ -3,6 +3,7 @@ var chatInput;
 var sendChatMsgButton;
 var userNameDiv;
 var gameStateDiv;
+var renderProgressDiv;
 var downloadinMessages = true;
 var messagesCount = 20;
 
@@ -13,6 +14,7 @@ function initCommunicationHandler() {
     userNameDiv = document.getElementById('userNameDiv');
     userNameDiv.innerHTML = unescape('#!PLAYER_NAME!#');
     gameStateDiv = document.getElementById('gameStateDiv');
+    renderProgressDiv = document.getElementById('renderProgressDiv');
     chatInput.focused = false;
     chatInput.hasFocus = function () {
         return this.focused;
@@ -70,6 +72,10 @@ var handleResponse = function (responseText) {
     for (var i in response) {
         var o = response[i];
         switch (o['a']) {
+            // Progress changed
+            case 'prgc':
+                updateRenderProgressDiv(o['d']['progress'], o['d']['time']);
+            break;
             // GameStateChanged
             case 'gsc':
                 var data = o['d'];

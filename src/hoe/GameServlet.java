@@ -3,6 +3,7 @@ package hoe;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import hoe.editor.TimeElapseMeter;
 import hoe.servers.AbstractServer;
 import hoe.servers.GameServer;
 import hoe.servers.RedirectServer;
@@ -27,19 +28,20 @@ public class GameServlet extends HttpServletWithEncryption {
     public static final String GAME_STATE_WAIT = "WAIT";
     public static final String GAME_STATE_ERROR = "ERROR";
 
-    public static final double TURN_LENGTH_IN_SECONDS = 1;
-    public static final double RENDER_FPS = 4;
-    public static final double TURN_TILES_FRAMES_COUNT = TURN_LENGTH_IN_SECONDS * RENDER_FPS;
-    public static final double TURN_TILES_FRAME_DELAY = 1d / RENDER_FPS;
+    public static final int TURN_LENGTH_IN_SECONDS = 2;
+    public static final int RENDER_FPS = 4;
+    public static final int TURN_TILES_FRAMES_COUNT = TURN_LENGTH_IN_SECONDS * RENDER_FPS;
+    public static final double TURN_TILES_FRAME_DELAY = 1d / (double) RENDER_FPS;
     public static final int TIME_TO_WAIT_TO_CHECK_RENDERING = 1000;
 
     private static String currentState = "NaN";
     private static GameServer server = null;
     private static Timer tileRenderRemainingTimer = null;
-    private static final double PHYSICS_FPS = 100d;
-    private static final double PHYSICS_DELTA_TIME = 1d / PHYSICS_FPS;
-    private static double RENDER_DELTA_TIME = TURN_TILES_FRAME_DELAY;
-    private static double CURRENT_GAME_TIME;
+    private static final int PHYSICS_FPS = 100;
+    private static final double PHYSICS_DELTA_TIME = 1d / (double) PHYSICS_FPS;
+    private static double renderDeltaTime = TURN_TILES_FRAME_DELAY;
+    private static double currentGlobalGameTime;
+    private static TimeElapseMeter timeElapseMeter = null;
 
     public GameServlet(AbstractServer server) {
         super(server);
@@ -122,6 +124,7 @@ public class GameServlet extends HttpServletWithEncryption {
                 }
 
                 Log.debug("Stop rendering turn: " + currentTurn);
+                timeElapseMeter.stop();
 
                 setStateToWait();
                 return;
@@ -130,20 +133,24 @@ public class GameServlet extends HttpServletWithEncryption {
             if (!isStateRender()) {
                 Log.debug("Start rendering turn: " + (currentTurn + 1));
                 setState(GAME_STATE_RENDER);
+                timeElapseMeter = new TimeElapseMeter();
+            }
+
+            if (currentTurn < 0) {
+                renderDeltaTime = 0;
+            } else {
+                renderDeltaTime = TURN_TILES_FRAME_DELAY;
             }
 
             // Simulating the scene by several steps (depending on the fps)
-            if (currentTurn < 0) {
-                RENDER_DELTA_TIME = 0;
-            } else {
-                RENDER_DELTA_TIME = TURN_TILES_FRAME_DELAY;
-            }
             Log.debug("Simulating physics...");
-            while (RENDER_DELTA_TIME > 0) {
-                RENDER_DELTA_TIME -= PHYSICS_DELTA_TIME;
-                CURRENT_GAME_TIME += PHYSICS_DELTA_TIME;
+            while (renderDeltaTime > 0) {
+                renderDeltaTime -= PHYSICS_DELTA_TIME;
+                currentGlobalGameTime += PHYSICS_DELTA_TIME;
             }
-            Log.debug("Current game time: " + CURRENT_GAME_TIME);
+
+            SceneManager.setCurrentGlobalGameTime(currentGlobalGameTime);
+            Log.debug("Current game time: " + currentGlobalGameTime);
 
             // Rendering the next frame.
             currentFrame++;
@@ -157,12 +164,10 @@ public class GameServlet extends HttpServletWithEncryption {
 
             // Rendering the next turn frame.
             int[] tileBounds = SceneManager.getTileBounds();
-
             int tileFromX = tileBounds[0];
             int tileToX = tileBounds[1];
             int tileFromY = tileBounds[2];
             int tileToY = tileBounds[3];
-            int tilesCountPerFrame = SceneManager.getTilesCount(tileBounds);
 
             currentTurn = Math.max(0, currentTurn);
 
@@ -192,7 +197,9 @@ public class GameServlet extends HttpServletWithEncryption {
                             if (!(tilesLeft > 0)) {
                                 setStateToRender();
                             } else {
-                                Log.debug(tilesLeft + " tiles left... ");
+
+                                Log.debug(tilesLeft + " tiles left... [" + timeElapseMeter.getTime() + "ms]");
+                                UserManager.sendMessageToAll(getProgressChangedMessage());
                             }
                         } catch (SQLException | IOException ex) {
                             Log.debug("Tiles rendering failed");
@@ -279,6 +286,47 @@ public class GameServlet extends HttpServletWithEncryption {
         scene.add("tileBounds", tileBounds);
 
         return json.toString();
+    }
+
+    public static String getProgressChangedMessage() throws SQLException {
+        JsonObject json = new JsonObject();
+        json.add("a", new JsonPrimitive("prgc"));
+
+        JsonObject data = new JsonObject();
+        json.add("d", data);
+        double progress = getCurrentProgressPercentage();
+        data.add("progress", new JsonPrimitive(progress));
+
+        if (progress > 0) {
+            long time = timeElapseMeter.getTime();
+            long t = (long) (((double) time / progress) * (1d - progress));
+            data.add("time", new JsonPrimitive(Log.formatInterval(t, true)));
+        } else {
+            data.add("time", new JsonPrimitive("??:??"));
+        }
+
+        return json.toString();
+    }
+
+    public static double getCurrentProgressPercentage() throws SQLException {
+        int tilesLeft = SceneManager.getUnrenderedTilesCount();
+        long ct = SceneManager.getCurrentTurn();
+        long cf = SceneManager.getCurrentFrame();
+        long totalProgressSteps;
+        long currentProgressSteps;
+        if (ct < 0) {
+            totalProgressSteps = SceneManager.getTilesCount();
+            currentProgressSteps = totalProgressSteps - tilesLeft;
+        } else {
+            totalProgressSteps = SceneManager.getTilesCount() * TURN_LENGTH_IN_SECONDS * RENDER_FPS;
+            /*
+             Frame | 0 Wait 1 2 3 | 0 Wait 1 2 3 |...
+             Turn  |        0     |        1     |...
+             */
+            currentProgressSteps = (cf == 0 ? TURN_LENGTH_IN_SECONDS * RENDER_FPS : cf) * SceneManager.getTilesCount() - tilesLeft;
+        }
+
+        return (double) (currentProgressSteps) / (double) totalProgressSteps;
     }
 
     public static String getCurrentState() {
