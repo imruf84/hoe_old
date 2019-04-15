@@ -44,7 +44,6 @@ public class RenderServlet extends HttpServletWithApiKeyValidator {
     public static final boolean RENDER_TILE_TURN_CENTER = !true;
     public static final boolean RENDER_TILE_BORDER = true;
 
-
     public RenderServlet(AbstractServer server) throws ServletException {
         super(server);
     }
@@ -102,7 +101,7 @@ public class RenderServlet extends HttpServletWithApiKeyValidator {
                     long frame = tile.getFrame();
 
                     // Rendering the tile
-                    BufferedImage image = renderTile(gl, glu, glut, shaders, x, y, turn, frame, SAMPLE_SIZE, TILE_SIZE_IN_WORLD);
+                    BufferedImage image = renderTile(gl, glu, glut, shaders, null, x, y, turn, frame, SAMPLE_SIZE, TILE_SIZE_IN_WORLD);
 
                     // Multisampling
                     image = multisampleImage(image, TILE_SIZE);
@@ -213,11 +212,11 @@ public class RenderServlet extends HttpServletWithApiKeyValidator {
         return shader;
     }
 
-    public static BufferedImage renderTile(GL2 gl, GLU glu, GLUT glut, ShaderManager shaders, int row, int column, long turn, long frame, int tileSizeInPixels, double tileSizeInOrtho) {
+    public static BufferedImage renderTile(GL2 gl, GLU glu, GLUT glut, ShaderManager shaders, Runnable scene, int row, int column, long turn, long frame, int tileSizeInPixels, double tileSizeInOrtho) {
 
         int x = row;
         int y = -column;
-        
+
         gl.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
         gl.glLoadIdentity();
 
@@ -231,7 +230,13 @@ public class RenderServlet extends HttpServletWithApiKeyValidator {
         gl.glClearColor(.15f, .15f, .15f, 1);
         gl.glClear(GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT);
 
-        renderScene(gl, glu, glut, shaders, turn, frame);
+        gl.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
+        
+        if (scene == null) {
+            renderScene(gl, glu, glut, shaders, turn, frame);
+        } else {
+            scene.run();
+        }
 
         BufferedImage image = new AWTGLReadBufferUtil(gl.getGLProfile(), false).readPixelsToBufferedImage(gl, 0, 0, tileSizeInPixels, tileSizeInPixels, true);
 
@@ -241,8 +246,6 @@ public class RenderServlet extends HttpServletWithApiKeyValidator {
     public static void renderScene(GL2 gl, GLU glu, GLUT glut, ShaderManager shaders, long turn, long frame) {
 
         ConstantColorShader colorShader = shaders.get("color");
-
-        gl.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
 
         colorShader.apply(0, 0, 1, 1);
 

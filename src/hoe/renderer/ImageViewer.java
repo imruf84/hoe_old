@@ -11,8 +11,11 @@ import javax.swing.JFrame;
 public class ImageViewer extends JFrame {
     
     private final PanZoomPanel zoomPanel;
+    private final BufferedImage image;
 
     public ImageViewer(BufferedImage image) {
+        this.image = image;
+        
         setTitle("Image viewer");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setExtendedState(JFrame.MAXIMIZED_BOTH);
@@ -49,6 +52,10 @@ public class ImageViewer extends JFrame {
 
     public PanZoomPanel getZoomPanel() {
         return zoomPanel;
+    }
+
+    public BufferedImage getImage() {
+        return image;
     }
 
 }

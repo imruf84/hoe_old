@@ -1,6 +1,7 @@
 package hoe;
 
 import com.jogamp.opengl.GL2;
+import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 import com.jogamp.opengl.glu.GLU;
 import com.jogamp.opengl.util.gl2.GLUT;
 import hoe.designer.NetworkDesigner;
@@ -10,6 +11,9 @@ import hoe.editor.MyMetalTheme;
 import hoe.editor.TimeElapseMeter;
 import hoe.nonlinear.ObjectsPacker;
 import hoe.renderer.ImageViewer;
+import hoe.renderer.OfflineRendererWindow;
+import hoe.renderer.RenderCallback;
+import hoe.renderer.shaders.ConstantColorShader;
 import hoe.renderer.shaders.ShaderManager;
 import hoe.servers.ContentServer;
 import hoe.servers.RedirectServer;
@@ -25,6 +29,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.RenderingHints;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -198,7 +203,7 @@ public class HandfulOfEarth {
         ObjectsPacker.packPlayers(players, false);
         System.out.println(tem.stopAndGetFormat());
     }
-    
+
     public static void main(String[] args) throws Exception {
 
         // Correct order to run servers: 1.database 2.redirect 3.minimum one content/render 4.game
@@ -208,22 +213,33 @@ public class HandfulOfEarth {
             designer.setVisible(true);
             return;
         }
-        
+
         if (Arrays.asList(args).contains("-render_scene") || Arrays.asList(args).contains("-rs")) {
             setLookAndFeel();
-            
-            int tileSize = 1000;
-            int multisample = 4;
-            double tileWorldSize = 20;
-            GL2 gl = RenderServlet.initGL(tileSize, multisample);
-            GLU glu = new GLU();
-            GLUT glut = new GLUT();
-            ShaderManager shaders = RenderServlet.createShaders(gl);
-            int x = 0, y = 0;
-            BufferedImage image = renderTile(gl, glu, glut, shaders, x, y, 0, 0, tileSize*multisample, tileWorldSize);
-            
-            ImageViewer iw = new ImageViewer(RenderServlet.multisampleImage(image, tileSize));
-            iw.setVisible(true);
+
+            int tileSize = 500;
+            int multisample = 1;
+            double tileWorldSize = 5;
+            int rows[] = {-1, 1};
+            int columns[] = {-1, 1};
+
+            OfflineRendererWindow orw = new OfflineRendererWindow(tileSize, multisample, tileWorldSize, rows, columns, new RenderCallback() {
+
+                @Override
+                public void render() {
+                    GL2 gl = getGL();
+                    GLUT glut = getGLUT();
+                    
+                    ConstantColorShader colorShader = new ConstantColorShader(gl);
+                    colorShader.apply(0, 0, 1, 1);
+                    gl.glPushMatrix();
+                    gl.glTranslated(0, 3, 0);
+                    gl.glRotated(15, 0, 0, 1);
+                    glut.glutSolidTeapot(4, false);
+                    gl.glPopMatrix();
+                }
+            });
+
             return;
         }
 
