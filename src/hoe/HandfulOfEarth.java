@@ -1,12 +1,25 @@
 package hoe;
 
+import com.jogamp.opengl.GL2;
+import com.jogamp.opengl.glu.GLU;
+import com.jogamp.opengl.util.gl2.GLUT;
 import hoe.designer.NetworkDesigner;
 import hoe.servers.GameServer;
 import hoe.editor.Editor;
 import hoe.editor.MyMetalTheme;
+import hoe.editor.TimeElapseMeter;
+import hoe.nonlinear.ObjectsPacker;
+import hoe.renderer.ImageViewer;
+import hoe.renderer.shaders.ShaderManager;
 import hoe.servers.ContentServer;
 import hoe.servers.RedirectServer;
 import hoe.servers.RenderServer;
+import hoe.servlets.RenderServlet;
+import static hoe.servlets.RenderServlet.SAMPLE_SIZE;
+import static hoe.servlets.RenderServlet.TILE_MULTISAMPLE;
+import static hoe.servlets.RenderServlet.TILE_SIZE;
+import static hoe.servlets.RenderServlet.TILE_SIZE_IN_WORLD;
+import static hoe.servlets.RenderServlet.renderTile;
 import hoe.skeleton.Skeleton;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -24,6 +37,7 @@ import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Properties;
 import javax.swing.ImageIcon;
@@ -177,6 +191,14 @@ public class HandfulOfEarth {
 
     }
 
+    public static void main_(String[] args) throws Exception {
+        TimeElapseMeter tem = new TimeElapseMeter();
+        ArrayList<Player> players = new ArrayList<>();
+        int n = (int) Editor.rnd(-10, 10);
+        ObjectsPacker.packPlayers(players, false);
+        System.out.println(tem.stopAndGetFormat());
+    }
+    
     public static void main(String[] args) throws Exception {
 
         // Correct order to run servers: 1.database 2.redirect 3.minimum one content/render 4.game
@@ -184,6 +206,24 @@ public class HandfulOfEarth {
             setLookAndFeel();
             NetworkDesigner designer = new NetworkDesigner();
             designer.setVisible(true);
+            return;
+        }
+        
+        if (Arrays.asList(args).contains("-render_scene") || Arrays.asList(args).contains("-rs")) {
+            setLookAndFeel();
+            
+            int tileSize = 1000;
+            int multisample = 4;
+            double tileWorldSize = 20;
+            GL2 gl = RenderServlet.initGL(tileSize, multisample);
+            GLU glu = new GLU();
+            GLUT glut = new GLUT();
+            ShaderManager shaders = RenderServlet.createShaders(gl);
+            int x = 0, y = 0;
+            BufferedImage image = renderTile(gl, glu, glut, shaders, x, y, 0, 0, tileSize*multisample, tileWorldSize);
+            
+            ImageViewer iw = new ImageViewer(RenderServlet.multisampleImage(image, tileSize));
+            iw.setVisible(true);
             return;
         }
 

@@ -55,3 +55,6 @@ sudo chown root:root wireless_power_management_off
 sudo chmod 700 wireless_power_management_off
 sudo crontab -e
   */1 * * * * /etc/pm/power.d/wireless_power_management_off
+
+
+wavemon: elvileg életben tartja a wifi-t

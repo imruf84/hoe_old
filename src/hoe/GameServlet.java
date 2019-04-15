@@ -28,8 +28,8 @@ public class GameServlet extends HttpServletWithEncryption {
     public static final String GAME_STATE_WAIT = "WAIT";
     public static final String GAME_STATE_ERROR = "ERROR";
 
-    public static final int TURN_LENGTH_IN_SECONDS = 2;
-    public static final int RENDER_FPS = 4;
+    public static final int TURN_LENGTH_IN_SECONDS = 1;
+    public static final int RENDER_FPS = 1;
     public static final int TURN_TILES_FRAMES_COUNT = TURN_LENGTH_IN_SECONDS * RENDER_FPS;
     public static final double TURN_TILES_FRAME_DELAY = 1d / (double) RENDER_FPS;
     public static final int TIME_TO_WAIT_TO_CHECK_RENDERING = 1000;

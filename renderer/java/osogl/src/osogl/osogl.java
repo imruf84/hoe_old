@@ -116,7 +116,6 @@ public class osogl {
 
     static ImageViewer showImageInFrame(BufferedImage image) {
         ImageViewer iw = new ImageViewer(image);
-        //iw.setTitle(iw.getTitle() + " - size[" + image.getWidth() + "x" + image.getHeight() + "] " + "samples[" + samples + "]");
         iw.setTitle(iw.getTitle() + " - size[" + image.getWidth() + "x" + image.getHeight() + "]");
         iw.setVisible(true);
         return iw;

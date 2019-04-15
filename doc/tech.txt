@@ -1,3 +1,10 @@
+https://github.com/orbisgis/jdelaunay/wiki
+http://www.nag-j.co.jp/naglib/tr/java/code/Minimization.java
+http://www.tsusiatsoftware.net/jts/jtsfeatures.html
+https://sourceforge.net/projects/jts-topo-suite/
+
+
+
 renderer:
 ---------
 	- háttérben futó daemon, ami OSMesa-t használ
@@ -22,7 +29,6 @@ renderer:
 
 fizikai motorok:
 ----------------
-
 követelmény:
 	- terep rombolás
 	- animált karakterek kezelése

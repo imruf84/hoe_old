@@ -340,7 +340,7 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
 
     }
 
-    private static double rnd(double a, double b) {
+    public static double rnd(double a, double b) {
         if (a == b) {
             return a;
         }

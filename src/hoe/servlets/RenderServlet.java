@@ -14,6 +14,8 @@ import com.jogamp.opengl.util.texture.awt.AWTTextureIO;
 import hoe.Log;
 import hoe.SceneManager;
 import hoe.editor.TimeElapseMeter;
+import hoe.renderer.shaders.ConstantColorShader;
+import hoe.renderer.shaders.ShaderManager;
 import hoe.servers.AbstractServer;
 import java.awt.Color;
 import java.awt.Font;
@@ -37,23 +39,26 @@ public class RenderServlet extends HttpServletWithApiKeyValidator {
     public static final int TILE_MULTISAMPLE = 1;
     public static final int TILE_SIZE = 500;
     public static final int SAMPLE_SIZE = TILE_SIZE * TILE_MULTISAMPLE;
-    public static final double TILE_SIZE_IN_WORLD = 10d;
+    public static final double TILE_SIZE_IN_WORLD = 5d;
     public static final boolean RENDER_TILE_INFORMATION = true;
-    public static final boolean RENDER_TILE_TURN_CENTER = true;
+    public static final boolean RENDER_TILE_TURN_CENTER = !true;
     public static final boolean RENDER_TILE_BORDER = true;
 
-    private GLUT glut = null;
-    private GLU glu = null;
-    private GL2 gl = null;
-    private Texture texture;
-    private int colorShader;
-    private int depthShader;
 
     public RenderServlet(AbstractServer server) throws ServletException {
         super(server);
     }
 
-    private void initGL(int size) {
+    public static ShaderManager createShaders(GL2 gl) {
+        ShaderManager shaders = new ShaderManager();
+
+        shaders.put("color", new ConstantColorShader(gl));
+
+        return shaders;
+    }
+
+    public static GL2 initGL(int tileSize, int multisample) {
+        int size = tileSize * multisample;
         GLProfile glp = GLProfile.get(GLProfile.GL2);
         GLCapabilities caps = new GLCapabilities(glp);
         caps.setDepthBits(16);
@@ -64,14 +69,11 @@ public class RenderServlet extends HttpServletWithApiKeyValidator {
         drawable.display();
         drawable.getContext().makeCurrent();
 
-        gl = drawable.getGL().getGL2();
-        glut = new GLUT();
-        glu = new GLU();
+        GL2 gl = drawable.getGL().getGL2();
 
-        gl.glViewport(0, 0, SAMPLE_SIZE, SAMPLE_SIZE);
-        depthShader = createDepthShader(gl);
-        colorShader = createConstantColorShader(gl);
-        texture = createCheckerTexture(gl, 200, 2);
+        gl.glViewport(0, 0, size, size);
+
+        return gl;
     }
 
     @Override
@@ -84,27 +86,26 @@ public class RenderServlet extends HttpServletWithApiKeyValidator {
 
             Log.debug("Rendering tiles...");
 
-            initGL(SAMPLE_SIZE);
+            GL2 gl = initGL(TILE_SIZE, TILE_MULTISAMPLE);
+            GLU glu = new GLU();
+            GLUT glut = new GLUT();
+            ShaderManager shaders = createShaders(gl);
 
             try {
                 while ((tile = SceneManager.markTileToRender()) != null) {
 
                     TimeElapseMeter meter = new TimeElapseMeter();
-                    
+
                     int x = tile.getX();
                     int y = tile.getY();
                     long turn = tile.getTurn();
                     long frame = tile.getFrame();
 
                     // Rendering the tile
-                    BufferedImage image = renderTile(gl, -y, x, turn, frame, SAMPLE_SIZE, TILE_SIZE_IN_WORLD);
+                    BufferedImage image = renderTile(gl, glu, glut, shaders, x, y, turn, frame, SAMPLE_SIZE, TILE_SIZE_IN_WORLD);
 
                     // Multisampling
-                    if (TILE_MULTISAMPLE != 1) {
-                        BufferedImage im2 = new BufferedImage(TILE_SIZE, TILE_SIZE, image.getType());
-                        im2.getGraphics().drawImage(((Image) image).getScaledInstance(TILE_SIZE, TILE_SIZE, Image.SCALE_AREA_AVERAGING), 0, 0, null);
-                        image = im2;
-                    }
+                    image = multisampleImage(image, TILE_SIZE);
 
                     if (RENDER_TILE_INFORMATION || RENDER_TILE_BORDER || RENDER_TILE_TURN_CENTER) {
                         Graphics2D g = (Graphics2D) image.getGraphics();
@@ -163,7 +164,19 @@ public class RenderServlet extends HttpServletWithApiKeyValidator {
         response.setStatus(HttpServletResponse.SC_OK);
     }
 
-    public void drawCenteredString(Graphics2D g, String text, Rectangle rect, Font font) {
+    public static BufferedImage multisampleImage(BufferedImage image, int size) {
+
+        if (image.getWidth() == size && image.getHeight() == size) {
+            return image;
+        }
+
+        BufferedImage im2 = new BufferedImage(size, size, image.getType());
+        im2.getGraphics().drawImage(((Image) image).getScaledInstance(size, size, Image.SCALE_AREA_AVERAGING), 0, 0, null);
+
+        return im2;
+    }
+
+    public static void drawCenteredString(Graphics2D g, String text, Rectangle rect, Font font) {
         // Get the FontMetrics
         FontMetrics metrics = g.getFontMetrics(font);
         // Determine the X coordinate for the text
@@ -176,27 +189,7 @@ public class RenderServlet extends HttpServletWithApiKeyValidator {
         g.drawString(text, x, y);
     }
 
-    private int createConstantColorShader(GL2 gl) {
-        String fc[] = new String[]{""
-            + "uniform vec4 col;"
-            + "void main()"
-            + "{"
-            + "  gl_FragColor = col;"
-            + "}"
-        };
-
-        int fs2 = gl.glCreateShader(GL2.GL_FRAGMENT_SHADER);
-        gl.glShaderSource(fs2, 1, fc, null);
-        gl.glCompileShader(fs2);
-        int shader = gl.glCreateProgram();
-        gl.glAttachShader(shader, fs2);
-        gl.glLinkProgram(shader);
-        gl.glValidateProgram(shader);
-
-        return shader;
-    }
-
-    private int createDepthShader(GL2 gl) {
+    public static int createDepthShader(GL2 gl) {
 
         String fc[] = new String[]{""
             + "uniform vec4 col;"
@@ -220,14 +213,17 @@ public class RenderServlet extends HttpServletWithApiKeyValidator {
         return shader;
     }
 
-    private BufferedImage renderTile(GL2 gl, int row, int column, long turn, long frame, int tileSizeInPixels, double tileSizeInOrtho) {
+    public static BufferedImage renderTile(GL2 gl, GLU glu, GLUT glut, ShaderManager shaders, int row, int column, long turn, long frame, int tileSizeInPixels, double tileSizeInOrtho) {
 
+        int x = row;
+        int y = -column;
+        
         gl.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
         gl.glLoadIdentity();
 
         double h = tileSizeInOrtho / 2d;
-        double ox = (double) column * tileSizeInOrtho;
-        double oy = (double) row * tileSizeInOrtho;
+        double ox = (double) x * tileSizeInOrtho;
+        double oy = (double) y * tileSizeInOrtho;
 
         gl.glOrtho(ox - h, ox + h, oy - h, oy + h, -100d, 100d);
         glu.gluLookAt(0, 1, 1, 0, 0, 0, 0, 0, 1);
@@ -235,20 +231,20 @@ public class RenderServlet extends HttpServletWithApiKeyValidator {
         gl.glClearColor(.15f, .15f, .15f, 1);
         gl.glClear(GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT);
 
-        renderScene(gl, turn, frame);
+        renderScene(gl, glu, glut, shaders, turn, frame);
 
         BufferedImage image = new AWTGLReadBufferUtil(gl.getGLProfile(), false).readPixelsToBufferedImage(gl, 0, 0, tileSizeInPixels, tileSizeInPixels, true);
 
         return image;
     }
 
-    private void renderScene(GL2 gl, long turn, long frame) {
+    public static void renderScene(GL2 gl, GLU glu, GLUT glut, ShaderManager shaders, long turn, long frame) {
+
+        ConstantColorShader colorShader = shaders.get("color");
 
         gl.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
 
-        gl.glUseProgram(colorShader);
-        int col = gl.glGetUniformLocation(colorShader, "col");
-        gl.glUniform4f(col, 0, 0, 1, 1);
+        colorShader.apply(0, 0, 1, 1);
 
         gl.glBegin(GL2.GL_QUADS);
         double s = 5;
@@ -279,16 +275,16 @@ public class RenderServlet extends HttpServletWithApiKeyValidator {
         gl.glMaterialfv(GL2.GL_FRONT_AND_BACK, GL2.GL_SPECULAR, new float[]{1, 1, 1}, 0);
         gl.glMaterialf(GL2.GL_FRONT_AND_BACK, GL2.GL_SHININESS, 100f);
 
-        gl.glUseProgram(0);
-        gl.glEnable(GL2.GL_TEXTURE_2D);
-        texture.enable(gl);
+        /*gl.glUseProgram(0);
+         gl.glEnable(GL2.GL_TEXTURE_2D);
+         texture.enable(gl);*/
+        colorShader.apply(1, 1, 0, 1);
         gl.glPushMatrix();
         gl.glRotated(turn * 15, 0, 0, 1);
         glut.glutSolidTeapot(4, false);
         gl.glPopMatrix();
 
-        gl.glUseProgram(colorShader);
-        gl.glUniform4f(col, 1, 1, 1, 1);
+        colorShader.apply(1, 1, 1, 1);
         gl.glPushMatrix();
         gl.glTranslated(0, 0, 5);
         gl.glRotated(turn * 15, 0, 0, 1);
@@ -296,7 +292,7 @@ public class RenderServlet extends HttpServletWithApiKeyValidator {
         gl.glPopMatrix();
     }
 
-    private Texture createCheckerTexture(GL2 gl, int textureSize, int squareCount) {
+    public static Texture createCheckerTexture(GL2 gl, int textureSize, int squareCount) {
         int squareSize = textureSize / squareCount;
         BufferedImage img = new BufferedImage(textureSize, textureSize, BufferedImage.TYPE_INT_RGB);
         Graphics2D g = img.createGraphics();
