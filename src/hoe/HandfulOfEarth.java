@@ -1,35 +1,27 @@
 package hoe;
 
 import com.jogamp.opengl.GL2;
-import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
-import com.jogamp.opengl.glu.GLU;
 import com.jogamp.opengl.util.gl2.GLUT;
+import com.jogamp.opengl.util.texture.Texture;
 import hoe.designer.NetworkDesigner;
 import hoe.servers.GameServer;
 import hoe.editor.Editor;
 import hoe.editor.MyMetalTheme;
 import hoe.editor.TimeElapseMeter;
 import hoe.nonlinear.ObjectsPacker;
-import hoe.renderer.ImageViewer;
 import hoe.renderer.OfflineRendererWindow;
 import hoe.renderer.RenderCallback;
 import hoe.renderer.shaders.ConstantColorShader;
-import hoe.renderer.shaders.ShaderManager;
+import hoe.renderer.shaders.TextureShader;
 import hoe.servers.ContentServer;
 import hoe.servers.RedirectServer;
 import hoe.servers.RenderServer;
 import hoe.servlets.RenderServlet;
-import static hoe.servlets.RenderServlet.SAMPLE_SIZE;
-import static hoe.servlets.RenderServlet.TILE_MULTISAMPLE;
-import static hoe.servlets.RenderServlet.TILE_SIZE;
-import static hoe.servlets.RenderServlet.TILE_SIZE_IN_WORLD;
-import static hoe.servlets.RenderServlet.renderTile;
 import hoe.skeleton.Skeleton;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
-import java.awt.Image;
 import java.awt.RenderingHints;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -45,6 +37,7 @@ import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicReference;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -230,12 +223,42 @@ public class HandfulOfEarth {
                     GL2 gl = getGL();
                     GLUT glut = getGLUT();
                     
+                    // Rendering.
                     ConstantColorShader colorShader = new ConstantColorShader(gl);
                     colorShader.apply(0, 0, 1, 1);
-                    gl.glPushMatrix();
+                    
+                    TextureShader textureShader = new TextureShader(gl);
+                    textureShader.apply();
+
+                    Texture texture = RenderServlet.createCheckerTexture(gl, 512, 4, Color.red, Color.green);
+                    gl.glUniform1i(gl.glGetUniformLocation(textureShader.getShader(), "tex"), 0);
+                    gl.glActiveTexture(GL2.GL_TEXTURE0);
+                    texture.enable(gl);
+                    
+                    Texture texture2 = RenderServlet.createCircleTexture(gl, 1024, Color.lightGray);
+                    gl.glUniform1i(gl.glGetUniformLocation(textureShader.getShader(), "tex2"), 1);
+                    gl.glActiveTexture(GL2.GL_TEXTURE1);
+                    texture2.enable(gl);
+
+                    /*gl.glPushMatrix();
                     gl.glTranslated(0, 3, 0);
                     gl.glRotated(15, 0, 0, 1);
-                    glut.glutSolidTeapot(4, false);
+                    glut.glutSolidTeapot(10, false);
+                    gl.glPopMatrix();*/
+
+                    gl.glPushMatrix();
+                    gl.glRotated(15, 0, 0, 1);
+                    gl.glBegin(GL2.GL_QUADS);
+                    double s = 6;
+                    gl.glTexCoord2d(0, 0);
+                    gl.glVertex3d(-s, -s, 0);
+                    gl.glTexCoord2d(1, 0);
+                    gl.glVertex3d(s, -s, 0);
+                    gl.glTexCoord2d(1, 1);
+                    gl.glVertex3d(s, s, 0);
+                    gl.glTexCoord2d(0, 1);
+                    gl.glVertex3d(-s, s, 0);
+                    gl.glEnd();
                     gl.glPopMatrix();
                 }
             });

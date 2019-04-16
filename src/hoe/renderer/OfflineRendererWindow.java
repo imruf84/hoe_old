@@ -25,7 +25,7 @@ public class OfflineRendererWindow extends ImageViewer {
         BufferedImage result = getImage();
         
         setVisible(true);
-
+        
         int x = 0;
         int y = 0;
         for (int row = rows[1]; row >= rows[0]; row--) {
@@ -33,12 +33,13 @@ public class OfflineRendererWindow extends ImageViewer {
 
                 // Rendering the tile
                 BufferedImage im = renderTile(gl, glu, glut, shaders, new RenderCallback() {
-                    
+
                     @Override
                     public void render() {
                         getRender().init(gl, glu, glut);
                         getRender().run();
                     }
+
                 }, column, -row, 0, 0, tileSize * multisample, tileWorldSize);
 
                 // Multisampling

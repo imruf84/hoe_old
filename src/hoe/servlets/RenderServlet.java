@@ -16,6 +16,7 @@ import hoe.SceneManager;
 import hoe.editor.TimeElapseMeter;
 import hoe.renderer.shaders.ConstantColorShader;
 import hoe.renderer.shaders.ShaderManager;
+import hoe.renderer.shaders.TextureShader;
 import hoe.servers.AbstractServer;
 import java.awt.Color;
 import java.awt.Font;
@@ -231,7 +232,13 @@ public class RenderServlet extends HttpServletWithApiKeyValidator {
         gl.glClear(GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT);
 
         gl.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
-        
+
+        gl.glEnable(GL2.GL_DEPTH_TEST);
+        gl.glEnable(GL2.GL_CULL_FACE);
+        gl.glCullFace(GL2.GL_BACK);
+        // We must call this first for multitexturing because of a BUG in Mesa.
+        gl.glActiveTexture(GL2.GL_TEXTURE1);
+
         if (scene == null) {
             renderScene(gl, glu, glut, shaders, turn, frame);
         } else {
@@ -245,68 +252,64 @@ public class RenderServlet extends HttpServletWithApiKeyValidator {
 
     public static void renderScene(GL2 gl, GLU glu, GLUT glut, ShaderManager shaders, long turn, long frame) {
 
-        ConstantColorShader colorShader = shaders.get("color");
-
+        // Rendering.
+        ConstantColorShader colorShader = new ConstantColorShader(gl);
         colorShader.apply(0, 0, 1, 1);
 
+        TextureShader textureShader = new TextureShader(gl);
+        textureShader.apply();
+
+        Texture texture = RenderServlet.createCheckerTexture(gl, 512, 4, Color.red, Color.green);
+        gl.glUniform1i(gl.glGetUniformLocation(textureShader.getShader(), "tex"), 0);
+        gl.glActiveTexture(GL2.GL_TEXTURE0);
+        texture.enable(gl);
+
+        Texture texture2 = RenderServlet.createCircleTexture(gl, 1024, Color.lightGray);
+        gl.glUniform1i(gl.glGetUniformLocation(textureShader.getShader(), "tex2"), 1);
+        gl.glActiveTexture(GL2.GL_TEXTURE1);
+        texture2.enable(gl);
+
+        gl.glPushMatrix();
+        gl.glRotated(15 * turn, 0, 0, 1);
         gl.glBegin(GL2.GL_QUADS);
-        double s = 5;
+        double s = 6;
+        gl.glTexCoord2d(0, 0);
         gl.glVertex3d(-s, -s, 0);
+        gl.glTexCoord2d(1, 0);
         gl.glVertex3d(s, -s, 0);
+        gl.glTexCoord2d(1, 1);
         gl.glVertex3d(s, s, 0);
+        gl.glTexCoord2d(0, 1);
         gl.glVertex3d(-s, s, 0);
         gl.glEnd();
-
-        gl.glEnable(GL2.GL_LIGHTING);
-        gl.glEnable(GL2.GL_NORMALIZE);
-        gl.glEnable(GL2.GL_DEPTH_TEST);
-        gl.glLightModelfv(GL2.GL_LIGHT_MODEL_AMBIENT, new float[]{.1f, .1f, .1f, 0}, 0);
-
-        gl.glEnable(GL2.GL_LIGHT0);
-        gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_DIFFUSE, new float[]{.4f, .4f, .4f}, 0);
-        gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_POSITION, new float[]{1000, 1000, 1000}, 0);
-
-        gl.glEnable(GL2.GL_LIGHT1);
-        gl.glLightfv(GL2.GL_LIGHT1, GL2.GL_DIFFUSE, new float[]{.3f, .3f, .3f}, 0);
-        gl.glLightfv(GL2.GL_LIGHT1, GL2.GL_POSITION, new float[]{-1000, 1000, 1000}, 0);
-
-        gl.glEnable(GL2.GL_LIGHT2);
-        gl.glLightfv(GL2.GL_LIGHT2, GL2.GL_DIFFUSE, new float[]{.1f, .1f, .1f}, 0);
-        gl.glLightfv(GL2.GL_LIGHT2, GL2.GL_POSITION, new float[]{0, -1000, 10}, 0);
-
-        gl.glMaterialfv(GL2.GL_FRONT_AND_BACK, GL2.GL_DIFFUSE, new float[]{1, 1, 1}, 0);
-        gl.glMaterialfv(GL2.GL_FRONT_AND_BACK, GL2.GL_SPECULAR, new float[]{1, 1, 1}, 0);
-        gl.glMaterialf(GL2.GL_FRONT_AND_BACK, GL2.GL_SHININESS, 100f);
-
-        /*gl.glUseProgram(0);
-         gl.glEnable(GL2.GL_TEXTURE_2D);
-         texture.enable(gl);*/
-        colorShader.apply(1, 1, 0, 1);
-        gl.glPushMatrix();
-        gl.glRotated(turn * 15, 0, 0, 1);
-        glut.glutSolidTeapot(4, false);
         gl.glPopMatrix();
 
-        colorShader.apply(1, 1, 1, 1);
-        gl.glPushMatrix();
-        gl.glTranslated(0, 0, 5);
-        gl.glRotated(turn * 15, 0, 0, 1);
-        glut.glutWireCube((float) TILE_SIZE_IN_WORLD);
-        gl.glPopMatrix();
     }
 
-    public static Texture createCheckerTexture(GL2 gl, int textureSize, int squareCount) {
+    public static Texture createCheckerTexture(GL2 gl, int textureSize, int squareCount, Color color1, Color color2) {
         int squareSize = textureSize / squareCount;
         BufferedImage img = new BufferedImage(textureSize, textureSize, BufferedImage.TYPE_INT_RGB);
         Graphics2D g = img.createGraphics();
-        g.setColor(Color.red);
+        g.setColor(color1);
         g.fillRect(0, 0, img.getWidth(), img.getHeight());
-        g.setColor(Color.green);
+        g.setColor(color2);
         for (int i = 0; i < squareCount; i++) {
             for (int j = i % 2; j < squareCount; j += 2) {
                 g.fillRect(i * squareSize, j * squareSize, squareSize, squareSize);
             }
         }
+        g.dispose();
+        Texture t = AWTTextureIO.newTexture(GLProfile.getDefault(), img, true);
+        t.setTexParameteri(gl, GL2.GL_TEXTURE_WRAP_S, GL2.GL_REPEAT);
+        t.setTexParameteri(gl, GL2.GL_TEXTURE_WRAP_T, GL2.GL_REPEAT);
+        return t;
+    }
+
+    public static Texture createCircleTexture(GL2 gl, int textureSize, Color color) {
+        BufferedImage img = new BufferedImage(textureSize, textureSize, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g = img.createGraphics();
+        g.setColor(color);
+        g.fillOval(0, 0, img.getWidth(), img.getHeight());
         g.dispose();
         Texture t = AWTTextureIO.newTexture(GLProfile.getDefault(), img, true);
         t.setTexParameteri(gl, GL2.GL_TEXTURE_WRAP_S, GL2.GL_REPEAT);
