@@ -2,6 +2,7 @@ package hoe;
 
 import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.util.gl2.GLUT;
+import com.jogamp.opengl.util.glsl.ShaderUtil;
 import com.jogamp.opengl.util.texture.Texture;
 import hoe.designer.NetworkDesigner;
 import hoe.servers.GameServer;
@@ -37,7 +38,6 @@ import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Properties;
-import java.util.concurrent.atomic.AtomicReference;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -210,7 +210,7 @@ public class HandfulOfEarth {
         if (Arrays.asList(args).contains("-render_scene") || Arrays.asList(args).contains("-rs")) {
             setLookAndFeel();
 
-            int tileSize = 500;
+            int tileSize = 300;
             int multisample = 1;
             double tileWorldSize = 5;
             int rows[] = {-1, 1};
@@ -222,29 +222,78 @@ public class HandfulOfEarth {
                 public void render() {
                     GL2 gl = getGL();
                     GLUT glut = getGLUT();
-                    
+
                     // Rendering.
-                    ConstantColorShader colorShader = new ConstantColorShader(gl);
-                    colorShader.apply(0, 0, 1, 1);
-                    
+                    /*ConstantColorShader colorShader = new ConstantColorShader(gl);
+                     colorShader.apply(0, 0, 1, 1);*/
+                    String vc[] = new String[]{""
+                        + "varying vec3 N;"
+                        + "varying vec3 v;"
+                        + "void main(void)"
+                        + "{"
+                        + "   v = vec3(gl_ModelViewMatrix * gl_Vertex);"
+                        + "   N = normalize(gl_NormalMatrix * gl_Normal);"
+                        + "   gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;"
+                        + "}"};
+
+                    String fc[] = new String[]{""
+                        + "varying vec3 N;"
+                        + "varying vec3 v;"
+                        + ""
+                        + "const vec3 lightPos = vec3(10, 20, 40);"
+                        + "const vec4 ambientColor = vec4(vec3(1,0,0)*.1, 1);"
+                        + "const vec4 diffuseColor = vec4(vec3(1,0,0)*.6, 1);"
+                        + "const vec4 specColor = vec4(vec3(1)*1, 1);"
+                        + "const float shininess = 10;"
+                        + ""
+                        + "void main (void)"
+                        + "{"
+                        + "   vec3 L = normalize(lightPos - v);"
+                        + "   vec3 E = normalize(-v);"
+                        + "   vec3 R = normalize(-reflect(L,N));"
+                        + ""
+                        + "    vec4 spec = vec4(0);"
+                        + "    float intensity = max(dot(N,L), 0.0);"
+                        + "    if (intensity > 0.0) {"
+                        + "        vec3 H = normalize(L + E);"
+                        + "        float intSpec = max(dot(H,N), 0.0);"
+                        + "        spec = specColor * pow(intSpec, shininess);"
+                        + "    }"
+                        + " "
+                        + "    gl_FragColor = max(intensity * diffuseColor + spec, ambientColor);"
+                        + "}"};
+
+                    int vs = gl.glCreateShader(GL2.GL_VERTEX_SHADER);
+
+                    gl.glShaderSource(vs, 1, vc, null);
+                    gl.glCompileShader(vs);
+
+                    int fs = gl.glCreateShader(GL2.GL_FRAGMENT_SHADER);
+                    gl.glShaderSource(fs, 1, fc, null);
+                    gl.glCompileShader(fs);
+                    //System.out.println(ShaderUtil.getShaderInfoLog(gl, fs));
+
+                    int progID = gl.glCreateProgram();
+                    gl.glAttachShader(progID, fs);
+                    gl.glAttachShader(progID, vs);
+                    gl.glLinkProgram(progID);
+                    gl.glValidateProgram(progID);
+                    gl.glUseProgram(progID);
+                    gl.glPushMatrix();
+
+                    gl.glTranslated(0, 0, 0);
+                    gl.glRotated(15, 0, 0, 1);
+                    glut.glutSolidTeapot(3, false);
+                    gl.glPopMatrix();
+
                     TextureShader textureShader = new TextureShader(gl);
+
                     textureShader.apply();
 
                     Texture texture = RenderServlet.createCheckerTexture(gl, 512, 4, Color.red, Color.green);
-                    gl.glUniform1i(gl.glGetUniformLocation(textureShader.getShader(), "tex"), 0);
-                    gl.glActiveTexture(GL2.GL_TEXTURE0);
-                    texture.enable(gl);
-                    
                     Texture texture2 = RenderServlet.createCircleTexture(gl, 1024, Color.lightGray);
-                    gl.glUniform1i(gl.glGetUniformLocation(textureShader.getShader(), "tex2"), 1);
-                    gl.glActiveTexture(GL2.GL_TEXTURE1);
-                    texture2.enable(gl);
 
-                    /*gl.glPushMatrix();
-                    gl.glTranslated(0, 3, 0);
-                    gl.glRotated(15, 0, 0, 1);
-                    glut.glutSolidTeapot(10, false);
-                    gl.glPopMatrix();*/
+                    textureShader.setTextures(texture, texture2);
 
                     gl.glPushMatrix();
                     gl.glRotated(15, 0, 0, 1);
@@ -260,6 +309,7 @@ public class HandfulOfEarth {
                     gl.glVertex3d(-s, s, 0);
                     gl.glEnd();
                     gl.glPopMatrix();
+
                 }
             });
 
@@ -267,7 +317,9 @@ public class HandfulOfEarth {
         }
 
         Properties prop = new Properties();
-        prop.load(new BufferedReader(new FileReader(args[0])));
+
+        prop.load(
+                new BufferedReader(new FileReader(args[0])));
 
         //for (int i = 0; i < 10; i++) System.out.println(UUID.randomUUID());
         String propKey;
@@ -276,31 +328,39 @@ public class HandfulOfEarth {
         Log.showDebugMessages = (prop.containsKey(propKey) && prop.getProperty(propKey).toLowerCase().equals("true"));
 
         Language.init();
+
         Cryptography.setKey(prop.getProperty("secretkey"));
 
         String ip = prop.getProperty("ip");
 
         propKey = "startdbserver";
-        if (prop.containsKey(propKey) && prop.getProperty(propKey).toLowerCase().equals("true")) {
+
+        if (prop.containsKey(propKey)
+                && prop.getProperty(propKey).toLowerCase().equals("true")) {
             String webPort = prop.getProperty("dbserverwebport");
             String tcpPort = prop.getProperty("dbservertcpport");
             hoe.servers.DatabaseServer.startServers(webPort, tcpPort);
         }
 
         String sceneDbIp = prop.getProperty("scenedbip");
-        if (sceneDbIp != null) {
+        if (sceneDbIp
+                != null) {
             SceneManager.setDataBaseIp(sceneDbIp);
         }
 
         propKey = "startredirectserver";
-        if (prop.containsKey(propKey) && prop.getProperty(propKey).toLowerCase().equals("true")) {
+
+        if (prop.containsKey(propKey)
+                && prop.getProperty(propKey).toLowerCase().equals("true")) {
             int port = Integer.parseInt(prop.getProperty("redirectserverport"));
             RedirectServer server = new RedirectServer(ip, port);
             server.start();
         }
 
         propKey = "startrenderserver";
-        if (prop.containsKey(propKey) && prop.getProperty(propKey).toLowerCase().equals("true")) {
+
+        if (prop.containsKey(propKey)
+                && prop.getProperty(propKey).toLowerCase().equals("true")) {
             int port = Integer.parseInt(prop.getProperty("renderserverport"));
             RenderServer server = new RenderServer(ip, port);
             server.setRedirectServerUrl(prop.getProperty("redirectserverurl"));
@@ -308,7 +368,9 @@ public class HandfulOfEarth {
         }
 
         propKey = "startcontentserver";
-        if (prop.containsKey(propKey) && prop.getProperty(propKey).toLowerCase().equals("true")) {
+
+        if (prop.containsKey(propKey)
+                && prop.getProperty(propKey).toLowerCase().equals("true")) {
             int port = Integer.parseInt(prop.getProperty("contentserverport"));
             boolean clearCache = false;
             propKey = "clearcontentservercache";
@@ -321,7 +383,9 @@ public class HandfulOfEarth {
         }
 
         propKey = "startgameserver";
-        if (prop.containsKey(propKey) && prop.getProperty(propKey).toLowerCase().equals("true")) {
+
+        if (prop.containsKey(propKey)
+                && prop.getProperty(propKey).toLowerCase().equals("true")) {
             try {
                 String userDbIp = prop.getProperty("userdbip");
                 UserManager.setDataBaseIp(userDbIp);
@@ -338,7 +402,9 @@ public class HandfulOfEarth {
         }
 
         propKey = "runeditor";
-        if (prop.containsKey(propKey) && prop.getProperty(propKey).toLowerCase().equals("true")) {
+
+        if (prop.containsKey(propKey)
+                && prop.getProperty(propKey).toLowerCase().equals("true")) {
             setLookAndFeel();
             Editor editor = new Editor();
             editor.show();

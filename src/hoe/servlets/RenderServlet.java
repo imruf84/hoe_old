@@ -9,6 +9,7 @@ import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 import com.jogamp.opengl.glu.GLU;
 import com.jogamp.opengl.util.awt.AWTGLReadBufferUtil;
 import com.jogamp.opengl.util.gl2.GLUT;
+import com.jogamp.opengl.util.glsl.ShaderUtil;
 import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.awt.AWTTextureIO;
 import hoe.Log;
@@ -234,10 +235,8 @@ public class RenderServlet extends HttpServletWithApiKeyValidator {
         gl.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
 
         gl.glEnable(GL2.GL_DEPTH_TEST);
-        gl.glEnable(GL2.GL_CULL_FACE);
-        gl.glCullFace(GL2.GL_BACK);
-        // We must call this first for multitexturing because of a BUG in Mesa.
-        gl.glActiveTexture(GL2.GL_TEXTURE1);
+        //gl.glEnable(GL2.GL_CULL_FACE);
+        //gl.glCullFace(GL2.GL_BACK);
 
         if (scene == null) {
             renderScene(gl, glu, glut, shaders, turn, frame);
@@ -253,24 +252,81 @@ public class RenderServlet extends HttpServletWithApiKeyValidator {
     public static void renderScene(GL2 gl, GLU glu, GLUT glut, ShaderManager shaders, long turn, long frame) {
 
         // Rendering.
-        ConstantColorShader colorShader = new ConstantColorShader(gl);
-        colorShader.apply(0, 0, 1, 1);
+        // Rendering.
+                    /*ConstantColorShader colorShader = new ConstantColorShader(gl);
+         colorShader.apply(0, 0, 1, 1);*/
+        String vc[] = new String[]{""
+            + "varying vec3 N;"
+            + "varying vec3 v;"
+            + "void main(void)"
+            + "{"
+            + "   v = vec3(gl_ModelViewMatrix * gl_Vertex);"
+            + "   N = normalize(gl_NormalMatrix * gl_Normal);"
+            + "   gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;"
+            + "}"};
+
+        String fc[] = new String[]{""
+            + "varying vec3 N;"
+            + "varying vec3 v;"
+            + ""
+            + "const vec3 lightPos = vec3(10, 10, 40);"
+            + "const vec4 ambientColor = vec4(vec3(1,0,0)*.1, 1);"
+            + "const vec4 diffuseColor = vec4(vec3(1,0,0)*.6, 1);"
+            + "const vec4 specColor = vec4(vec3(1)*1, 1);"
+            + "const float shininess = 10;"
+            + ""
+            + "void main (void)"
+            + "{"
+            + "   vec3 L = normalize(lightPos - v);"
+            + "   vec3 E = normalize(-v);"
+            + "   vec3 R = normalize(-reflect(L,N));"
+            + ""
+            + "    vec4 spec = vec4(0);"
+            + "    float intensity = max(dot(N,L), 0.0);"
+            + "    if (intensity > 0.0) {"
+            + "        vec3 H = normalize(L + E);"
+            + "        float intSpec = max(dot(H,N), 0.0);"
+            + "        spec = specColor * pow(intSpec, shininess);"
+            + "    }"
+            + " "
+            + "    gl_FragColor = max(intensity * diffuseColor + spec, ambientColor);"
+            + "}"};
+
+        int vs = gl.glCreateShader(GL2.GL_VERTEX_SHADER);
+
+        gl.glShaderSource(vs, 1, vc, null);
+        gl.glCompileShader(vs);
+
+        int fs = gl.glCreateShader(GL2.GL_FRAGMENT_SHADER);
+        gl.glShaderSource(fs, 1, fc, null);
+        gl.glCompileShader(fs);
+        
+        int progID = gl.glCreateProgram();
+        gl.glAttachShader(progID, fs);
+        gl.glAttachShader(progID, vs);
+        gl.glLinkProgram(progID);
+        gl.glValidateProgram(progID);
+        gl.glUseProgram(progID);
+        gl.glPushMatrix();
+
+        gl.glTranslated(0, 0, 1.5);
+        gl.glRotated(turn*15, 0, 0, 1);
+        glut.glutSolidTeapot(3, false);
+                    //glut.glutSolidSphere(3, 30, 30);
+        //glut.glutSolidTorus(1, 3, 40, 40);
+        gl.glPopMatrix();
 
         TextureShader textureShader = new TextureShader(gl);
+
         textureShader.apply();
 
         Texture texture = RenderServlet.createCheckerTexture(gl, 512, 4, Color.red, Color.green);
-        gl.glUniform1i(gl.glGetUniformLocation(textureShader.getShader(), "tex"), 0);
-        gl.glActiveTexture(GL2.GL_TEXTURE0);
-        texture.enable(gl);
-
         Texture texture2 = RenderServlet.createCircleTexture(gl, 1024, Color.lightGray);
-        gl.glUniform1i(gl.glGetUniformLocation(textureShader.getShader(), "tex2"), 1);
-        gl.glActiveTexture(GL2.GL_TEXTURE1);
-        texture2.enable(gl);
+
+        textureShader.setTextures(texture, texture2);
 
         gl.glPushMatrix();
-        gl.glRotated(15 * turn, 0, 0, 1);
+        gl.glRotated(15, 0, 0, 1);
         gl.glBegin(GL2.GL_QUADS);
         double s = 6;
         gl.glTexCoord2d(0, 0);

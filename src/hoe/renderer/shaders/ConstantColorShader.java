@@ -26,8 +26,8 @@ public class ConstantColorShader extends ShaderBase {
     }
 
     public void setColor(float r, float g, float b, float a) {
-        int col = getShaderParamteter(COLOR_PARAMETER_NAME);
-        getGl().glUniform4f(col, r, g, b, a);
+        int color = getShaderParamteter(COLOR_PARAMETER_NAME);
+        getGl().glUniform4f(color, r, g, b, a);
     }
 
     public void apply(float r, float g, float b, float a) {
