@@ -9,13 +9,13 @@ import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 import com.jogamp.opengl.glu.GLU;
 import com.jogamp.opengl.util.awt.AWTGLReadBufferUtil;
 import com.jogamp.opengl.util.gl2.GLUT;
-import com.jogamp.opengl.util.glsl.ShaderUtil;
 import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.awt.AWTTextureIO;
 import hoe.Log;
 import hoe.SceneManager;
 import hoe.editor.TimeElapseMeter;
 import hoe.renderer.shaders.ConstantColorShader;
+import hoe.renderer.shaders.PhongShader;
 import hoe.renderer.shaders.ShaderManager;
 import hoe.renderer.shaders.TextureShader;
 import hoe.servers.AbstractServer;
@@ -53,7 +53,8 @@ public class RenderServlet extends HttpServletWithApiKeyValidator {
     public static ShaderManager createShaders(GL2 gl) {
         ShaderManager shaders = new ShaderManager();
 
-        shaders.put("color", new ConstantColorShader(gl));
+        shaders.put(ShaderManager.CONSTANT_COLOR_SHADER, new ConstantColorShader(gl));
+        shaders.put(ShaderManager.PHONG_SHADER, new PhongShader(gl));
 
         return shaders;
     }
@@ -188,30 +189,6 @@ public class RenderServlet extends HttpServletWithApiKeyValidator {
         g.setFont(font);
         // Draw the String
         g.drawString(text, x, y);
-    }
-
-    public static int createDepthShader(GL2 gl) {
-
-        String fc[] = new String[]{""
-            + "uniform vec4 col;"
-            + "void main()"
-            + "{"
-            + " float ndcDepth = (2.0 * gl_FragCoord.z - gl_DepthRange.near - gl_DepthRange.far) / (gl_DepthRange.far - gl_DepthRange.near); "
-            + " float clipDepth = ndcDepth / gl_FragCoord.w; "
-            //+ " gl_FragColor = vec4((clipDepth * 0.5) + 0.5); "
-            + " gl_FragColor = vec4(gl_FragCoord.z);"
-            + "}"
-        };
-
-        int fs2 = gl.glCreateShader(GL2.GL_FRAGMENT_SHADER);
-        gl.glShaderSource(fs2, 1, fc, null);
-        gl.glCompileShader(fs2);
-        int shader = gl.glCreateProgram();
-        gl.glAttachShader(shader, fs2);
-        gl.glLinkProgram(shader);
-        gl.glValidateProgram(shader);
-
-        return shader;
     }
 
     public static BufferedImage renderTile(GL2 gl, GLU glu, GLUT glut, ShaderManager shaders, Runnable scene, int row, int column, long turn, long frame, int tileSizeInPixels, double tileSizeInOrtho) {

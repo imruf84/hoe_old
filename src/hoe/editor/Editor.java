@@ -43,6 +43,7 @@ import hoe.nonlinear.ObjectsPacker;
 import org.joml.Vector3d;
 import hoe.physics.Vector3D;
 import hoe.renderer.Camera;
+import hoe.renderer.shaders.PhongShader;
 import javax.vecmath.Matrix4f;
 import javax.vecmath.Quat4f;
 import javax.vecmath.Vector3f;
@@ -75,6 +76,7 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
     private final long delay = (long) (250 * TimeUtils.getDeltaTime());
     
     DiscreteDynamicsWorld dynamicsWorld = null;
+    private PhongShader phongShader;
 
     public Editor() {
         getCamera().setZoomLimits(1, 10);
@@ -153,6 +155,22 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
         gl.glUniform4f(col, colR, 0, 1, 1);
 
         // Rendering players.
+        
+        gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_AMBIENT_AND_DIFFUSE, new float[]{1,1,1},0);
+        gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_SPECULAR, new float[]{1,1,1},0);
+        gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_POSITION, new float[]{0,0,50},0);
+        
+        gl.glLightfv(GL2.GL_LIGHT1, GL2.GL_AMBIENT_AND_DIFFUSE, new float[]{1,0,0},0);
+        gl.glLightfv(GL2.GL_LIGHT1, GL2.GL_SPECULAR, new float[]{1,0,0},0);
+        gl.glLightfv(GL2.GL_LIGHT1, GL2.GL_POSITION, new float[]{0,0,-50},0);
+                
+        gl.glMaterialfv(GL2.GL_FRONT_AND_BACK, GL2.GL_AMBIENT, new float[]{0,0,0},0);
+        gl.glMaterialfv(GL2.GL_FRONT_AND_BACK, GL2.GL_DIFFUSE, new float[]{0,0,1},0);
+        gl.glMaterialfv(GL2.GL_FRONT_AND_BACK, GL2.GL_SPECULAR, new float[]{.4f,.4f,.4f},0);
+        gl.glMaterialf(GL2.GL_FRONT_AND_BACK, GL2.GL_SHININESS, 10);
+        
+        Vector3d dir = new Vector3d(getCamera().getEye());
+        phongShader.apply(dir);
         for (VPlayer p : players) {
             p.render(gl, glut, prog);
         }
@@ -219,6 +237,8 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
         gl.glAttachShader(prog, fs2);
         gl.glLinkProgram(prog);
         gl.glValidateProgram(prog);
+        
+        phongShader = new PhongShader(gl);
 
         // Adding random players.
         addRandomPlayers();
@@ -516,7 +536,7 @@ public class Editor implements GLEventListener, MouseListener, MouseMotionListen
 
         //getCamera().setZoom(getCamera().getZoom() + ds * direction);
         getCamera().setZoom(getCamera().getZoom() + e.getPreciseWheelRotation());
-
+        
         //getCamera().setZoom(getCamera().getZoom()+direction*(1/Math.pow(dl,2)));
         //getCamera().setZoom(getCamera().getZoom()+direction*dl*200);
         //getCamera().setZoom(Math.min(100,Math.max(getCamera().getZoom(), 1)));

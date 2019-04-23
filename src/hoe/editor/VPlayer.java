@@ -137,10 +137,10 @@ public class VPlayer extends Player {
 
         //int col = gl.glGetUniformLocation(prog, "col");
 
-        gl.glUseProgram(0);
+        //gl.glUseProgram(0);
         
         // Player.
-        gl.glEnable(GL2.GL_LIGHTING);
+        /*gl.glEnable(GL2.GL_LIGHTING);
         gl.glEnable(GL2.GL_NORMALIZE);
         gl.glEnable(GL2.GL_DEPTH_TEST);
         gl.glLightModelfv(GL2.GL_LIGHT_MODEL_AMBIENT, new float[]{.1f,.1f,.1f,0},0);
@@ -160,14 +160,15 @@ public class VPlayer extends Player {
         gl.glMaterialfv(GL2.GL_FRONT_AND_BACK, GL2.GL_DIFFUSE, new float[]{0,0,1},0);
         gl.glMaterialfv(GL2.GL_FRONT_AND_BACK, GL2.GL_SPECULAR, new float[]{1,1,1},0);
         gl.glMaterialf(GL2.GL_FRONT_AND_BACK, GL2.GL_SHININESS, 100f);
-        
+        */
         gl.glPushMatrix();
         CurvePoint p = getPosition();
         gl.glTranslated(p.x, p.y, p.z);
         
         gl.glRotated(getOrientation(), 0, 0, 1);
         
-        glut.glutSolidTeapot(getRadius(),false);
+        //glut.glutSolidTeapot(getRadius(),false);
+        glut.glutSolidTorus(1, 3, 60, 60);
 
         // Max steps area.
 /*        int col = gl.glGetUniformLocation(prog, "col");

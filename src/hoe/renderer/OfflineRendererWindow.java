@@ -36,7 +36,7 @@ public class OfflineRendererWindow extends ImageViewer {
 
                     @Override
                     public void render() {
-                        getRender().init(gl, glu, glut);
+                        getRender().init(gl, glu, glut, shaders);
                         getRender().run();
                     }
 

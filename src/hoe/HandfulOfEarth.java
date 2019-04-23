@@ -2,22 +2,19 @@ package hoe;
 
 import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.util.gl2.GLUT;
-import com.jogamp.opengl.util.glsl.ShaderUtil;
-import com.jogamp.opengl.util.texture.Texture;
 import hoe.designer.NetworkDesigner;
 import hoe.servers.GameServer;
 import hoe.editor.Editor;
 import hoe.editor.MyMetalTheme;
+import hoe.editor.ShaderEditor;
 import hoe.editor.TimeElapseMeter;
 import hoe.nonlinear.ObjectsPacker;
 import hoe.renderer.OfflineRendererWindow;
 import hoe.renderer.RenderCallback;
-import hoe.renderer.shaders.ConstantColorShader;
-import hoe.renderer.shaders.TextureShader;
+import hoe.renderer.shaders.PhongShader;
 import hoe.servers.ContentServer;
 import hoe.servers.RedirectServer;
 import hoe.servers.RenderServer;
-import hoe.servlets.RenderServlet;
 import hoe.skeleton.Skeleton;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -197,13 +194,31 @@ public class HandfulOfEarth {
         System.out.println(tem.stopAndGetFormat());
     }
 
+    /**
+     * NOTE: Correct order to run servers: 1.database 2.redirect 3.minimum one content/render 4.game
+     * @param args arguments
+     * @throws Exception exception
+     */
     public static void main(String[] args) throws Exception {
 
-        // Correct order to run servers: 1.database 2.redirect 3.minimum one content/render 4.game
         if (Arrays.asList(args).contains("-network_designer") || Arrays.asList(args).contains("-nd")) {
             setLookAndFeel();
             NetworkDesigner designer = new NetworkDesigner();
             designer.setVisible(true);
+            return;
+        }
+        
+        if (Arrays.asList(args).contains("-editor") || Arrays.asList(args).contains("-e")) {
+            setLookAndFeel();
+            Editor editor = new Editor();
+            editor.show();
+            return;
+        }
+        
+        if (Arrays.asList(args).contains("-shader_editor") || Arrays.asList(args).contains("-se")) {
+            setLookAndFeel();
+            ShaderEditor editor = new ShaderEditor();
+            editor.show();
             return;
         }
 
@@ -224,87 +239,37 @@ public class HandfulOfEarth {
                     GLUT glut = getGLUT();
 
                     // Rendering.
-                    /*ConstantColorShader colorShader = new ConstantColorShader(gl);
-                     colorShader.apply(0, 0, 1, 1);*/
-                    String vc[] = new String[]{""
-                        + "varying vec3 N;"
-                        + "varying vec3 v;"
-                        + "void main(void)"
-                        + "{"
-                        + "   v = vec3(gl_ModelViewMatrix * gl_Vertex);"
-                        + "   N = normalize(gl_NormalMatrix * gl_Normal);"
-                        + "   gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;"
-                        + "}"};
+                    PhongShader phongShader = getPhongShader();
+                    phongShader.apply();
 
-                    String fc[] = new String[]{""
-                        + "varying vec3 N;"
-                        + "varying vec3 v;"
-                        + ""
-                        + "const vec3 lightPos = vec3(10, 20, 40);"
-                        + "const vec4 ambientColor = vec4(vec3(1,0,0)*.1, 1);"
-                        + "const vec4 diffuseColor = vec4(vec3(1,0,0)*.6, 1);"
-                        + "const vec4 specColor = vec4(vec3(1)*1, 1);"
-                        + "const float shininess = 10;"
-                        + ""
-                        + "void main (void)"
-                        + "{"
-                        + "   vec3 L = normalize(lightPos - v);"
-                        + "   vec3 E = normalize(-v);"
-                        + "   vec3 R = normalize(-reflect(L,N));"
-                        + ""
-                        + "    vec4 spec = vec4(0);"
-                        + "    float intensity = max(dot(N,L), 0.0);"
-                        + "    if (intensity > 0.0) {"
-                        + "        vec3 H = normalize(L + E);"
-                        + "        float intSpec = max(dot(H,N), 0.0);"
-                        + "        spec = specColor * pow(intSpec, shininess);"
-                        + "    }"
-                        + " "
-                        + "    gl_FragColor = max(intensity * diffuseColor + spec, ambientColor);"
-                        + "}"};
-
-                    int vs = gl.glCreateShader(GL2.GL_VERTEX_SHADER);
-
-                    gl.glShaderSource(vs, 1, vc, null);
-                    gl.glCompileShader(vs);
-
-                    int fs = gl.glCreateShader(GL2.GL_FRAGMENT_SHADER);
-                    gl.glShaderSource(fs, 1, fc, null);
-                    gl.glCompileShader(fs);
-                    //System.out.println(ShaderUtil.getShaderInfoLog(gl, fs));
-
-                    int progID = gl.glCreateProgram();
-                    gl.glAttachShader(progID, fs);
-                    gl.glAttachShader(progID, vs);
-                    gl.glLinkProgram(progID);
-                    gl.glValidateProgram(progID);
-                    gl.glUseProgram(progID);
                     gl.glPushMatrix();
-
                     gl.glTranslated(0, 0, 0);
                     gl.glRotated(15, 0, 0, 1);
                     glut.glutSolidTeapot(3, false);
                     gl.glPopMatrix();
+                    /*
+                     TextureShader textureShader = new TextureShader(gl);
+                     textureShader.apply();
 
-                    TextureShader textureShader = new TextureShader(gl);
+                     Texture texture = RenderServlet.createCheckerTexture(gl, 512, 4, Color.red, Color.green);
+                     Texture texture2 = RenderServlet.createCircleTexture(gl, 1024, Color.lightGray);
 
-                    textureShader.apply();
-
-                    Texture texture = RenderServlet.createCheckerTexture(gl, 512, 4, Color.red, Color.green);
-                    Texture texture2 = RenderServlet.createCircleTexture(gl, 1024, Color.lightGray);
-
-                    textureShader.setTextures(texture, texture2);
-
+                     textureShader.setTextures(texture, texture2);
+                     */
                     gl.glPushMatrix();
                     gl.glRotated(15, 0, 0, 1);
                     gl.glBegin(GL2.GL_QUADS);
                     double s = 6;
+                    gl.glNormal3d(0, 0, 1);
                     gl.glTexCoord2d(0, 0);
                     gl.glVertex3d(-s, -s, 0);
+                    gl.glNormal3d(0, 0, 1);
                     gl.glTexCoord2d(1, 0);
                     gl.glVertex3d(s, -s, 0);
+                    gl.glNormal3d(0, 0, 1);
                     gl.glTexCoord2d(1, 1);
                     gl.glVertex3d(s, s, 0);
+                    gl.glNormal3d(0, 0, 1);
                     gl.glTexCoord2d(0, 1);
                     gl.glVertex3d(-s, s, 0);
                     gl.glEnd();
@@ -318,8 +283,7 @@ public class HandfulOfEarth {
 
         Properties prop = new Properties();
 
-        prop.load(
-                new BufferedReader(new FileReader(args[0])));
+        prop.load(new BufferedReader(new FileReader(args[0])));
 
         //for (int i = 0; i < 10; i++) System.out.println(UUID.randomUUID());
         String propKey;
@@ -399,15 +363,6 @@ public class HandfulOfEarth {
             } catch (Exception ex) {
                 Log.error(Language.getText(LanguageMessageKey.CREATING_SERVER_FAILED), ex);
             }
-        }
-
-        propKey = "runeditor";
-
-        if (prop.containsKey(propKey)
-                && prop.getProperty(propKey).toLowerCase().equals("true")) {
-            setLookAndFeel();
-            Editor editor = new Editor();
-            editor.show();
         }
 
     }

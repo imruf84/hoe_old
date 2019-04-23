@@ -2,26 +2,53 @@ package hoe.renderer.shaders;
 
 import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.util.glsl.ShaderUtil;
+import hoe.Log;
 import java.util.HashMap;
 
+/**
+ * Fine examples (bumpnotan...):
+ * http://web.engr.oregonstate.edu/~mjb/glman/Examples/
+ *
+ * Frankó pbr shader processinghez (vannak fények, de normal map pl nincs):
+ * https://github.com/kosowski/SimplePBR/blob/master/data/shaders/pbr/simplepbr.frag
+ *
+ * https://github.com/Nadrin/PBR/blob/master/data/shaders/glsl/pbr_fs.glsl Ez
+ * tűnik a legjobbnak (van benne minden):
+ * https://github.com/Nadrin/PBR/blob/master/data/shaders/glsl/pbr_fs.glsl
+ * https://github.com/mattdesl/lwjgl-basics/wiki/GLSL-Versions
+ */
 abstract public class ShaderBase {
 
-    private final int program;
-    private final int fragmentShader;
+    private int programId;
+    private int fragmentShaderId = -1;
+    private int vertexShaderId = -1;
     private final GL2 gl;
     private final HashMap<String, Integer> parameters = new HashMap<>();
 
     public ShaderBase(GL2 gl) {
         this.gl = gl;
-        fragmentShader = createFragmentShader();
-        program = createProgram(fragmentShader);
+        vertexShaderId = createVertexShader();
+        fragmentShaderId = createFragmentShader();
+        programId = createProgram(vertexShaderId, fragmentShaderId);
         createParameters();
     }
 
     private void createParameters() {
         for (String paramName : getParameterNames()) {
-            int param = gl.glGetUniformLocation(getProgram(), paramName);
+            int param = gl.glGetUniformLocation(getProgramId(), paramName);
             parameters.put(paramName, param);
+        }
+    }
+
+    protected void printShaderInfoLog(int sh) {
+        String shaderInfoLog = ShaderUtil.getShaderInfoLog(gl, sh);
+        for (String e : shaderInfoLog.split("\n")) {
+            if (e.startsWith("ERROR")) {
+                Log.error(new Exception(e));
+            }
+            if (e.startsWith("WARNING")) {
+                Log.warning(e);
+            }
         }
     }
 
@@ -29,8 +56,16 @@ abstract public class ShaderBase {
         return gl;
     }
 
-    public int getProgram() {
-        return program;
+    public int getProgramId() {
+        return programId;
+    }
+
+    public int getFragmentShaderId() {
+        return fragmentShaderId;
+    }
+
+    public int getVertexShaderId() {
+        return vertexShaderId;
     }
 
     public HashMap<String, Integer> getParameters() {
@@ -41,43 +76,89 @@ abstract public class ShaderBase {
         return getParameters().get(name);
     }
 
-    private int createFragmentShader() {
+    private int createShader(int shaderType, int sourceCodeIndex) {
         GL2 lgl = getGl();
-        
-        String fc[] = new String[]{getSourceCode()};
-        int fs = lgl.glCreateShader(GL2.GL_FRAGMENT_SHADER);
-        lgl.glShaderSource(fs, 1, fc, null);
-        lgl.glCompileShader(fs);
-        
-        //System.out.println(ShaderUtil.getShaderInfoLog(gl, fs));
-        
-        return fs;
+
+        String sc = getSourceCodes()[sourceCodeIndex];
+        int sh = -1;
+        if (sc != null) {
+            String fc[] = new String[]{sc};
+            sh = lgl.glCreateShader(shaderType);
+            lgl.glShaderSource(sh, 1, fc, null);
+            lgl.glCompileShader(sh);
+
+            printShaderInfoLog(sh);
+        }
+
+        return sh;
     }
-    
-    private int createProgram(int fs) {
+
+    private int createVertexShader() {
+        return createShader(GL2.GL_VERTEX_SHADER, 0);
+    }
+
+    private int createFragmentShader() {
+        return createShader(GL2.GL_FRAGMENT_SHADER, 1);
+    }
+
+    private int createProgram(int vs, int fs) {
+
+        if (vs == -1 && fs == -1) {
+            return -1;
+        }
 
         GL2 lgl = getGl();
 
-        int lsh = lgl.glCreateProgram();
-        lgl.glAttachShader(lsh, fs);
-        lgl.glLinkProgram(lsh);
-        
-        //System.out.println(ShaderUtil.getShaderInfoLog(gl, lsh));
-        
-        lgl.glValidateProgram(lsh);
+        int pId = lgl.glCreateProgram();
 
-        return lsh;
+        if (vs != -1) {
+            lgl.glAttachShader(pId, vs);
+            lgl.glLinkProgram(pId);
+        }
+
+        if (fs != -1) {
+            lgl.glAttachShader(pId, fs);
+            lgl.glLinkProgram(pId);
+        }
+
+        lgl.glValidateProgram(pId);
+
+        return pId;
     }
 
     public void apply() {
-        getGl().glUseProgram(getProgram());
+        if (getProgramId() == -1) {
+            return;
+        }
+
+        getGl().glUseProgram(getProgramId());
     }
-    
-    public void dispose() {
-        getGl().glDeleteProgram(getProgram());
+
+    public void delete() {
+
+        if (getVertexShaderId() != -1) {
+            getGl().glDeleteShader(getVertexShaderId());
+            return;
+        }
+
+        if (getFragmentShaderId() != -1) {
+            getGl().glDeleteShader(getFragmentShaderId());
+            return;
+        }
+
+        if (getProgramId() != -1) {
+            getGl().glDeleteProgram(getProgramId());
+            programId = -1;
+        }
+    }
+
+    protected String[] getSourceCodes() {
+        return new String[]{getVertexShaderSourceCode(), getFragmentShaderSourceCode()};
     }
 
     abstract protected String[] getParameterNames();
 
-    abstract protected String getSourceCode();
+    abstract protected String getVertexShaderSourceCode();
+
+    abstract protected String getFragmentShaderSourceCode();
 }
