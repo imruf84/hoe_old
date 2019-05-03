@@ -9,6 +9,12 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import org.apache.http.HttpEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 import org.eclipse.jetty.http.HttpStatus;
 
 public class HttpClient {
@@ -26,31 +32,57 @@ public class HttpClient {
     }
 
     public int sendGet(String url, boolean storeResponse) throws MalformedURLException, IOException {
+        /*
+         URL obj = new URL(url);
+         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
 
-        URL obj = new URL(url);
-        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+         con.setRequestMethod("GET");
+         con.setRequestProperty("User-Agent", USER_AGENT);
+         con.setReadTimeout(15 * 1000);
+         con.connect();
 
-        con.setRequestMethod("GET");
-        con.setRequestProperty("User-Agent", USER_AGENT);
+         response = null;
+         StringBuilder r = new StringBuilder();
+         //int rc = con.getResponseCode();
+
+         if (storeResponse) {
+         try (BufferedReader in = new BufferedReader(
+         new InputStreamReader(con.getInputStream()))) {
+         String inputLine;
+         while ((inputLine = in.readLine()) != null) {
+         r.append(inputLine);
+         }
+         response = r.toString();
+         }
+         }
+        
+         int rc = con.getResponseCode();
+
+         con.disconnect();
+        
+         responseCode = rc;
+
+         return rc;*/
 
         response = null;
-        StringBuilder r = new StringBuilder();
-        int rc = con.getResponseCode();
 
-        if (storeResponse) {
-            try (BufferedReader in = new BufferedReader(
-                    new InputStreamReader(con.getInputStream()))) {
-                String inputLine;
-                while ((inputLine = in.readLine()) != null) {
-                    r.append(inputLine);
-                }
-                response = r.toString();
+        CloseableHttpClient httpclient = HttpClients.createDefault();
+        HttpGet httpGet = new HttpGet(url);
+        try (CloseableHttpResponse reps = httpclient.execute(httpGet)) {
+            HttpEntity entity = reps.getEntity();
+
+            if (storeResponse && entity != null) {
+                response = EntityUtils.toString(entity);
+                EntityUtils.consume(entity);
             }
+            
+            responseCode = reps.getStatusLine().getStatusCode();
+            
+            httpGet.releaseConnection();
+            
+            return responseCode;
         }
-
-        responseCode = rc;
-
-        return rc;
+        
     }
 
     public boolean isOk() {

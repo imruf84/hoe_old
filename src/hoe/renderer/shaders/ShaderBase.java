@@ -3,6 +3,10 @@ package hoe.renderer.shaders;
 import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.util.glsl.ShaderUtil;
 import hoe.Log;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.HashMap;
 
 /**
@@ -33,6 +37,23 @@ abstract public class ShaderBase {
         createParameters();
     }
 
+    public static String readSourceCodeAsResource(String path) {
+        InputStream in = ShaderBase.class.getResourceAsStream(path);
+        try (BufferedReader input = new BufferedReader(new InputStreamReader(in))) {
+            StringBuilder result = new StringBuilder();
+            String s;
+            while (null != (s = input.readLine())) {
+                result.append(s).append('\n');
+            }
+            
+            return result.toString();
+        } catch (IOException ex) {
+            Log.error(ex);
+        }
+        
+        return "";
+    }
+    
     private void createParameters() {
         for (String paramName : getParameterNames()) {
             int param = gl.glGetUniformLocation(getProgramId(), paramName);
@@ -48,6 +69,7 @@ abstract public class ShaderBase {
             }
             if (e.startsWith("WARNING")) {
                 Log.warning(e);
+                Log.warning(Log.stackTraceToString(new Exception("Shader compile warning")));
             }
         }
     }

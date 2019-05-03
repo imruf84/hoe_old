@@ -2,6 +2,7 @@ package hoe;
 
 import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.util.gl2.GLUT;
+import fonts.FontUtils;
 import hoe.designer.NetworkDesigner;
 import hoe.servers.GameServer;
 import hoe.editor.Editor;
@@ -40,6 +41,12 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+import org.apache.http.HttpEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 import org.joml.Matrix4d;
 import org.joml.Vector3d;
 
@@ -195,7 +202,9 @@ public class HandfulOfEarth {
     }
 
     /**
-     * NOTE: Correct order to run servers: 1.database 2.redirect 3.minimum one content/render 4.game
+     * NOTE: Correct order to run servers: 1.database 2.redirect 3.minimum one
+     * content/render 4.game
+     * NOTE: enable OGL debug: -Djogl.debug.DebugGL=1
      * @param args arguments
      * @throws Exception exception
      */
@@ -207,14 +216,14 @@ public class HandfulOfEarth {
             designer.setVisible(true);
             return;
         }
-        
+
         if (Arrays.asList(args).contains("-editor") || Arrays.asList(args).contains("-e")) {
             setLookAndFeel();
             Editor editor = new Editor();
             editor.show();
             return;
         }
-        
+
         if (Arrays.asList(args).contains("-shader_editor") || Arrays.asList(args).contains("-se")) {
             setLookAndFeel();
             ShaderEditor editor = new ShaderEditor();
@@ -368,6 +377,8 @@ public class HandfulOfEarth {
     }
 
     public static void setLookAndFeel() {
+        // Betűtípus regisztrálása.
+        FontUtils.registerFont();
         // Téma beállítása.
         javax.swing.plaf.metal.MetalLookAndFeel.setCurrentTheme(new MyMetalTheme());
         // Az ablakkeret az operációs rendszeré szeretnénk, hogy legyen.

@@ -12,6 +12,7 @@ import com.jogamp.opengl.util.gl2.GLUT;
 import hoe.renderer.Camera;
 import hoe.renderer.shaders.ConstantColorShader;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -21,8 +22,11 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.util.LinkedList;
 import javax.swing.JFrame;
+import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
+import javax.swing.border.TitledBorder;
 import org.joml.Vector3d;
 
 public class ShaderEditor implements GLEventListener, MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
@@ -43,6 +47,7 @@ public class ShaderEditor implements GLEventListener, MouseListener, MouseMotion
     private JFrame frame = null;
 
     ConstantColorShader shader = null;
+    private JTextArea logsTextArea;
 
     public ShaderEditor() {
         getCamera().setZoomLimits(1, 10);
@@ -116,13 +121,17 @@ public class ShaderEditor implements GLEventListener, MouseListener, MouseMotion
         final GL2 gl = drawable.getGL().getGL2();
     }
 
-    private void appendLogMessage(String s) {
+    private void appendLogMessageToScreen(String s) {
         SwingUtilities.invokeLater(() -> {
             logMessages.add(s);
             if (logMessages.size() > 10) {
                 logMessages.pop();
             }
         });
+    }
+
+    private void appendLogMessage(String s) {
+        logsTextArea.append(s + "\n");
     }
 
     public final Camera getCamera() {
@@ -168,7 +177,7 @@ public class ShaderEditor implements GLEventListener, MouseListener, MouseMotion
         getCamera().setViewportSize(width, height);
 
         shader = new ConstantColorShader(gl);
-        appendLogMessage("Resized canvas to " + width + "x" + height);
+        appendLogMessageToScreen("Canvas resized to " + width + "x" + height);
     }
 
     public void show() {
@@ -190,19 +199,37 @@ public class ShaderEditor implements GLEventListener, MouseListener, MouseMotion
         //glcanvas.setSize(800, 800);
 
         frame = new JFrame("Shader Editor");
-        JSplitPane splitPlane1 = new JSplitPane();
-        frame.getContentPane().add(splitPlane1);
-        splitPlane1.setLeftComponent(glcanvas);
+        JSplitPane mainSplitPlane = new JSplitPane();
+        frame.getContentPane().add(mainSplitPlane);
+        JSplitPane leftSplitPlane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+        mainSplitPlane.setLeftComponent(leftSplitPlane);
+        leftSplitPlane.setLeftComponent(glcanvas);
+        logsTextArea = new JTextArea();
+        logsTextArea.setEditable(false);
+        logsTextArea.setFont(new Font("Courier New", Font.PLAIN, 14));
+        JScrollPane logsScrollPane = new JScrollPane(logsTextArea);
+        logsScrollPane.setBorder(new TitledBorder("Logs"));
+        leftSplitPlane.setRightComponent(logsScrollPane);
+        leftSplitPlane.setDividerLocation(.5d);
+
+        JSplitPane rightSplitPlane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+        mainSplitPlane.setRightComponent(rightSplitPlane);
+
+        mainSplitPlane.setDividerLocation(.5d);
+
         frame.setSize(frame.getContentPane().getPreferredSize());
         frame.setLocationRelativeTo(null);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+        frame.pack();
         frame.setVisible(true);
         final FPSAnimator animator = new FPSAnimator(glcanvas, 30, true);
 
         animator.start();
 
         glcanvas.requestFocus();
+        appendLogMessage("Test log message");
+        
     }
 
     @Override

@@ -25,6 +25,7 @@ public class TextureShader extends ShaderBase {
     @Override
     protected String getFragmentShaderSourceCode() {
         return ""
+            + "#version 120\n"
             + "uniform sampler2D tex;"
             + "uniform sampler2D tex2;"
             + "void main()"

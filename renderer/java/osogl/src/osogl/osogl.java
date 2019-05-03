@@ -25,7 +25,9 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
+import javax.imageio.ImageIO;
 
 public class osogl {
 
@@ -55,7 +57,7 @@ public class osogl {
         int columnsCount = columns[1] - columns[0] + 1;
 
         BufferedImage result = new BufferedImage(columnsCount * tileSize, rowsCount * tileSize, BufferedImage.TYPE_INT_RGB);
-        ImageViewer iw = showImageInFrame(result);
+//        ImageViewer iw = showImageInFrame(result);
 
         int x = 0;
         int y = 0;
@@ -73,10 +75,10 @@ public class osogl {
                 }
 
                 // Saving tile to file
-                //ImageIO.write(im, "png", new File("images/img_" + column + "_" + row + ".png"));
+                ImageIO.write(im, "png", new File("images/img_" + column + "_" + row + ".png"));
                 // Composing.
                 result.getGraphics().drawImage(im, x, y, null);
-                iw.repaint();
+//                iw.repaint();
                 x += tileSize;
             }
             x = 0;

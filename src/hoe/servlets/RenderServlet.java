@@ -11,6 +11,7 @@ import com.jogamp.opengl.util.awt.AWTGLReadBufferUtil;
 import com.jogamp.opengl.util.gl2.GLUT;
 import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.awt.AWTTextureIO;
+import fonts.FontUtils;
 import hoe.Log;
 import hoe.SceneManager;
 import hoe.editor.TimeElapseMeter;
@@ -21,20 +22,19 @@ import hoe.renderer.shaders.TextureShader;
 import hoe.servers.AbstractServer;
 import java.awt.Color;
 import java.awt.Font;
-import java.awt.FontFormatException;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
-import java.awt.GraphicsEnvironment;
 import java.awt.Image;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.io.InputStream;
 import java.sql.SQLException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.eclipse.jetty.http.HttpStatus;
+import org.joml.Vector3d;
 
 public class RenderServlet extends HttpServletWithApiKeyValidator {
 
@@ -48,6 +48,7 @@ public class RenderServlet extends HttpServletWithApiKeyValidator {
 
     public RenderServlet(AbstractServer server) throws ServletException {
         super(server);
+        FontUtils.registerFont();
     }
 
     public static ShaderManager createShaders(GL2 gl) {
@@ -64,6 +65,8 @@ public class RenderServlet extends HttpServletWithApiKeyValidator {
         GLProfile glp = GLProfile.get(GLProfile.GL2);
         GLCapabilities caps = new GLCapabilities(glp);
         caps.setDepthBits(16);
+        caps.setFBO(false);
+        caps.setHardwareAccelerated(false);
         caps.setOnscreen(false);
 
         GLDrawableFactory factory = GLDrawableFactory.getFactory(glp);
@@ -81,6 +84,8 @@ public class RenderServlet extends HttpServletWithApiKeyValidator {
     @Override
     protected void handleRequest(HttpServletRequest request, HttpServletResponse response, String apiKey, int requestType) throws IOException {
 
+        response.reset();
+        
         TimeElapseMeter timer = new TimeElapseMeter(true);
 
         Thread t = new Thread(() -> {
@@ -117,13 +122,6 @@ public class RenderServlet extends HttpServletWithApiKeyValidator {
                         }
                         if (RENDER_TILE_INFORMATION) {
                             g.setColor(Color.white);
-                            try (InputStream mainFontIn = getClass().getClassLoader().getResourceAsStream("fonts/cour.ttf")) {
-                                Font mainFont = Font.createFont(Font.TRUETYPE_FONT, mainFontIn);
-                                GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-                                ge.registerFont(mainFont);
-                            } catch (IOException | FontFormatException e) {
-                                Log.error(e);
-                            }
 
                             int fontSize = 100;
                             g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -153,8 +151,6 @@ public class RenderServlet extends HttpServletWithApiKeyValidator {
                 }
             } catch (SQLException ex) {
                 Log.error(ex);
-
-                response.reset();
                 response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             }
 
@@ -162,8 +158,8 @@ public class RenderServlet extends HttpServletWithApiKeyValidator {
         });
         t.start();
 
-        response.reset();
-        response.setStatus(HttpServletResponse.SC_OK);
+        response.setStatus(HttpStatus.OK_200);
+        response.getWriter().append("OK");
     }
 
     public static BufferedImage multisampleImage(BufferedImage image, int size) {
@@ -227,11 +223,8 @@ public class RenderServlet extends HttpServletWithApiKeyValidator {
     }
 
     public static void renderScene(GL2 gl, GLU glu, GLUT glut, ShaderManager shaders, long turn, long frame) {
-
+/*
         // Rendering.
-        // Rendering.
-                    /*ConstantColorShader colorShader = new ConstantColorShader(gl);
-         colorShader.apply(0, 0, 1, 1);*/
         String vc[] = new String[]{""
             + "varying vec3 N;"
             + "varying vec3 v;"
@@ -243,14 +236,15 @@ public class RenderServlet extends HttpServletWithApiKeyValidator {
             + "}"};
 
         String fc[] = new String[]{""
+            + "#version 120\n"
             + "varying vec3 N;"
             + "varying vec3 v;"
             + ""
-            + "const vec3 lightPos = vec3(10, 10, 40);"
-            + "const vec4 ambientColor = vec4(vec3(1,0,0)*.1, 1);"
-            + "const vec4 diffuseColor = vec4(vec3(1,0,0)*.6, 1);"
-            + "const vec4 specColor = vec4(vec3(1)*1, 1);"
-            + "const float shininess = 10;"
+            + "vec3 lightPos = vec3(10, 10, 40);"
+            + "vec4 ambientColor = vec4(vec3(1,0,0)*.1, 1);"
+            + "vec4 diffuseColor = vec4(vec3(1,0,0)*.6, 1);"
+            + "vec4 specColor = vec4(vec3(1)*1, 1);"
+            + "float shininess = 10;"
             + ""
             + "void main (void)"
             + "{"
@@ -277,19 +271,24 @@ public class RenderServlet extends HttpServletWithApiKeyValidator {
         int fs = gl.glCreateShader(GL2.GL_FRAGMENT_SHADER);
         gl.glShaderSource(fs, 1, fc, null);
         gl.glCompileShader(fs);
-        
+
         int progID = gl.glCreateProgram();
         gl.glAttachShader(progID, fs);
         gl.glAttachShader(progID, vs);
         gl.glLinkProgram(progID);
         gl.glValidateProgram(progID);
         gl.glUseProgram(progID);
+        */
+        
+        //((ConstantColorShader)shaders.get(ShaderManager.CONSTANT_COLOR_SHADER)).apply(0, 0, 1, 1);
+        ((PhongShader)shaders.get(ShaderManager.PHONG_SHADER)).apply(new Vector3d(1, 1, 1));
+        
         gl.glPushMatrix();
 
         gl.glTranslated(0, 0, 1.5);
-        gl.glRotated(turn*15, 0, 0, 1);
+        gl.glRotated(turn * 15, 0, 0, 1);
         glut.glutSolidTeapot(3, false);
-                    //glut.glutSolidSphere(3, 30, 30);
+        //glut.glutSolidSphere(3, 30, 30);
         //glut.glutSolidTorus(1, 3, 40, 40);
         gl.glPopMatrix();
 

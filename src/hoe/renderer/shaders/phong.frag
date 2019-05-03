@@ -1,38 +1,27 @@
-// https://github.com/mattdesl/lwjgl-basics/wiki/GLSL-Versions
+#version 120
 
-varying vec3 V;
 varying vec3 N;
+varying vec3 v;
 
-uniform vec3 lightPosition;
-uniform vec4 lightAmbientColor;
-uniform vec4 lightDiffuseColor;
-uniform vec4 lightSpecularColor;
-uniform vec4 materialAmbientColor;
-uniform vec4 materialDiffuseColor;
-uniform vec4 materialSpecularColor;
-uniform float materialShininess;
+vec3 lightPos = vec3(10, 10, 40);
+vec4 ambientColor = vec4(vec3(1,0,0)*.1, 1);
+vec4 diffuseColor = vec4(vec3(1,0,0)*.6, 1);
+vec4 specColor = vec4(vec3(1)*1, 1);
+float shininess = 10;
 
-void main()
+void main (void)
 {
-  vec3 L = normalize(lightPosition - V);
-  vec3 E = normalize(-V);
+  vec3 L = normalize(lightPos - v);
+  vec3 E = normalize(-v);
   vec3 R = normalize(-reflect(L,N));
 
-  float intSpec = 0;
-  float intDiff = max(dot(N,L), 0.0);
-  if (intDiff > 0.0) {
+  vec4 spec = vec4(0);
+  float intensity = max(dot(N,L), 0.0);
+  if (intensity > 0.0) {
     vec3 H = normalize(L + E);
-    intSpec = pow(max(dot(H,N), 0.0), materialShininess);
+    float intSpec = max(dot(H,N), 0.0);
+    spec = specColor * pow(intSpec, shininess);
   }
 
-  vec3 mdc = vec3(materialDiffuseColor)*materialDiffuseColor.w;
-  vec3 msc = vec3(materialSpecularColor)*materialSpecularColor.w;
-  vec3 mac = vec3(materialAmbientColor)*materialAmbientColor.w;
-
-  vec3 ldc = vec3(lightDiffuseColor)*lightDiffuseColor.w;
-  vec3 lsc = vec3(lightSpecularColor)*lightSpecularColor.w;
-  vec3 lac = vec3(lightAmbientColor)*lightAmbientColor.w;
-
-  gl_FragColor = vec4(intDiff * ldc*mdc+intSpec*lsc*msc+mac*lac,1);
-
+  gl_FragColor = max(intensity * diffuseColor + spec, ambientColor);
 }

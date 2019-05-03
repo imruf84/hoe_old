@@ -21,25 +21,12 @@ public class PhongShader extends ShaderBase {
 
     @Override
     protected String getVertexShaderSourceCode() {
-        InputStream in = getClass().getResourceAsStream("/hoe/renderer/shaders/phong.vert");
-        try (BufferedReader input = new BufferedReader(new InputStreamReader(in))) {
-            StringBuilder result = new StringBuilder();
-            String s;
-            while (null != (s = input.readLine())) {
-                result.append(s);
-            }
-            
-            return result.toString();
-        } catch (IOException ex) {
-            Log.error(ex);
-        }
-        
-        return "";
+        return ShaderBase.readSourceCodeAsResource("/hoe/renderer/shaders/phong.vert");
     }
 
     @Override
     protected String getFragmentShaderSourceCode() {
-        return "";
+        return ShaderBase.readSourceCodeAsResource("/hoe/renderer/shaders/phong.frag");
     }
 
     public void apply(Vector3d dir) {
