@@ -1,0 +1,15 @@
+http://www.linuxfromscratch.org/blfs/view/svn/x/mesa.html
+
+wget https://mesa.freedesktop.org/archive/mesa-19.0.3.tar.xz
+apt install zlib1g zlib1g-dev x11proto-gl-dev libdrm-dev x11proto-dri2-dev libxext-dev libxdamage-dev libx11-xcb-dev libxcb-glx0-dev libxcb-dri2-0-dev libxxf86vm-dev libxcb-xfixes0-dev 
+libxcb-dri3-dev libxcb-present-dev libxcb-sync-dev libxshmfence-dev libxrandr-dev libexpat1-dev llvm-3.9 libelf-dev 
+ln -s /usr/bin/llvm-config-3.9 /usr/bin/llvm-config
+./configure  --enable-autotools --enable-llvm
+make
+make install
+ldconfig
+apt install mesa-utils
+glxinfo | grep "OpenGL version"
+
+csak infó
+https://cgit.freedesktop.org/xcb

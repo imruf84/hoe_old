@@ -2,6 +2,7 @@ package hoe;
 
 import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.util.gl2.GLUT;
+import com.sun.management.HotSpotDiagnosticMXBean;
 import fonts.FontUtils;
 import hoe.designer.NetworkDesigner;
 import hoe.servers.GameServer;
@@ -33,9 +34,12 @@ import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.IOException;
+import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Properties;
+import javax.management.MBeanServer;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -203,13 +207,17 @@ public class HandfulOfEarth {
 
     /**
      * NOTE: Correct order to run servers: 1.database 2.redirect 3.minimum one
-     * content/render 4.game
-     * NOTE: enable OGL debug: -Djogl.debug.DebugGL=1
+     * content/render 4.game NOTE: enable OGL debug: -Djogl.debug.DebugGL=1
+     *
      * @param args arguments
      * @throws Exception exception
      */
     public static void main(String[] args) throws Exception {
 
+        if (Arrays.asList(args).contains("-heap")) {
+            dumpHeap("heap.hprof", false);
+        }
+        
         if (Arrays.asList(args).contains("-network_designer") || Arrays.asList(args).contains("-nd")) {
             setLookAndFeel();
             NetworkDesigner designer = new NetworkDesigner();
@@ -366,7 +374,7 @@ public class HandfulOfEarth {
                 int port = Integer.parseInt(prop.getProperty("gameserverport"));
                 GameServer server = new GameServer(ip, port);
                 server.setRedirectServerUrl(prop.getProperty("redirectserverurl"));
-                SceneManager.generate();
+//                SceneManager.generate();
                 server.start();
 
             } catch (Exception ex) {
@@ -392,4 +400,10 @@ public class HandfulOfEarth {
         UIManager.put("ProgressBar.selectionBackground", javafx.scene.paint.Color.BLACK);
     }
 
+    public static void dumpHeap(String filePath, boolean live) throws IOException {
+        MBeanServer server = ManagementFactory.getPlatformMBeanServer();
+        HotSpotDiagnosticMXBean mxBean = ManagementFactory.newPlatformMXBeanProxy(
+                server, "com.sun.management:type=HotSpotDiagnostic", HotSpotDiagnosticMXBean.class);
+        mxBean.dumpHeap(filePath, live);
+    }
 }

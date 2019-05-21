@@ -1,11 +1,6 @@
 package hoe.renderer.shaders;
 
 import com.jogamp.opengl.GL2;
-import hoe.Log;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import org.joml.Vector3d;
 
 public class PhongShader extends ShaderBase {

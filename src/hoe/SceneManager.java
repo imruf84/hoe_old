@@ -45,7 +45,8 @@ public class SceneManager {
 
         byte[] imageByteArray = null;
         if (image != null) {
-            imageByteArray = Compression.compress(Compression.imageToByteArray(image));
+            //imageByteArray = Compression.compress(Compression.imageToByteArray(image));
+            imageByteArray = Compression.imageToByteArray(image);
         }
         getSceneDataBase().updateTile(turn, frame, x, y, imageByteArray, renderTime);
     }
@@ -54,7 +55,8 @@ public class SceneManager {
 
         byte[] imageByteArray = null;
         if (image != null) {
-            imageByteArray = Compression.compress(Compression.imageToByteArray(image));
+            //imageByteArray = Compression.compress(Compression.imageToByteArray(image));
+            imageByteArray = Compression.imageToByteArray(image);
         }
         getSceneDataBase().storeTile(turn, frame, x, y, imageByteArray);
     }
@@ -67,7 +69,8 @@ public class SceneManager {
             return null;
         }
 
-        return Compression.byteArrayToImage(Compression.decompress(imageByteArray));
+        //return Compression.byteArrayToImage(Compression.decompress(imageByteArray));
+        return Compression.byteArrayToImage(imageByteArray);
     }
     
     public static long getRenderTimeAvg(long turn) throws SQLException {

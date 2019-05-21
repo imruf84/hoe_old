@@ -17,7 +17,8 @@ public class OfflineRendererWindow extends ImageViewer {
         
         this.render = render;
 
-        GL2 gl = RenderServlet.initGL(tileSize, multisample);
+        RenderServlet.GLContext glContext = RenderServlet.initGL(tileSize, multisample);
+        GL2 gl = glContext.gl;
         GLU glu = new GLU();
         GLUT glut = new GLUT();
         ShaderManager shaders = RenderServlet.createShaders(gl);
@@ -53,6 +54,8 @@ public class OfflineRendererWindow extends ImageViewer {
             x = 0;
             y += tileSize;
         }
+        
+        glContext.drawable.destroy();
     }
 
     public final RenderCallback getRender() {

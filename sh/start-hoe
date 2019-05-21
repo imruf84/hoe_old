@@ -1,0 +1,10 @@
+#!/bin/sh
+
+# copy this file to /etc/network/if-up.d
+
+cd /root/hoe/
+pkill wavemon
+wavemon &
+. sh/create_virtual_buffer.sh
+pkill java
+java -jar bin/hoe.jar presets/all_in_one.preset > hoe.log 2>&1 &

@@ -17,6 +17,7 @@ import hoe.SceneManager;
 import hoe.editor.TimeElapseMeter;
 import hoe.renderer.shaders.ConstantColorShader;
 import hoe.renderer.shaders.PhongShader;
+import hoe.renderer.shaders.ShaderBase;
 import hoe.renderer.shaders.ShaderManager;
 import hoe.renderer.shaders.TextureShader;
 import hoe.servers.AbstractServer;
@@ -37,6 +38,17 @@ import org.eclipse.jetty.http.HttpStatus;
 import org.joml.Vector3d;
 
 public class RenderServlet extends HttpServletWithApiKeyValidator {
+
+    public static class GLContext {
+
+        public GL2 gl;
+        public GLOffscreenAutoDrawable drawable;
+
+        public GLContext(GL2 gl, GLOffscreenAutoDrawable drawable) {
+            this.gl = gl;
+            this.drawable = drawable;
+        }
+    }
 
     public static final int TILE_MULTISAMPLE = 1;
     public static final int TILE_SIZE = 500;
@@ -60,7 +72,7 @@ public class RenderServlet extends HttpServletWithApiKeyValidator {
         return shaders;
     }
 
-    public static GL2 initGL(int tileSize, int multisample) {
+    public static GLContext initGL(int tileSize, int multisample) {
         int size = tileSize * multisample;
         GLProfile glp = GLProfile.get(GLProfile.GL2);
         GLCapabilities caps = new GLCapabilities(glp);
@@ -78,14 +90,14 @@ public class RenderServlet extends HttpServletWithApiKeyValidator {
 
         gl.glViewport(0, 0, size, size);
 
-        return gl;
+        return new GLContext(gl, drawable);
     }
 
     @Override
     protected void handleRequest(HttpServletRequest request, HttpServletResponse response, String apiKey, int requestType) throws IOException {
 
         response.reset();
-        
+
         TimeElapseMeter timer = new TimeElapseMeter(true);
 
         Thread t = new Thread(() -> {
@@ -93,7 +105,8 @@ public class RenderServlet extends HttpServletWithApiKeyValidator {
 
             Log.debug("Rendering tiles...");
 
-            GL2 gl = initGL(TILE_SIZE, TILE_MULTISAMPLE);
+            GLContext glContext = initGL(TILE_SIZE, TILE_MULTISAMPLE);
+            GL2 gl = glContext.gl;
             GLU glu = new GLU();
             GLUT glut = new GLUT();
             ShaderManager shaders = createShaders(gl);
@@ -153,6 +166,9 @@ public class RenderServlet extends HttpServletWithApiKeyValidator {
                 Log.error(ex);
                 response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             }
+
+            shaders.destroyShaders(gl);
+//            glContext.drawable.destroy();
 
             Log.debug("Rendering tiles [" + getServer().getIp() + ":" + getServer().getPort() + "] has been finished [it took " + timer.stopAndGetFormat() + "].");
         });
@@ -223,66 +239,11 @@ public class RenderServlet extends HttpServletWithApiKeyValidator {
     }
 
     public static void renderScene(GL2 gl, GLU glu, GLUT glut, ShaderManager shaders, long turn, long frame) {
-/*
+
         // Rendering.
-        String vc[] = new String[]{""
-            + "varying vec3 N;"
-            + "varying vec3 v;"
-            + "void main(void)"
-            + "{"
-            + "   v = vec3(gl_ModelViewMatrix * gl_Vertex);"
-            + "   N = normalize(gl_NormalMatrix * gl_Normal);"
-            + "   gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;"
-            + "}"};
-
-        String fc[] = new String[]{""
-            + "#version 120\n"
-            + "varying vec3 N;"
-            + "varying vec3 v;"
-            + ""
-            + "vec3 lightPos = vec3(10, 10, 40);"
-            + "vec4 ambientColor = vec4(vec3(1,0,0)*.1, 1);"
-            + "vec4 diffuseColor = vec4(vec3(1,0,0)*.6, 1);"
-            + "vec4 specColor = vec4(vec3(1)*1, 1);"
-            + "float shininess = 10;"
-            + ""
-            + "void main (void)"
-            + "{"
-            + "   vec3 L = normalize(lightPos - v);"
-            + "   vec3 E = normalize(-v);"
-            + "   vec3 R = normalize(-reflect(L,N));"
-            + ""
-            + "    vec4 spec = vec4(0);"
-            + "    float intensity = max(dot(N,L), 0.0);"
-            + "    if (intensity > 0.0) {"
-            + "        vec3 H = normalize(L + E);"
-            + "        float intSpec = max(dot(H,N), 0.0);"
-            + "        spec = specColor * pow(intSpec, shininess);"
-            + "    }"
-            + " "
-            + "    gl_FragColor = max(intensity * diffuseColor + spec, ambientColor);"
-            + "}"};
-
-        int vs = gl.glCreateShader(GL2.GL_VERTEX_SHADER);
-
-        gl.glShaderSource(vs, 1, vc, null);
-        gl.glCompileShader(vs);
-
-        int fs = gl.glCreateShader(GL2.GL_FRAGMENT_SHADER);
-        gl.glShaderSource(fs, 1, fc, null);
-        gl.glCompileShader(fs);
-
-        int progID = gl.glCreateProgram();
-        gl.glAttachShader(progID, fs);
-        gl.glAttachShader(progID, vs);
-        gl.glLinkProgram(progID);
-        gl.glValidateProgram(progID);
-        gl.glUseProgram(progID);
-        */
-        
         //((ConstantColorShader)shaders.get(ShaderManager.CONSTANT_COLOR_SHADER)).apply(0, 0, 1, 1);
-        ((PhongShader)shaders.get(ShaderManager.PHONG_SHADER)).apply(new Vector3d(1, 1, 1));
-        
+        ((PhongShader) shaders.get(ShaderManager.PHONG_SHADER)).apply(new Vector3d(1, 1, 1));
+
         gl.glPushMatrix();
 
         gl.glTranslated(0, 0, 1.5);
@@ -316,6 +277,8 @@ public class RenderServlet extends HttpServletWithApiKeyValidator {
         gl.glEnd();
         gl.glPopMatrix();
 
+        texture.destroy(gl);
+        texture2.destroy(gl);
     }
 
     public static Texture createCheckerTexture(GL2 gl, int textureSize, int squareCount, Color color1, Color color2) {

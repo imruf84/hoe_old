@@ -11,7 +11,6 @@ import hoe.servers.RedirectServer;
 import hoe.servers.RenderServer;
 import hoe.servers.SubscribeRequest;
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.http.HttpStatus;
@@ -47,24 +46,11 @@ public class RedirectServlet extends HttpServletWithEncryption {
                     HttpClient client = new HttpClient();
                     try {
                         int statusCode = client.sendGet(renderUrl, true);
-                        Log.debug("Response for [" + renderUrl + "] is [" + statusCode + "]: " + client.getResponse());
+                        Log.debug("Response from [" + renderUrl + "] is [" + statusCode + "]: " + client.getResponse());
                     } catch (IOException ex) {
                         Log.warning(ex.getLocalizedMessage());
                     }
 
-                    /*while (!client.isOk()) {
-                     try {
-                     client.sendGet(renderUrl);
-                     } catch (IOException ex) {
-                     Log.warning(ex.getLocalizedMessage());
-                     } finally {
-                     try {
-                     TimeUnit.SECONDS.sleep(1);
-                     } catch (InterruptedException ex) {
-                     Log.error(ex);
-                     }
-                     }
-                     }*/
                     Log.debug("Renderig request has been sent successfully [" + renderUrl + "].");
                 }
 

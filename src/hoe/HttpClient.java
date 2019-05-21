@@ -32,37 +32,6 @@ public class HttpClient {
     }
 
     public int sendGet(String url, boolean storeResponse) throws MalformedURLException, IOException {
-        /*
-         URL obj = new URL(url);
-         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-
-         con.setRequestMethod("GET");
-         con.setRequestProperty("User-Agent", USER_AGENT);
-         con.setReadTimeout(15 * 1000);
-         con.connect();
-
-         response = null;
-         StringBuilder r = new StringBuilder();
-         //int rc = con.getResponseCode();
-
-         if (storeResponse) {
-         try (BufferedReader in = new BufferedReader(
-         new InputStreamReader(con.getInputStream()))) {
-         String inputLine;
-         while ((inputLine = in.readLine()) != null) {
-         r.append(inputLine);
-         }
-         response = r.toString();
-         }
-         }
-        
-         int rc = con.getResponseCode();
-
-         con.disconnect();
-        
-         responseCode = rc;
-
-         return rc;*/
 
         response = null;
 

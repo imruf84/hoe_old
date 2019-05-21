@@ -196,7 +196,6 @@ public class ShaderEditor implements GLEventListener, MouseListener, MouseMotion
         glcanvas.addKeyListener(render);
         glcanvas.setMinimumSize(new Dimension(100, 100));
         glcanvas.setPreferredSize(new Dimension(800, 800));
-        //glcanvas.setSize(800, 800);
 
         frame = new JFrame("Shader Editor");
         JSplitPane mainSplitPlane = new JSplitPane();

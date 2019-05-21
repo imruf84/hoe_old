@@ -3,6 +3,8 @@ nanopi neo air-on nem lehet telepíteni, helyette ez kell:
 
 sudo apt-get install openjdk-8-jdk
 
+Elvleg ezzel lehet oracle jdk-t telepíteni
+https://www.linuxuprising.com/2019/02/install-any-oracle-java-jdk-version-in.html
 
 
 Oracle java 8:
